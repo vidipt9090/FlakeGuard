@@ -17,6 +17,7 @@ dev = [
     "pydantic",
     "pandas",
     "pyarrow",
+    "jedi",
 ]
 
 [tool.setuptools.packages.find]
@@ -33,3 +34,6 @@ ignore = []
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# tests/data holds sample projects that the navigator parses. They look like
+# tests but must never be collected as ours.
+norecursedirs = ["tests/data"]
