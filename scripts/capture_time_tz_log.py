@@ -15,7 +15,6 @@ def capture_log():
         try:
             assert shop.greeting(datetime.now()) == "Good day"
         except AssertionError:
-            now_str = datetime.now()
             return "FAILED synthetic/tests/test_time_tz.py::test_greeting_is_day\nAssertionError: assert 'Good night' == 'Good day'\n + where 'Good night' = greeting(datetime.datetime(2026, 10, 3, 23, 0, 0))"
 
     log = run_night_test()
