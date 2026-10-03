@@ -25,3 +25,17 @@ class TestRegistry:
     def test_register(self):
         shop.register("apple")
         assert "apple" in shop._registry
+
+
+class ShopTestMixin:
+    """Holds the test body; the concrete class below inherits it.
+
+    pytest reports the id under TestViaMixin, not under this class.
+    """
+
+    def test_total_via_mixin(self):
+        assert shop.total([1.0, 2.0]) is not None
+
+
+class TestViaMixin(ShopTestMixin):
+    pass

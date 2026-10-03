@@ -76,6 +76,18 @@ def test_handles_a_test_inside_a_class(nav):
     assert "def register(" in texts(result.code_under_test)
 
 
+def test_finds_a_test_inherited_from_a_mixin(nav):
+    """pytest reports an inherited test under the concrete class.
+
+    The body lives in the base, so looking only in the named class finds
+    nothing. Caught by the held-out gold set: three of its eight tests
+    scored zero on every metric because of this, and cachetools puts 23
+    tests in CacheTestMixin alone.
+    """
+    result = nav.related("tests/test_shop.py::TestViaMixin::test_total_via_mixin")
+    assert "def total(" in texts(result.code_under_test)
+
+
 # -------------------------------------------------------------- fixtures
 
 

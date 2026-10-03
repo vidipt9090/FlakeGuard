@@ -146,7 +146,18 @@ class AstNavigator:
         for name in chain:
             node = _find_named(scope, name)
             if node is None:
-                raise ValueError(f"{name!r} not found in {rel_path}")
+                # pytest reports an inherited test under the concrete class,
+                # but the body lives in the base. cachetools puts 23 tests in
+                # CacheTestMixin alone, so this is the common case, not an
+                # edge case: without it those ids resolve to nothing.
+                inherited = (
+                    self._find_inherited(cls, path, source, name)
+                    if cls is not None
+                    else None
+                )
+                if inherited is None:
+                    raise ValueError(f"{name!r} not found in {rel_path}")
+                path, source, tree, node, cls = inherited
             if isinstance(node, ast.ClassDef):
                 cls = node
                 scope = list(node.body)
@@ -162,6 +173,62 @@ class AstNavigator:
             raise ValueError(f"no test function in {test_id}")
 
         return _Target(path, rel_path, source, tree, func, cls)
+
+    def _find_inherited(
+        self, cls: ast.ClassDef, path: Path, source: str, name: str, depth: int = 0
+    ):
+        """Look for a method in the base classes of ``cls``, depth first.
+
+        Returns (path, source, tree, func, cls) for the base that defines it,
+        because the rest of navigation has to run against the file the body
+        actually lives in, not the file the test id names.
+        """
+        if depth > 3:  # cachetools nests two deep; three is slack, not a limit
+            return None
+        script = jedi.Script(code=source, path=str(path), project=self.project)
+        for base in cls.bases:
+            point = _name_position(base)
+            if point is None:
+                continue
+            try:
+                definitions = script.goto(*point, follow_imports=True)
+            except Exception:
+                continue
+            for defn in definitions:
+                if defn.module_path is None:
+                    continue
+                base_path = Path(defn.module_path).resolve()
+                if not _is_within(base_path, self.repo_root):
+                    continue  # unittest.TestCase and friends
+                if base_path.suffix == ".pyi":
+                    continue
+                start = defn.get_definition_start_position()
+                if start is None:
+                    continue
+                try:
+                    base_source = self._read(base_path)
+                    base_tree = ast.parse(base_source, filename=str(base_path))
+                except (OSError, SyntaxError):
+                    continue
+                base_cls = next(
+                    (
+                        n
+                        for n in ast.walk(base_tree)
+                        if isinstance(n, ast.ClassDef) and n.lineno == start[0]
+                    ),
+                    None,
+                )
+                if base_cls is None:
+                    continue
+                found = _find_named(list(base_cls.body), name)
+                if found is not None and not isinstance(found, ast.ClassDef):
+                    return base_path, base_source, base_tree, found, base_cls
+                deeper = self._find_inherited(
+                    base_cls, base_path, base_source, name, depth + 1
+                )
+                if deeper is not None:
+                    return deeper
+        return None
 
     # ------------------------------------------------------- code under test
 

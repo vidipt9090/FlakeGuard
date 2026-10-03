@@ -93,10 +93,16 @@ Concretely, for the same test:
 | flag `time.sleep`, `random.`, `threading.` in reachable code | grep, unranked, whole repo | yes, scoped to this test |
 | output shaped as `NavResult` chunks for an LLM bundle | no | yes, that is the contract |
 
-Measured end to end on the 10-test gold set: precision 1.00, recall 0.86,
-correct answer in the top 3 for 10 of 10, median 0.18 s per test. See
-`nav-results.md`, including why the precision number should be read as an upper
-bound.
+Measured end to end on a **held-out** set of 8 tests the navigator was never
+built against: precision 0.58, recall 0.38, F1 0.46, correct answer in the top
+3 for 8 of 8, median 0.18 s per test. On the 10 tests it *was* tuned against it
+scores 1.00 / 0.86, which is why that number is not the one quoted here. See
+`nav-results.md` for both, the protocol, and the bug the held-out set caught.
+
+The capability table above is about what each tool can express, not about
+accuracy. A row marked "yes" means the navigator attempts it and the output
+shape supports it, not that it succeeds every time — recall 0.38 says plainly
+that it often does not.
 
 ## Honest limits of this comparison
 
