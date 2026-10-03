@@ -1,0 +1,52 @@
+{
+  "synthetic/tests/test_order_dep.py::test_a_register": {
+    "label": "stable",
+    "root_cause": "none",
+    "source": "injected"
+  },
+  "synthetic/tests/test_order_dep.py::test_b_needs_registered": {
+    "label": "flaky",
+    "root_cause": "order_dep",
+    "source": "injected"
+  },
+  "synthetic/tests/test_shared_state.py::test_expects_cache": {
+    "label": "flaky",
+    "root_cause": "shared_state",
+    "source": "injected"
+  },
+  "synthetic/tests/test_shared_state.py::test_pollutes_cache": {
+    "label": "stable",
+    "root_cause": "none",
+    "source": "injected"
+  },
+  "synthetic/tests/test_timing.py::test_job_finishes": {
+    "label": "flaky",
+    "root_cause": "timing",
+    "source": "injected"
+  },
+  "synthetic/tests/test_randomness.py::test_discount_is_small": {
+    "label": "flaky",
+    "root_cause": "randomness",
+    "source": "injected"
+  },
+  "synthetic/tests/test_time_tz.py::test_greeting_is_day": {
+    "label": "flaky",
+    "root_cause": "time_tz",
+    "source": "injected"
+  },
+  "synthetic/tests/test_real_failures.py::test_rounding": {
+    "label": "real_fail",
+    "root_cause": "none",
+    "source": "injected"
+  },
+  "synthetic/tests/test_real_failures.py::test_negative_qty_rejected": {
+    "label": "real_fail",
+    "root_cause": "none",
+    "source": "injected"
+  },
+  "synthetic/tests/test_stable.py::test_sum": {
+    "label": "stable",
+    "root_cause": "none",
+    "source": "injected"
+  }
+}
