@@ -1,0 +1,116 @@
+{
+  "repo": "cachetools",
+  "sha": "3c082c654c2804b9354e4b62dbd2994f1aac464d",
+  "labelled_by": "B",
+  "labelled_on": "2026-10-03",
+  "method": [
+    "Read each test body by hand and record the definitions whose behaviour the",
+    "test asserts on. Production code and test-local helper classes both count,",
+    "because both are genuinely exercised. The test function itself and its own",
+    "TestCase class do not count.",
+    "Entries the navigator is expected to miss are kept in. Removing them would",
+    "inflate recall and hide the real limits of name-based resolution."
+  ],
+  "match_rule": "a predicted chunk matches a gold entry when the path is equal and the gold start_line falls inside the predicted line span",
+  "tests": [
+    {
+      "test_id": "tests/test_lru.py::LRUCacheTest::test_lru",
+      "code_under_test": [
+        {"path": "src/cachetools/__init__.py", "start_line": 287, "name": "LRUCache"}
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": []
+    },
+    {
+      "test_id": "tests/test_lfu.py::LFUCacheTest::test_lfu",
+      "code_under_test": [
+        {"path": "src/cachetools/__init__.py", "start_line": 203, "name": "LFUCache"}
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": []
+    },
+    {
+      "test_id": "tests/test_fifo.py::FIFOCacheTest::test_fifo",
+      "code_under_test": [
+        {"path": "src/cachetools/__init__.py", "start_line": 171, "name": "FIFOCache"}
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": []
+    },
+    {
+      "test_id": "tests/test_rr.py::RRCacheTest::test_rr",
+      "code_under_test": [
+        {"path": "src/cachetools/__init__.py", "start_line": 329, "name": "RRCache"}
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": ["random."]
+    },
+    {
+      "test_id": "tests/test_rr.py::RRCacheTest::test_rr_bad_choice",
+      "code_under_test": [
+        {"path": "src/cachetools/__init__.py", "start_line": 329, "name": "RRCache"}
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": ["random."]
+    },
+    {
+      "test_id": "tests/test_ttl.py::TTLCacheTest::test_ttl",
+      "code_under_test": [
+        {"path": "src/cachetools/__init__.py", "start_line": 451, "name": "TTLCache"},
+        {"path": "src/cachetools/__init__.py", "start_line": 373, "name": "_TimedCache"}
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": ["time.monotonic"]
+    },
+    {
+      "test_id": "tests/test_tlru.py::TLRUCacheTest::test_ttu",
+      "code_under_test": [
+        {"path": "src/cachetools/__init__.py", "start_line": 592, "name": "TLRUCache"},
+        {"path": "src/cachetools/__init__.py", "start_line": 373, "name": "_TimedCache"},
+        {"path": "tests/test_tlru.py", "start_line": 13, "name": "Timer"}
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": ["time.monotonic"]
+    },
+    {
+      "test_id": "tests/test_keys.py::CacheKeysTest::test_hashkey",
+      "code_under_test": [
+        {"path": "src/cachetools/keys.py", "start_line": 37, "name": "hashkey"},
+        {"path": "src/cachetools/keys.py", "start_line": 6, "name": "_HashedTuple"}
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": []
+    },
+    {
+      "test_id": "tests/test_keys.py::CacheKeysTest::test_typedkey",
+      "code_under_test": [
+        {"path": "src/cachetools/keys.py", "start_line": 51, "name": "typedkey"},
+        {"path": "src/cachetools/keys.py", "start_line": 6, "name": "_HashedTuple"}
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": []
+    },
+    {
+      "test_id": "tests/test_threading.py::ThreadingTest::test_cached_stampede",
+      "code_under_test": [
+        {"path": "tests/test_threading.py", "start_line": 12, "name": "func"},
+        {"path": "src/cachetools/__init__.py", "start_line": 738, "name": "cached"},
+        {"path": "src/cachetools/_cached.py", "start_line": 14, "name": "_condition_info"}
+      ],
+      "fixtures": [],
+      "shared_state": [
+        {"path": "tests/test_threading.py", "start_line": 8, "name": "count"}
+      ],
+      "expected_smells": ["threading.", "time.sleep"]
+    }
+  ]
+}

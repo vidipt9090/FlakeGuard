@@ -1,0 +1,411 @@
+{
+  "repo": "itsdangerous",
+  "sha": "096c8d42545d3b68ea21a4f890fb2b2d8979c0bd",
+  "ref": "2.2.0",
+  "labelled_by": "B",
+  "labelled_on": "2026-10-03",
+  "revision": "set 3, second repository",
+  "protocol": [
+    "Third gold set, and the first on a repository other than cachetools.",
+    "Set 1 (nav-gold.json) is fitted: the navigator was tuned on it and its",
+    "labels were revised after seeing output. Set 2 (nav-gold-heldout.json)",
+    "was blind for exactly one run, then spent, because a bug found with it",
+    "was fixed. Neither can measure generalisation any more.",
+    "Rules followed here:",
+    "1. A different repository, so nothing about cachetools' structure can",
+    "   leak in. itsdangerous is pytest-style with real fixtures, which",
+    "   cachetools has none of, so the fixture path is measured for the first",
+    "   time against real code.",
+    "2. Tests drawn only from test_encoding.py, test_serializer.py,",
+    "   test_timed.py and test_url_safe.py. test_signer.py is deliberately",
+    "   EXCLUDED: it was used as the worked example while adding fixture",
+    "   support, so its output has been seen.",
+    "3. Labels written from source alone. The navigator was not run on any id",
+    "   in this file before the labels were written.",
+    "4. Committed before the first scoring run.",
+    "5. Whatever the result is, it is reported, and no label is edited after."
+  ],
+  "known_residual_bias": [
+    "The fixture-resolution code was written while reading this repository's",
+    "test files, because that is where class-scoped fixtures, autouse",
+    "fixtures, fixture-to-fixture dependencies and cross-module test-class",
+    "inheritance first appeared. The implementation was shaped by the shape",
+    "of this INPUT, though not by any measured result on it. That is weaker",
+    "than a repository seen for the first time at scoring, and stronger than",
+    "sets 1 and 2. Treat it as an optimistic-but-honest estimate.",
+    "Still the same person writing tool and labels. Independent labelling by",
+    "A or C remains the missing control."
+  ],
+  "match_rule": "a predicted chunk matches a gold entry when the path is equal and the gold start_line falls inside the predicted line span",
+  "tests": [
+    {
+      "test_id": "tests/test_itsdangerous/test_encoding.py::test_want_bytes",
+      "code_under_test": [
+        {
+          "path": "src/itsdangerous/encoding.py",
+          "start_line": 11,
+          "name": "want_bytes"
+        }
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": []
+    },
+    {
+      "test_id": "tests/test_itsdangerous/test_encoding.py::test_base64",
+      "code_under_test": [
+        {
+          "path": "src/itsdangerous/encoding.py",
+          "start_line": 20,
+          "name": "base64_encode"
+        },
+        {
+          "path": "src/itsdangerous/encoding.py",
+          "start_line": 28,
+          "name": "base64_decode"
+        },
+        {
+          "path": "src/itsdangerous/encoding.py",
+          "start_line": 11,
+          "name": "want_bytes"
+        }
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": []
+    },
+    {
+      "test_id": "tests/test_itsdangerous/test_encoding.py::test_base64_bad",
+      "code_under_test": [
+        {
+          "path": "src/itsdangerous/encoding.py",
+          "start_line": 28,
+          "name": "base64_decode"
+        },
+        {
+          "path": "src/itsdangerous/exc.py",
+          "start_line": 7,
+          "name": "BadData"
+        }
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": []
+    },
+    {
+      "test_id": "tests/test_itsdangerous/test_encoding.py::test_int_bytes",
+      "code_under_test": [
+        {
+          "path": "src/itsdangerous/encoding.py",
+          "start_line": 49,
+          "name": "int_to_bytes"
+        },
+        {
+          "path": "src/itsdangerous/encoding.py",
+          "start_line": 53,
+          "name": "bytes_to_int"
+        }
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": []
+    },
+    {
+      "test_id": "tests/test_itsdangerous/test_serializer.py::TestSerializer::test_serializer",
+      "code_under_test": [
+        {
+          "path": "src/itsdangerous/serializer.py",
+          "start_line": 42,
+          "name": "Serializer"
+        },
+        {
+          "path": "src/itsdangerous/serializer.py",
+          "start_line": 311,
+          "name": "Serializer.dumps"
+        },
+        {
+          "path": "src/itsdangerous/serializer.py",
+          "start_line": 330,
+          "name": "Serializer.loads"
+        }
+      ],
+      "fixtures": [
+        {
+          "path": "tests/test_itsdangerous/test_serializer.py",
+          "start_line": 37,
+          "name": "TestSerializer.serializer_factory"
+        },
+        {
+          "path": "tests/test_itsdangerous/test_serializer.py",
+          "start_line": 41,
+          "name": "TestSerializer.serializer"
+        }
+      ],
+      "shared_state": [],
+      "expected_smells": []
+    },
+    {
+      "test_id": "tests/test_itsdangerous/test_serializer.py::TestSerializer::test_changed_value",
+      "code_under_test": [
+        {
+          "path": "src/itsdangerous/serializer.py",
+          "start_line": 42,
+          "name": "Serializer"
+        },
+        {
+          "path": "src/itsdangerous/serializer.py",
+          "start_line": 311,
+          "name": "Serializer.dumps"
+        },
+        {
+          "path": "src/itsdangerous/serializer.py",
+          "start_line": 330,
+          "name": "Serializer.loads"
+        },
+        {
+          "path": "src/itsdangerous/exc.py",
+          "start_line": 22,
+          "name": "BadSignature"
+        },
+        {
+          "path": "tests/test_itsdangerous/test_serializer.py",
+          "start_line": 29,
+          "name": "coerce_str",
+          "why": "used by the parametrized transforms"
+        }
+      ],
+      "fixtures": [
+        {
+          "path": "tests/test_itsdangerous/test_serializer.py",
+          "start_line": 37,
+          "name": "TestSerializer.serializer_factory"
+        },
+        {
+          "path": "tests/test_itsdangerous/test_serializer.py",
+          "start_line": 41,
+          "name": "TestSerializer.serializer"
+        },
+        {
+          "path": "tests/test_itsdangerous/test_serializer.py",
+          "start_line": 45,
+          "name": "TestSerializer.value"
+        }
+      ],
+      "shared_state": [],
+      "expected_smells": []
+    },
+    {
+      "test_id": "tests/test_itsdangerous/test_timed.py::TestTimestampSigner::test_max_age",
+      "code_under_test": [
+        {
+          "path": "src/itsdangerous/timed.py",
+          "start_line": 22,
+          "name": "TimestampSigner"
+        },
+        {
+          "path": "src/itsdangerous/timed.py",
+          "start_line": 45,
+          "name": "TimestampSigner.sign"
+        },
+        {
+          "path": "src/itsdangerous/timed.py",
+          "start_line": 72,
+          "name": "TimestampSigner.unsign"
+        },
+        {
+          "path": "src/itsdangerous/signer.py",
+          "start_line": 76,
+          "name": "Signer",
+          "why": "base class"
+        },
+        {
+          "path": "src/itsdangerous/exc.py",
+          "start_line": 60,
+          "name": "SignatureExpired"
+        }
+      ],
+      "fixtures": [
+        {
+          "path": "tests/test_itsdangerous/test_timed.py",
+          "start_line": 30,
+          "name": "TestTimestampSigner.signer_factory",
+          "why": "overridden in TestTimestampSigner"
+        },
+        {
+          "path": "tests/test_itsdangerous/test_signer.py",
+          "start_line": 23,
+          "name": "TestSigner.signer",
+          "why": "inherited from TestSigner in another module"
+        },
+        {
+          "path": "tests/test_itsdangerous/test_timed.py",
+          "start_line": 19,
+          "name": "FreezeMixin.ts"
+        },
+        {
+          "path": "tests/test_itsdangerous/test_timed.py",
+          "start_line": 23,
+          "name": "FreezeMixin.freeze",
+          "why": "autouse"
+        }
+      ],
+      "shared_state": [],
+      "expected_smells": [
+        "time.time"
+      ]
+    },
+    {
+      "test_id": "tests/test_itsdangerous/test_timed.py::TestTimestampSigner::test_return_timestamp",
+      "code_under_test": [
+        {
+          "path": "src/itsdangerous/timed.py",
+          "start_line": 22,
+          "name": "TimestampSigner"
+        },
+        {
+          "path": "src/itsdangerous/timed.py",
+          "start_line": 45,
+          "name": "TimestampSigner.sign"
+        },
+        {
+          "path": "src/itsdangerous/timed.py",
+          "start_line": 72,
+          "name": "TimestampSigner.unsign"
+        },
+        {
+          "path": "src/itsdangerous/signer.py",
+          "start_line": 76,
+          "name": "Signer",
+          "why": "base class"
+        }
+      ],
+      "fixtures": [
+        {
+          "path": "tests/test_itsdangerous/test_timed.py",
+          "start_line": 30,
+          "name": "TestTimestampSigner.signer_factory"
+        },
+        {
+          "path": "tests/test_itsdangerous/test_signer.py",
+          "start_line": 23,
+          "name": "TestSigner.signer"
+        },
+        {
+          "path": "tests/test_itsdangerous/test_timed.py",
+          "start_line": 19,
+          "name": "FreezeMixin.ts"
+        },
+        {
+          "path": "tests/test_itsdangerous/test_timed.py",
+          "start_line": 23,
+          "name": "FreezeMixin.freeze",
+          "why": "autouse"
+        }
+      ],
+      "shared_state": [],
+      "expected_smells": [
+        "time.time"
+      ]
+    },
+    {
+      "test_id": "tests/test_itsdangerous/test_timed.py::TestTimestampSigner::test_timestamp_missing",
+      "code_under_test": [
+        {
+          "path": "src/itsdangerous/timed.py",
+          "start_line": 22,
+          "name": "TimestampSigner"
+        },
+        {
+          "path": "src/itsdangerous/timed.py",
+          "start_line": 72,
+          "name": "TimestampSigner.unsign"
+        },
+        {
+          "path": "src/itsdangerous/signer.py",
+          "start_line": 76,
+          "name": "Signer"
+        },
+        {
+          "path": "src/itsdangerous/signer.py",
+          "start_line": 222,
+          "name": "Signer.sign"
+        },
+        {
+          "path": "src/itsdangerous/exc.py",
+          "start_line": 36,
+          "name": "BadTimeSignature"
+        }
+      ],
+      "fixtures": [
+        {
+          "path": "tests/test_itsdangerous/test_timed.py",
+          "start_line": 30,
+          "name": "TestTimestampSigner.signer_factory"
+        },
+        {
+          "path": "tests/test_itsdangerous/test_signer.py",
+          "start_line": 23,
+          "name": "TestSigner.signer"
+        },
+        {
+          "path": "tests/test_itsdangerous/test_timed.py",
+          "start_line": 23,
+          "name": "FreezeMixin.freeze",
+          "why": "autouse"
+        }
+      ],
+      "shared_state": [],
+      "expected_smells": [
+        "time.time"
+      ]
+    },
+    {
+      "test_id": "tests/test_itsdangerous/test_url_safe.py::TestURLSafeSerializer::test_serializer",
+      "code_under_test": [
+        {
+          "path": "src/itsdangerous/url_safe.py",
+          "start_line": 72,
+          "name": "URLSafeSerializer"
+        },
+        {
+          "path": "src/itsdangerous/url_safe.py",
+          "start_line": 15,
+          "name": "URLSafeSerializerMixin",
+          "why": "base class"
+        },
+        {
+          "path": "src/itsdangerous/serializer.py",
+          "start_line": 42,
+          "name": "Serializer",
+          "why": "base class"
+        },
+        {
+          "path": "src/itsdangerous/serializer.py",
+          "start_line": 311,
+          "name": "Serializer.dumps"
+        },
+        {
+          "path": "src/itsdangerous/serializer.py",
+          "start_line": 330,
+          "name": "Serializer.loads"
+        }
+      ],
+      "fixtures": [
+        {
+          "path": "tests/test_itsdangerous/test_url_safe.py",
+          "start_line": 12,
+          "name": "TestURLSafeSerializer.serializer_factory",
+          "why": "overrides the one in TestSerializer"
+        },
+        {
+          "path": "tests/test_itsdangerous/test_serializer.py",
+          "start_line": 41,
+          "name": "TestSerializer.serializer",
+          "why": "inherited from TestSerializer"
+        }
+      ],
+      "shared_state": [],
+      "expected_smells": []
+    }
+  ]
+}
