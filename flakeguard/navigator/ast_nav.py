@@ -62,6 +62,14 @@ MUTABLE_FACTORIES: frozenset[str] = frozenset(
 # keeps the slowest test near a second, which a live demo can afford.
 MAX_RESOLUTIONS = 150
 
+# How many first-hop definitions get a second hop (bases, decorators, callee
+# defaults, one step into the body), strongest first.
+MAX_EXPAND = 12
+
+# Points to resolve per second-hop definition. A long function body would
+# otherwise dominate the whole result.
+MAX_EXPAND_POINTS = 60
+
 
 @dataclass(frozen=True)
 class _Target:
@@ -73,6 +81,11 @@ class _Target:
     tree: ast.Module
     func: ast.FunctionDef | ast.AsyncFunctionDef
     cls: ast.ClassDef | None
+    # The class named in the test id, which is not the class holding the body
+    # when the test is inherited. ``self.x`` must resolve against this one:
+    # the mixin declares the hook, the concrete class supplies what runs.
+    concrete_cls: ast.ClassDef | None = None
+    concrete_path: Path | None = None
 
 
 def parse_test_id(test_id: str) -> tuple[str, list[str]]:
@@ -107,8 +120,8 @@ class AstNavigator:
         except (FileNotFoundError, ValueError, SyntaxError):
             return NavResult(test_id=test_id)
 
-        code_under_test = self._code_under_test(target)
         fixtures = self._fixtures(target)
+        code_under_test = self._code_under_test(target, fixtures)
         shared_state = self._shared_state(target, code_under_test)
         smells = self._smells(target, code_under_test)
 
@@ -142,6 +155,8 @@ class AstNavigator:
         cls: ast.ClassDef | None = None
         scope: list[ast.stmt] = list(tree.body)
         func: ast.FunctionDef | ast.AsyncFunctionDef | None = None
+        concrete_cls: ast.ClassDef | None = None
+        concrete_path: Path | None = None
 
         for name in chain:
             node = _find_named(scope, name)
@@ -157,6 +172,8 @@ class AstNavigator:
                 )
                 if inherited is None:
                     raise ValueError(f"{name!r} not found in {rel_path}")
+                # Remember where we came from before following the base.
+                concrete_cls, concrete_path = cls, path
                 path, source, tree, node, cls = inherited
             if isinstance(node, ast.ClassDef):
                 cls = node
@@ -172,7 +189,9 @@ class AstNavigator:
         if func is None:
             raise ValueError(f"no test function in {test_id}")
 
-        return _Target(path, rel_path, source, tree, func, cls)
+        return _Target(
+            path, rel_path, source, tree, func, cls, concrete_cls, concrete_path
+        )
 
     def _find_inherited(
         self, cls: ast.ClassDef, path: Path, source: str, name: str, depth: int = 0
@@ -232,7 +251,9 @@ class AstNavigator:
 
     # ------------------------------------------------------- code under test
 
-    def _code_under_test(self, target: _Target) -> list[Chunk]:
+    def _code_under_test(
+        self, target: _Target, fixtures: list[Chunk] | None = None
+    ) -> list[Chunk]:
         """Resolve names and operator receivers to definitions inside the repo."""
         script = jedi.Script(code=target.source, path=str(target.path), project=self.project)
 
@@ -310,6 +331,23 @@ class AstNavigator:
         for defn in self._expand(list(hits.values())):
             record([defn], 2000)
 
+        # What a fixture builds is what the test then calls methods on. The
+        # test only ever sees an untyped argument, so without this a
+        # fixture-based suite resolves to nothing at all.
+        for defn in self._from_fixtures(fixtures or []):
+            record([defn], 1500)
+
+        # self.x inside an inherited test: the base declares the hook, the
+        # concrete class named in the test id supplies what actually runs.
+        # jedi resolves self to the base, so it would find the abstract stub.
+        for chunk, defns in self._concrete_overrides(target):
+            key = (chunk.path, chunk.start_line)
+            counts[key] = counts.get(key, 0) + 2
+            order.setdefault(key, 500)
+            hits.setdefault(key, chunk)
+            for defn in defns:
+                record([defn], 500)
+
         # Score: how often the definition was reached, tie-broken by how early
         # it appears. This is what the top-3 metric in B3 ranks on.
         chunks = []
@@ -365,8 +403,120 @@ class AstNavigator:
             if target.cls is not None and start_line == target.cls.lineno:
                 return None
 
+        # A stub that cannot run is not code under test.
+        node = self._node_at(path, start_line)
+        if node is not None and _is_abstract(node):
+            return None
+
         kind = "class" if defn.type == "class" else "function"
         return self._chunk(path, start_line, end_line, kind)
+
+    def _node_at(self, path: Path, line: int):
+        """The def/class that starts on this line, if any."""
+        try:
+            tree = ast.parse(self._read(path), filename=str(path))
+        except (OSError, SyntaxError):
+            return None
+        for node in ast.walk(tree):
+            if isinstance(
+                node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)
+            ) and node.lineno == line:
+                return node
+        return None
+
+    def _from_fixtures(self, fixtures: list[Chunk]) -> list:
+        """Definitions named inside fixture bodies.
+
+        ``def signer(signer_factory): return signer_factory()`` hands the test
+        a Signer. The test then calls signer.sign(...), but statically that is
+        a bare parameter with no type, so the class under test is only
+        reachable through the fixture that built it.
+        """
+        extra: list = []
+        for chunk in fixtures[:MAX_EXPAND]:
+            path = (self.repo_root / chunk.path).resolve()
+            try:
+                source = self._read(path)
+                tree = ast.parse(source, filename=str(path))
+            except (OSError, SyntaxError):
+                continue
+            node = next(
+                (
+                    n
+                    for n in ast.walk(tree)
+                    if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+                    and chunk.start_line <= n.lineno <= chunk.end_line
+                ),
+                None,
+            )
+            if node is None:
+                continue
+            points: list[tuple[int, int]] = []
+            for inner in ast.walk(node):
+                if isinstance(inner, (ast.Name, ast.Attribute)):
+                    point = _name_position(inner)
+                    if point is not None:
+                        points.append(point)
+            script = jedi.Script(code=source, path=str(path), project=self.project)
+            for line, col in _unique(points)[:MAX_EXPAND_POINTS]:
+                try:
+                    extra.extend(script.goto(line, col, follow_imports=True))
+                except Exception:
+                    continue
+        return extra
+
+    def _concrete_overrides(self, target: _Target):
+        """Resolve ``self.x`` against the class the test id names.
+
+        Yields (chunk for the override, jedi definitions reachable from it).
+        The second part matters for a class attribute like
+        ``DECORATOR = staticmethod(cachetools.func.lru_cache)``: the override
+        is one line, and the code under test is what that line points at.
+        """
+        cls, path = target.concrete_cls, target.concrete_path
+        if cls is None or path is None:
+            return
+
+        wanted = {
+            node.attr
+            for node in ast.walk(target.func)
+            if isinstance(node, ast.Attribute)
+            and isinstance(node.value, ast.Name)
+            and node.value.id == "self"
+        }
+        if not wanted:
+            return
+
+        source = self._read(path)
+        script = jedi.Script(code=source, path=str(path), project=self.project)
+        for node in cls.body:
+            names = [
+                n
+                for n, _ in (
+                    [(node.name, node)]
+                    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                    else list(_module_level_assignments(node))
+                )
+            ]
+            if not any(n in wanted for n in names):
+                continue
+            if _is_abstract(node):
+                continue
+            start = min([node.lineno] + [d.lineno for d in getattr(node, "decorator_list", [])])
+            chunk = self._chunk(path, start, _end(node), "function")
+            definitions: list = []
+            for inner in ast.walk(node):
+                if isinstance(inner, (ast.Name, ast.Attribute)) and not isinstance(
+                    inner, ast.Call
+                ):
+                    point = _name_position(inner)
+                    if point is None:
+                        continue
+                    try:
+                        definitions.extend(script.goto(*point, follow_imports=True))
+                    except Exception:
+                        continue
+            yield chunk, definitions
 
     def _expand(self, chunks: list[Chunk]) -> list:
         """Base classes and decorators of the definitions already found.
@@ -376,7 +526,9 @@ class AstNavigator:
         at the first hop under-reports on any library built with either.
         """
         extra: list = []
-        for chunk in chunks:
+        # Only the strongest first-hop results earn a second hop; descending
+        # into everything is where a navigator turns into a whole-repo dump.
+        for chunk in sorted(chunks, key=lambda c: -c.score)[:MAX_EXPAND]:
             path = (self.repo_root / chunk.path).resolve()
             try:
                 source = self._read(path)
@@ -402,11 +554,30 @@ class AstNavigator:
                     point = _name_position(inner)
                     if point is not None:
                         points.append(point)
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    # Defaults in the CALLEE's signature carry real code:
+                    # cachedmethod(cache, key=keys.methodkey, ...) names the
+                    # key function the test never mentions.
+                    defaults = list(node.args.defaults) + [
+                        d for d in node.args.kw_defaults if d is not None
+                    ]
+                    for default in defaults:
+                        point = _name_position(default)
+                        if point is not None:
+                            points.append(point)
+                    # One step into the body. cached() imports _wrapper inside
+                    # itself and calls it from a closure, so the function that
+                    # does the work is invisible from the test alone.
+                    for inner in ast.walk(node):
+                        if isinstance(inner, ast.Call):
+                            point = _name_position(inner.func)
+                            if point is not None:
+                                points.append(point)
 
             if not points:
                 continue
             script = jedi.Script(code=source, path=str(path), project=self.project)
-            for line, col in points:
+            for line, col in _unique(points)[:MAX_EXPAND_POINTS]:
                 try:
                     extra.extend(script.goto(line, col, follow_imports=True))
                 except Exception:
@@ -447,53 +618,131 @@ class AstNavigator:
         We walk the same chain, nearest first, and stop at the first match --
         that is pytest's own override rule.
         """
-        wanted = [
-            a.arg
-            for a in target.func.args.args
-            if a.arg not in {"self", "cls"}
-        ]
-        if not wanted:
-            return []
+        scopes = self._fixture_scopes(target)
 
-        search: list[Path] = [target.path]
+        found: list[Chunk] = []
+        seen: set[tuple[str, int]] = set()
+
+        def take(path: Path, node) -> None:
+            # Start at the decorator, not at ``def``: scope="module" is the
+            # difference between a fresh object per test and state shared
+            # across the whole file, and autouse changes who gets it.
+            start = min([node.lineno] + [d.lineno for d in node.decorator_list])
+            chunk = self._chunk(path, start, _end(node), "fixture")
+            key = (chunk.path, chunk.start_line)
+            if key not in seen:
+                seen.add(key)
+                found.append(chunk)
+
+        # A fixture can request other fixtures, and pytest resolves those too,
+        # so walk the chain rather than stopping at the directly named ones.
+        queue = [a.arg for a in target.func.args.args if a.arg not in {"self", "cls"}]
+        depth = 0
+        while queue and depth < 5:
+            nxt: list[str] = []
+            for name in queue:
+                for path, body in scopes:
+                    node = _find_fixture_in(body, name)
+                    if node is None:
+                        continue
+                    take(path, node)
+                    nxt.extend(
+                        a.arg for a in node.args.args if a.arg not in {"self", "cls"}
+                    )
+                    break  # nearest scope wins, which is pytest's own rule
+            queue = nxt
+            depth += 1
+
+        # autouse fixtures apply whether or not the test asks for them.
+        for path, body in scopes:
+            for node in body:
+                if _is_fixture(node) and _is_autouse(node):
+                    take(path, node)
+        return found
+
+    def _base_class_scopes(
+        self, cls: ast.ClassDef, path: Path, depth: int = 0
+    ) -> list[tuple[Path, list[ast.stmt]]]:
+        """Bodies of a test class's base classes, nearest first.
+
+        Bases may live in another module, which pytest does not care about:
+        test_timed.py imports TestSigner from test_signer.py and inherits its
+        fixtures across the file boundary.
+        """
+        if depth > 3:
+            return []
+        out: list[tuple[Path, list[ast.stmt]]] = []
+        try:
+            source = self._read(path)
+        except OSError:
+            return out
+        script = jedi.Script(code=source, path=str(path), project=self.project)
+        for base in cls.bases:
+            point = _name_position(base)
+            if point is None:
+                continue
+            try:
+                definitions = script.goto(*point, follow_imports=True)
+            except Exception:
+                continue
+            for defn in definitions:
+                if defn.module_path is None:
+                    continue
+                base_path = Path(defn.module_path).resolve()
+                if not _is_within(base_path, self.repo_root):
+                    continue
+                if base_path.suffix == ".pyi":
+                    continue
+                start = defn.get_definition_start_position()
+                if start is None:
+                    continue
+                node = self._node_at(base_path, start[0])
+                if not isinstance(node, ast.ClassDef):
+                    continue
+                out.append((base_path, list(node.body)))
+                out.extend(self._base_class_scopes(node, base_path, depth + 1))
+        return out
+
+    def _fixture_scopes(self, target: _Target) -> list[tuple[Path, list[ast.stmt]]]:
+        """Where pytest looks for a fixture, nearest first.
+
+        The enclosing test class (and its bases, for mixin suites), then the
+        test module, then every conftest.py from the test's directory up to
+        the repo root.
+        """
+        scopes: list[tuple[Path, list[ast.stmt]]] = []
+        for cls in (target.concrete_cls, target.cls):
+            if cls is None:
+                continue
+            path = target.concrete_path if cls is target.concrete_cls else target.path
+            if path is None:
+                continue
+            scopes.append((path, list(cls.body)))
+            # A test class inherits its bases' fixtures, and a subclass may
+            # override one. Nearest first, so the subclass wins, which is what
+            # pytest does. TestTimestampSigner(FreezeMixin, TestSigner) gets
+            # signer from TestSigner and freeze from FreezeMixin.
+            scopes.extend(self._base_class_scopes(cls, path))
+        try:
+            scopes.append((target.path, list(target.tree.body)))
+        except AttributeError:
+            pass
+
         directory = target.path.parent
         while True:
             conftest = directory / "conftest.py"
             if conftest.is_file():
-                search.append(conftest)
+                try:
+                    body = ast.parse(
+                        self._read(conftest), filename=str(conftest)
+                    ).body
+                    scopes.append((conftest, list(body)))
+                except (OSError, SyntaxError):
+                    pass
             if directory == self.repo_root or self.repo_root not in directory.parents:
                 break
             directory = directory.parent
-
-        found: list[Chunk] = []
-        for name in wanted:
-            for candidate in search:
-                node = self._find_fixture(candidate, name)
-                if node is not None:
-                    # Start at the decorator, not at ``def``: scope="module"
-                    # is the difference between a fresh object per test and
-                    # state shared across the whole file.
-                    start = min(
-                        [node.lineno] + [d.lineno for d in node.decorator_list]
-                    )
-                    found.append(self._chunk(candidate, start, _end(node), "fixture"))
-                    break
-        return found
-
-    def _find_fixture(self, path: Path, name: str) -> ast.stmt | None:
-        try:
-            tree = ast.parse(self._read(path), filename=str(path))
-        except (OSError, SyntaxError):
-            return None
-        for node in tree.body:
-            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                continue
-            if node.name != name:
-                continue
-            for deco in node.decorator_list:
-                if "fixture" in ast.unparse(deco):
-                    return node
-        return None
+        return scopes
 
     # ---------------------------------------------------------- shared state
 
@@ -652,6 +901,71 @@ def _is_mutable(value: ast.expr) -> bool:
         # A class instance held at module level is shared state too.
         return bool(name) and name[0].isupper()
     return False
+
+
+def _is_fixture(node: ast.stmt) -> bool:
+    if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+        return False
+    return any("fixture" in ast.unparse(d) for d in node.decorator_list)
+
+
+def _is_autouse(node) -> bool:
+    """An autouse fixture runs whether or not the test names it."""
+    for deco in node.decorator_list:
+        if not isinstance(deco, ast.Call):
+            continue
+        for kw in deco.keywords:
+            if kw.arg == "autouse" and isinstance(kw.value, ast.Constant):
+                if kw.value.value is True:
+                    return True
+    return False
+
+
+def _find_fixture_in(body: list[ast.stmt], name: str):
+    for node in body:
+        if _is_fixture(node) and node.name == name:  # type: ignore[attr-defined]
+            return node
+    return None
+
+
+def _is_abstract(node: ast.AST) -> bool:
+    """A declaration with no behaviour: ``...``, ``pass``, or NotImplementedError.
+
+    Protocol stubs and template-method hooks resolve like any other function
+    but never run, so reporting them as code under test is just noise.
+    """
+    if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+        return False
+    body = [n for n in node.body if not _is_docstring(n)]
+    if not body:
+        return True
+    for stmt in body:
+        if isinstance(stmt, ast.Pass):
+            continue
+        if isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Constant):
+            if stmt.value.value is Ellipsis:
+                continue
+        if isinstance(stmt, ast.Raise):
+            raised = stmt.exc
+            name = ""
+            if isinstance(raised, ast.Call):
+                raised = raised.func
+            if isinstance(raised, ast.Name):
+                name = raised.id
+            elif isinstance(raised, ast.Attribute):
+                name = raised.attr
+            if name == "NotImplementedError":
+                continue
+        return False
+    return True
+
+
+def _is_docstring(node: ast.stmt) -> bool:
+    return (
+        isinstance(node, ast.Expr)
+        and isinstance(node.value, ast.Constant)
+        and isinstance(node.value.value, str)
+    )
 
 
 def _global_declared_names(tree: ast.AST) -> set[str]:

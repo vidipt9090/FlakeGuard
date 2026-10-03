@@ -29,6 +29,9 @@ from flakeguard.navigator.ast_nav import AstNavigator
 
 TOP_K = 3
 
+# Chunks the evidence bundle realistically carries.
+PREC_K = 5
+
 
 @dataclass
 class Score:
@@ -37,6 +40,11 @@ class Score:
     fp: int
     fn: int
     hit_at_k: bool
+    head_tp: int
+    head_n: int
+    fx_tp: int
+    fx_fp: int
+    fx_fn: int
     missed: list[str]
     spurious: list[str]
     smells_found: list[str]
@@ -60,6 +68,16 @@ def score_one(nav: AstNavigator, case: dict) -> Score:
     predicted = result.code_under_test
     gold = case["code_under_test"]
 
+    # Fixtures are scored separately. cachetools has none at all, so this
+    # only becomes meaningful on a pytest-style target.
+    gold_fx = case.get("fixtures", [])
+    fx_matched_gold = {
+        gi for gi, g in enumerate(gold_fx) for p in result.fixtures if matches(p, g)
+    }
+    fx_matched_pred = {
+        pi for pi, p in enumerate(result.fixtures) for g in gold_fx if matches(p, g)
+    }
+
     matched_gold: set[int] = set()
     matched_pred: set[int] = set()
     for gi, g in enumerate(gold):
@@ -72,12 +90,24 @@ def score_one(nav: AstNavigator, case: dict) -> Score:
         matches(p, g) for p in predicted[:TOP_K] for g in gold
     )
 
+    # Precision over the first PREC_K results only. C's evidence bundle has a
+    # 2-4k token budget, so it consumes a handful of ranked chunks, not the
+    # whole list. Precision over everything returned punishes a navigator for
+    # material nobody will ever look at.
+    head = predicted[:PREC_K]
+    head_tp = sum(1 for p in head if any(matches(p, g) for g in gold))
+
     return Score(
         test_id=case["test_id"],
         tp=len(matched_gold),
         fp=len(predicted) - len(matched_pred),
         fn=len(gold) - len(matched_gold),
         hit_at_k=hit_at_k,
+        head_tp=head_tp,
+        head_n=len(head),
+        fx_tp=len(fx_matched_gold),
+        fx_fp=len(result.fixtures) - len(fx_matched_pred),
+        fx_fn=len(gold_fx) - len(fx_matched_gold),
         missed=[g["name"] for gi, g in enumerate(gold) if gi not in matched_gold],
         spurious=[
             f"{p.path}:{p.start_line}"
@@ -107,6 +137,14 @@ def main(argv: list[str] | None = None) -> int:
     micro_r = tp / (tp + fn) if (tp + fn) else 0.0
     f1 = 2 * micro_p * micro_r / (micro_p + micro_r) if (micro_p + micro_r) else 0.0
     top_k = sum(s.hit_at_k for s in scores) / len(scores)
+    head_tp = sum(s.head_tp for s in scores)
+    head_n = sum(s.head_n for s in scores)
+    prec_at_k = head_tp / head_n if head_n else 0.0
+    fx_tp = sum(s.fx_tp for s in scores)
+    fx_fp = sum(s.fx_fp for s in scores)
+    fx_fn = sum(s.fx_fn for s in scores)
+    fx_p = fx_tp / (fx_tp + fx_fp) if (fx_tp + fx_fp) else 0.0
+    fx_r = fx_tp / (fx_tp + fx_fn) if (fx_tp + fx_fn) else 0.0
 
     if args.markdown:
         print("| test | TP | FP | FN | precision | recall | correct in top 3 |")
@@ -122,6 +160,16 @@ def main(argv: list[str] | None = None) -> int:
             f"| **overall ({len(scores)} tests)** | {tp} | {fp} | {fn} | "
             f"**{micro_p:.2f}** | **{micro_r:.2f}** | **{top_k:.0%}** |"
         )
+        print(
+            f"\nmicro F1 {f1:.2f}. Precision over the first {PREC_K} results "
+            f"only, which is what an evidence bundle carries: "
+            f"**{prec_at_k:.2f}**."
+        )
+        if fx_tp or fx_fp or fx_fn:
+            print(
+                f"\nFixtures, scored separately: precision {fx_p:.2f}, "
+                f"recall {fx_r:.2f} (tp {fx_tp}, fp {fx_fp}, fn {fx_fn})."
+            )
     else:
         for s in scores:
             print(f"{s.test_id}")
@@ -137,8 +185,14 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"   smells missed: {sorted(set(s.smells_expected) - set(s.smells_found))}")
         print(
             f"\nmicro precision {micro_p:.3f}  recall {micro_r:.3f}  "
-            f"f1 {f1:.3f}  correct-in-top-{TOP_K} {top_k:.1%}  ({len(scores)} tests)"
+            f"f1 {f1:.3f}  correct-in-top-{TOP_K} {top_k:.1%}  "
+            f"precision@{PREC_K} {prec_at_k:.3f}  ({len(scores)} tests)"
         )
+        if fx_tp or fx_fp or fx_fn:
+            print(
+                f"fixtures: precision {fx_p:.3f}  recall {fx_r:.3f}  "
+                f"(tp {fx_tp} fp {fx_fp} fn {fx_fn})"
+            )
     return 0
 
 
