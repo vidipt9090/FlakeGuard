@@ -1,0 +1,31 @@
+name: collect
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Target repo name label"
+        default: "cachetools"
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        run_id: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: tkem/cachetools
+          ref: 3c082c654c2804b9354e4b62dbd2994f1aac464d
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e . pytest pytest-randomly
+      - name: Run tests
+        run: |
+          mkdir -p out
+          pytest tests -q --randomly-seed=${{ matrix.run_id }} --junitxml=out/junit-${{ matrix.run_id }}.xml > out/log-${{ matrix.run_id }}.txt 2>&1 || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: run-${{ matrix.run_id }}
+          path: out/

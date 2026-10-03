@@ -1,0 +1,16 @@
+# CODEOWNERS
+# Replace @A-handle, @B-handle, @C-handle with actual GitHub usernames.
+
+/flakeguard/collector/     @A-handle
+/flakeguard/parser/        @A-handle
+/flakeguard/baselines/     @A-handle
+/.github/                  @A-handle
+/flakeguard/navigator/     @B-handle
+/flakeguard/retrieval/     @B-handle
+/flakeguard/cluster/       @B-handle
+/flakeguard/llm/           @C-handle
+/flakeguard/classify/      @C-handle
+/flakeguard/evidence/      @C-handle
+/flakeguard/eval/          @C-handle
+/synthetic/                @C-handle
+/flakeguard/contracts.py   @A-handle @B-handle @C-handle

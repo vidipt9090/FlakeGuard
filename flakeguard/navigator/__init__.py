@@ -1,0 +1,2 @@
+# flakeguard/navigator package
+

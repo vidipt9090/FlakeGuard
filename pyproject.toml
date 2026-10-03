@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flakeguard"
+version = "0.1.0"
+description = "Detect and triage flaky tests using LLM-assisted analysis"
+requires-python = ">=3.12,<3.13"
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-randomly",
+    "pytest-repeat",
+    "ruff",
+    "pydantic",
+    "pandas",
+    "pyarrow",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["flakeguard*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
