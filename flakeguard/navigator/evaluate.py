@@ -45,6 +45,9 @@ class Score:
     fx_tp: int
     fx_fp: int
     fx_fn: int
+    sm_tp: int
+    sm_fp: int
+    sm_fn: int
     missed: list[str]
     spurious: list[str]
     smells_found: list[str]
@@ -105,6 +108,9 @@ def score_one(nav: AstNavigator, case: dict) -> Score:
         hit_at_k=hit_at_k,
         head_tp=head_tp,
         head_n=len(head),
+        sm_tp=len(set(result.smells) & set(case.get("expected_smells", []))),
+        sm_fp=len(set(result.smells) - set(case.get("expected_smells", []))),
+        sm_fn=len(set(case.get("expected_smells", [])) - set(result.smells)),
         fx_tp=len(fx_matched_gold),
         fx_fp=len(result.fixtures) - len(fx_matched_pred),
         fx_fn=len(gold_fx) - len(fx_matched_gold),
@@ -145,6 +151,11 @@ def main(argv: list[str] | None = None) -> int:
     fx_fn = sum(s.fx_fn for s in scores)
     fx_p = fx_tp / (fx_tp + fx_fp) if (fx_tp + fx_fp) else 0.0
     fx_r = fx_tp / (fx_tp + fx_fn) if (fx_tp + fx_fn) else 0.0
+    sm_tp = sum(s.sm_tp for s in scores)
+    sm_fp = sum(s.sm_fp for s in scores)
+    sm_fn = sum(s.sm_fn for s in scores)
+    sm_p = sm_tp / (sm_tp + sm_fp) if (sm_tp + sm_fp) else 0.0
+    sm_r = sm_tp / (sm_tp + sm_fn) if (sm_tp + sm_fn) else 0.0
 
     if args.markdown:
         print("| test | TP | FP | FN | precision | recall | correct in top 3 |")
@@ -192,6 +203,11 @@ def main(argv: list[str] | None = None) -> int:
             print(
                 f"fixtures: precision {fx_p:.3f}  recall {fx_r:.3f}  "
                 f"(tp {fx_tp} fp {fx_fp} fn {fx_fn})"
+            )
+        if sm_tp or sm_fp or sm_fn:
+            print(
+                f"smells:   precision {sm_p:.3f}  recall {sm_r:.3f}  "
+                f"(tp {sm_tp} fp {sm_fp} fn {sm_fn})"
             )
     return 0
 
