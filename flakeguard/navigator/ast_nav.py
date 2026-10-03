@@ -763,10 +763,7 @@ class AstNavigator:
             # pytest does. TestTimestampSigner(FreezeMixin, TestSigner) gets
             # signer from TestSigner and freeze from FreezeMixin.
             scopes.extend(self._base_class_scopes(cls, path))
-        try:
-            scopes.append((target.path, list(target.tree.body)))
-        except AttributeError:
-            pass
+        scopes.append((target.path, list(target.tree.body)))
 
         directory = target.path.parent
         while True:

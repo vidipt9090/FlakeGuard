@@ -24,6 +24,13 @@ dev = [
     "pyarrow",
     "jedi",
 ]
+# Optional: the embedding retriever only. Kept out of `dev` on purpose,
+# because these pull in PyTorch (~2.5 GB) and CI does not need it to test
+# the chunker, which is pure ast.
+rag = [
+    "chromadb",
+    "sentence-transformers",
+]
 
 [tool.setuptools.packages.find]
 where = ["."]

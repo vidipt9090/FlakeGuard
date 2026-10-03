@@ -68,23 +68,29 @@ pytest -q
 
 Expected result: `All checks passed!` and 34 passed.
 
-## A deviation from PERSON_B.md, and why
+## Dependencies: what is installed, and what is deliberately not
 
-The setup list in `PERSON_B.md` also asks for `chromadb`,
-`sentence-transformers` and the LlamaIndex integrations. Those were **not**
-installed. They pull in PyTorch, roughly 2.5 GB, and they are only needed for
-B5, the embeddings smoke test, which is first on the cut list in the root
-README. B1 to B4 do not import them. Install them when the Eval 2 retriever
-work actually starts:
+`chromadb` and `sentence-transformers` are needed for B5 only, and they pull
+in PyTorch, roughly 2.5 GB. They are an optional extra rather than part of
+`dev`, so CI never pays for them:
 
 ```bash
-pip install chromadb sentence-transformers
+pip install -e ".[rag]"      # only if you are running the retriever
+```
+
+Verified by installing on this laptop: chromadb **1.5.9**,
+sentence-transformers **6.1.0**, and the embedding model is
+**`BAAI/bge-small-en-v1.5`** — that exact name was on the verify list and is
+now confirmed. See `retrieval-notes.md`.
+
+The LlamaIndex integrations were **not** installed. Nothing in B1 to B5 needs
+them, so their package names remain unconfirmed and still on the verify list.
+Do not quote them as settled:
+
+```bash
 pip install llama-index llama-index-llms-ollama \
     llama-index-embeddings-huggingface llama-index-vector-stores-chroma
 ```
-
-The LlamaIndex package names are still on the verify list. They have not been
-confirmed by installing, so do not quote them as settled.
 
 ## Run the navigator
 
@@ -101,6 +107,17 @@ python -m flakeguard.navigator.evaluate \
 ```
 
 The demo exits 1 when nothing was found, so it can be used in a script.
+
+## Run the embedding retriever (B5, needs the `rag` extra)
+
+```bash
+python -m flakeguard.retrieval.embed --repo ../cachetools \
+    --repo-name cachetools --sha 3c082c6 --query "cache eviction" -k 3
+```
+
+First run downloads the model (~130 MB) and indexes 372 chunks in about 45 s
+on CPU. The index is written to `data/chroma`, which is gitignored. Results
+and limits are in `retrieval-notes.md`.
 
 ## Sourcegraph
 
