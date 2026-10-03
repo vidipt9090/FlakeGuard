@@ -70,6 +70,32 @@ MAX_EXPAND = 12
 # otherwise dominate the whole result.
 MAX_EXPAND_POINTS = 60
 
+# How many times to repeat the expansion. A second round does reach Cache
+# through _TimedCache and lifts recall, but it buries the direct answer:
+# measured on the held-out sets it cost 12 points of F1 and dropped
+# correct-in-top-3 from 100% to 75%. Recall is worth little if the right
+# chunk no longer fits in the evidence bundle, so one hop it is.
+EXPAND_ROUNDS = 1
+
+# How many ranked chunks the smell scan looks at. It mirrors what the evidence
+# bundle carries: a smell found in code nobody will be shown is not evidence,
+# it is noise, and in a library built on clocks it is noise on every test.
+SMELL_SCAN_CHUNKS = 5
+
+# Minimum score for a chunk to count as directly exercised. Direct name
+# resolution scores 1.0 a hit and a fixture-built type W_FIXTURE, both of
+# which the test genuinely drives. An inheritance hop scores W_EXPAND, which
+# is below this line: that is library infrastructure, not this test.
+DIRECT_SCORE = 0.8
+
+# Evidence weights by distance from the test. A definition the test names is
+# worth more than one reached by following three links, and ranking matters:
+# C's evidence bundle only carries the first few chunks, so burying the right
+# answer under transitively-reachable code is as bad as not finding it.
+W_FIXTURE = 0.8      # what a fixture builds
+W_CONCRETE = 0.9     # the subclass override behind self.x
+W_EXPAND = 0.45      # per hop: 0.45, then 0.20, then 0.09
+
 
 @dataclass(frozen=True)
 class _Target:
@@ -291,16 +317,16 @@ class AstNavigator:
         # disagree by a line on where a class body ends, and that would show
         # the same definition twice.
         hits: dict[tuple[str, int], Chunk] = {}
-        counts: dict[tuple[str, int], int] = {}
+        counts: dict[tuple[str, int], float] = {}
         order: dict[tuple[str, int], int] = {}
 
-        def record(names, seq: int) -> None:
+        def record(names, seq: int, weight: float = 1.0) -> None:
             for defn in names:
                 chunk = self._chunk_from_definition(defn, target)
                 if chunk is None:
                     continue
                 key = (chunk.path, chunk.start_line)
-                counts[key] = counts.get(key, 0) + 1
+                counts[key] = counts.get(key, 0) + weight
                 order.setdefault(key, seq)
                 # Prefer the wider span, so a class wins over a part of it.
                 prev = hits.get(key)
@@ -324,18 +350,32 @@ class AstNavigator:
             except Exception:
                 continue
 
-        # Second hop: what the definitions we just found are built on.
-        # A test on TTLCache exercises its base _TimedCache, and a test that
-        # calls a decorated function runs the decorator too. Both are code
-        # under test even though the test never names them.
-        for defn in self._expand(list(hits.values())):
-            record([defn], 2000)
+        # Further hops: what the definitions we just found are built on.
+        # A test on TTLCache exercises its base _TimedCache, which in turn
+        # exercises Cache. One hop stops halfway up a class hierarchy, so
+        # walk until nothing new appears, bounded by EXPAND_ROUNDS.
+        expanded: set[tuple[str, int]] = set()
+        for round_no in range(EXPAND_ROUNDS):
+            pending = [
+                chunk for key, chunk in hits.items() if key not in expanded
+            ]
+            if not pending:
+                break
+            expanded.update((c.path, c.start_line) for c in pending)
+            for defn in self._expand(pending):
+                record([defn], 2000 + round_no, W_EXPAND**(round_no + 1))
+
+        # Return-type inference was tried here and removed: see
+        # nav-results.md. jedi can execute a function and report what it
+        # hands back, which should have found _HashedTuple. Measured on all
+        # three gold sets it added no recall at all and only false
+        # positives, so it is not worth the latency or the noise.
 
         # What a fixture builds is what the test then calls methods on. The
         # test only ever sees an untyped argument, so without this a
         # fixture-based suite resolves to nothing at all.
         for defn in self._from_fixtures(fixtures or []):
-            record([defn], 1500)
+            record([defn], 1500, W_FIXTURE)
 
         # self.x inside an inherited test: the base declares the hook, the
         # concrete class named in the test id supplies what actually runs.
@@ -346,7 +386,7 @@ class AstNavigator:
             order.setdefault(key, 500)
             hits.setdefault(key, chunk)
             for defn in defns:
-                record([defn], 500)
+                record([defn], 500, W_CONCRETE)
 
         # Score: how often the definition was reached, tie-broken by how early
         # it appears. This is what the top-3 metric in B3 ranks on.
@@ -787,24 +827,65 @@ class AstNavigator:
     # ----------------------------------------------------------------- smells
 
     def _smells(self, target: _Target, code_under_test: list[Chunk]) -> list[str]:
-        """Pattern scan over the test body and the code it exercises."""
-        blobs = [ast.get_source_segment(target.source, target.func) or ""]
-        blobs.extend(c.text for c in code_under_test)
+        """Pattern scan over the test, its setup, and the code it exercises.
 
-        found: list[str] = []
-        for blob in blobs:
+        Two things learned from scoring this on tenacity, where the first
+        version managed precision 0.06:
+
+        * Scanning everything reachable is useless in a library whose job
+          involves clocks. `BaseRetrying` uses `time.monotonic`, so every
+          single tenacity test came back "timing" and the signal carried no
+          information. The scan is limited to the test plus the chunks that
+          actually reach the evidence bundle.
+        * Each smell carries where it was found. "time.sleep" alone tells the
+          LLM nothing it can cite; "time.sleep (tenacity/nap.py:24)" is
+          evidence. The contract keeps `smells: list[str]`, so this is a
+          formatting choice, not a contract change.
+        """
+        blobs: list[tuple[str, str]] = []
+
+        where = f"{target.rel_path}:{target.func.lineno}"
+        blobs.append((where, ast.get_source_segment(target.source, target.func) or ""))
+
+        # setUp and tearDown run for every test in the class, so a sleep or a
+        # random seed in there is the test's nondeterminism just as much as
+        # one in the body. The missed `random.` in tenacity's after-log tests
+        # was exactly this.
+        for cls, path in ((target.cls, target.path), (target.concrete_cls,
+                                                      target.concrete_path)):
+            if cls is None or path is None:
+                continue
+            for node in cls.body:
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and (
+                    node.name in {"setUp", "tearDown", "setup_method", "teardown_method"}
+                ):
+                    rel = path.resolve().relative_to(self.repo_root).as_posix()
+                    text = ast.get_source_segment(self._read(path), node) or ""
+                    blobs.append((f"{rel}:{node.lineno}", text))
+
+        # Only code the test reaches DIRECTLY. Infrastructure found by
+        # walking up a class hierarchy is reachable from every test in the
+        # library, so a smell there does not distinguish one test from
+        # another: tenacity's BaseRetrying uses time.monotonic, which made
+        # every single one of its tests look like a timing flake.
+        direct = [c for c in code_under_test if c.score >= DIRECT_SCORE]
+        for chunk in direct[:SMELL_SCAN_CHUNKS]:
+            blobs.append((f"{chunk.path}:{chunk.start_line}", chunk.text))
+
+        found: dict[str, str] = {}
+        for where, blob in blobs:
             for pattern in SMELL_PATTERNS:
-                if pattern in blob and pattern not in found:
-                    found.append(pattern)
+                if pattern in blob:
+                    found.setdefault(pattern, where)
             try:
                 tree = ast.parse(_dedent(blob))
             except SyntaxError:
                 continue
             for node in ast.walk(tree):
                 if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
-                    if node.func.id in SMELL_BARE and node.func.id not in found:
-                        found.append(node.func.id)
-        return found
+                    if node.func.id in SMELL_BARE:
+                        found.setdefault(node.func.id, where)
+        return [f"{name} ({place})" for name, place in found.items()]
 
     # --------------------------------------------------------------- helpers
 

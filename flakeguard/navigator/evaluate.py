@@ -62,6 +62,11 @@ class Score:
         return self.tp / (self.tp + self.fn) if (self.tp + self.fn) else 0.0
 
 
+def _smell_names(smells: list[str]) -> set[str]:
+    """Smells are reported as "name (path:line)"; gold lists bare names."""
+    return {s.split(" (", 1)[0] for s in smells}
+
+
 def matches(chunk: Chunk, gold: dict) -> bool:
     return chunk.path == gold["path"] and chunk.start_line <= gold["start_line"] <= chunk.end_line
 
@@ -108,9 +113,9 @@ def score_one(nav: AstNavigator, case: dict) -> Score:
         hit_at_k=hit_at_k,
         head_tp=head_tp,
         head_n=len(head),
-        sm_tp=len(set(result.smells) & set(case.get("expected_smells", []))),
-        sm_fp=len(set(result.smells) - set(case.get("expected_smells", []))),
-        sm_fn=len(set(case.get("expected_smells", [])) - set(result.smells)),
+        sm_tp=len(_smell_names(result.smells) & set(case.get("expected_smells", []))),
+        sm_fp=len(_smell_names(result.smells) - set(case.get("expected_smells", []))),
+        sm_fn=len(set(case.get("expected_smells", [])) - _smell_names(result.smells)),
         fx_tp=len(fx_matched_gold),
         fx_fp=len(result.fixtures) - len(fx_matched_pred),
         fx_fn=len(gold_fx) - len(fx_matched_gold),

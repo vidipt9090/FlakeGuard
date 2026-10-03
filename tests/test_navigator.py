@@ -135,12 +135,36 @@ def test_ignores_module_level_constants(nav):
 # ------------------------------------------------------------------ smells
 
 
+def smell_names(smells):
+    """Smells are reported as "name (path:line)"."""
+    return {s.split(" (", 1)[0] for s in smells}
+
+
 def test_detects_randomness_smell(nav):
-    assert "random." in nav.related("tests/test_shop.py::test_discount_is_small").smells
+    result = nav.related("tests/test_shop.py::test_discount_is_small")
+    assert "random." in smell_names(result.smells)
 
 
 def test_detects_sleep_smell(nav):
-    assert "time.sleep" in nav.related("tests/test_shop.py::test_job_finishes").smells
+    result = nav.related("tests/test_shop.py::test_job_finishes")
+    assert "time.sleep" in smell_names(result.smells)
+
+
+def test_smell_carries_where_it_was_found(nav):
+    """A bare name is not evidence; the LLM has to be able to cite it."""
+    result = nav.related("tests/test_shop.py::test_job_finishes")
+    sleep = [s for s in result.smells if s.startswith("time.sleep")][0]
+    assert "src/shop.py:" in sleep
+
+
+def test_detects_a_smell_in_setup(nav):
+    """setUp runs before every test in the class, so its randomness is theirs.
+
+    Found by scoring tenacity: its after-log tests pick a log level with
+    random.choice in setUp, and the body alone looks deterministic.
+    """
+    result = nav.related("tests/test_shop.py::TestWithSetUp::test_uses_setup_value")
+    assert "random." in smell_names(result.smells)
 
 
 def test_clean_test_has_no_smells(nav):

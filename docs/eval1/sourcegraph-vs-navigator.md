@@ -93,12 +93,13 @@ Concretely, for the same test:
 | flag `time.sleep`, `random.`, `threading.` in reachable code | grep, unranked, whole repo | yes, scoped to this test |
 | output shaped as `NavResult` chunks for an LLM bundle | no | yes, that is the contract |
 
-Measured end to end on a **second repository** (itsdangerous 2.2.0), labelled
-blind: recall 0.91, precision@5 0.72, correct answer in the top 3 for 10 of 10,
-and fixtures at precision 0.90 / recall 1.00. On the cachetools tests it was
-tuned against it scores 0.96 / 0.93, which is why that is not the number quoted
-here. See `nav-results.md` for all three gold sets, the protocol, and the two
-bugs the held-out sets caught.
+Measured on a **third repository** (tenacity 9.1.2), labelled blind: recall
+0.89, precision@5 0.68, correct answer in the top 3 for 8 of 8. On a second
+unseen repository (itsdangerous) it scores recall 0.91, precision@5 0.75, with
+fixtures at precision 0.90 / recall 1.00. On the cachetools tests it was tuned
+against it scores 0.96 / 0.93, which is why that is not the number quoted here.
+See `nav-results.md` for all four gold sets, the protocol, and the three bugs
+the held-out sets caught.
 
 The capability table above is about what each tool can express, not about
 accuracy. A row marked "yes" means the navigator attempts it and the output

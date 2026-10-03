@@ -39,3 +39,15 @@ class ShopTestMixin:
 
 class TestViaMixin(ShopTestMixin):
     pass
+
+
+class TestWithSetUp:
+    """unittest-style setup: its nondeterminism belongs to every test here."""
+
+    def setUp(self):
+        import random
+
+        self.seed = random.random()
+
+    def test_uses_setup_value(self):
+        assert shop.total([1.0]) >= 0
