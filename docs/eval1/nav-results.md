@@ -1,69 +1,69 @@
 # Navigation results (work package B3)
 
-Author: B. Date: 2026-10-03. Navigator version: v0.3 (`flakeguard/navigator/ast_nav.py`).
+Author: B. Date: 2026-10-03. Navigator version: v0.4 (`flakeguard/navigator/ast_nav.py`).
 
 ## Headline
 
-Two numbers, and the gap between them is the point.
+Three gold sets, built in that order, each because the one before it had
+stopped being able to answer the question.
 
-| gold set | precision | recall | F1 | correct in top 3 |
-| --- | --- | --- | --- | --- |
-| **tuned** (`nav-gold.json`, 10 tests the navigator was built against) | 1.00 | 0.86 | 0.92 | 100% |
-| **held out** (`nav-gold-heldout.json`, 8 tests it had never seen) | **0.58** | **0.38** | **0.46** | **100%** |
+| gold set | target | precision | recall | F1 | top-3 | precision@5 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1, tuned (`nav-gold.json`) | cachetools, 10 tests | 0.96 | 0.93 | 0.95 | 100% | 0.96 |
+| 2, spent (`nav-gold-heldout.json`) | cachetools, 8 tests | 0.60 | 0.52 | 0.56 | 100% | 0.64 |
+| **3, second repo** (`nav-gold-itsdangerous.json`) | **itsdangerous, 10 tests** | **0.52** | **0.91** | **0.66** | **100%** | **0.72** |
 
-**Quote the held-out row.** The tuned row measures how well the navigator fits
-the code it was written against, which is not a property anyone cares about.
-If a single number is needed for a slide: *F1 0.46 on unseen tests, with the
-correct answer in the top 3 every time.*
+Fixtures, scored for the first time on set 3 (cachetools has none at all):
+**precision 0.90, recall 1.00** (18 true positives, 2 false, 0 missed).
 
-## Why there are two gold sets
+Latency on laptop 1: median 0.22 s, max 0.83 s per test across both repos.
 
-The first version of this document reported precision 1.00 and said it should
-be read as an upper bound. That warning was not strong enough. There were two
-separate ways the number was fitted to the data, not one.
+**If one number is quoted, quote precision@5 = 0.72 with recall 0.91 on an
+unseen repository.** Precision over the whole returned list (0.52) and the
+tuned 0.96 are both misleading, in opposite directions, for reasons below.
 
-1. **The labels were revised after seeing output.** Four disputed items were
-   re-examined and all four were reclassified in the tool's favour. Each
-   individual justification is sound and checkable in the `why` fields of
-   `nav-gold.json`, but four out of four is the signature of motivated
-   labelling. A neutral re-reading should break both ways sometimes.
-2. **The navigator was tuned on the same 10 tests.** The `.pyi` filter, the
-   TestCase-scaffolding filter, the dedupe-by-start-line rule and the
-   resolution cap of 150 were each added because of noise seen in *those*
-   tests' output. Precision is the metric those filters directly optimise, so
-   precision is the number least entitled to trust.
+## Why three sets, and what each is good for
 
-So `nav-gold-heldout.json` was built. The protocol, recorded in the file and
-visible in the git history:
+Each set is biased, and the useful thing is that the directions differ.
 
-- Tests drawn only from `test_cached.py`, `test_cachedmethod.py`,
-  `test_classmethod.py` and `test_func.py` — four files the navigator had never
-  been run against. Development used `test_lru`, `test_lfu`, `test_fifo`,
-  `test_rr`, `test_ttl`, `test_tlru`, `test_keys`, `test_threading` only.
-- Labels written from source alone, before the navigator was run on any of
-  those ids even once.
-- The file committed **before** the first scoring run
-  (`b9e8091 test(navigator): held-out gold set, labelled before any scoring run`),
-  so the history shows the labels were not adjusted to fit the result.
+**Set 1 is biased upward and cannot be fixed.** Two channels, not one:
+the labels were revised after seeing output (four disputed items examined,
+four resolved in the tool's favour — four out of four is the signature of
+motivated labelling), *and* the navigator's filters were tuned on those same
+10 tests. Precision is the metric those filters optimise. 0.96 measures fit,
+not skill.
 
-Residual bias that remains, stated plainly: the same person wrote the navigator
-and the labels, and knows how it resolves names. This is held-out *data*, not an
-independent labeller. A re-label by A or C is still worth doing.
+**Set 2 was blind for exactly one run, then spent.** It was drawn from four
+cachetools files the navigator had never been run against, labelled from
+source, and committed before scoring. It immediately earned its keep (below).
+Fixing the bug it found means it can no longer measure generalisation either.
 
-## What the held-out run found
+**Set 3 is the current estimate, and is biased *downward*.** A different
+repository, so nothing about cachetools' structure can leak in, and a
+pytest-style project with real fixtures. Its labels were written blind and
+conservatively: only the code a test directly asserts on. Inspection of the
+"false positives" shows most of them genuinely execute —
+`Serializer.dumps` literally calls `want_bytes`, `dump_payload`,
+`make_signer` and `Signer.sign`, none of which the blind labels listed. So
+0.52 understates precision as surely as 0.96 overstates it.
 
-First run, before any fix:
+**Those labels have not been revised, and will not be.** Correcting them
+upward after seeing output is exactly what spoiled set 1. The honest reading
+is that true precision sits between the two, and `precision@5 = 0.72` — the
+first five ranked chunks, which is what an evidence bundle actually carries —
+is the figure least exposed to either bias.
 
-```
-micro precision 0.652  recall 0.259  f1 0.370  correct-in-top-3 62.5%  (8 tests)
-```
+Residual bias that no set removes: the same person wrote the navigator and
+every label. **An independent re-label by A or C is the missing control**, and
+it is cheap. It is the single thing most worth doing before Eval 2.
 
-Three of the eight scored **zero on every metric**: `LRUDecoratorTest::test_decorator`,
-`CacheWrapperTest::test_decorator` and `CacheMethodTest::test_decorator`.
+## What the held-out sets caught
 
-One cause for all three. **Inherited test methods were not found at all.**
-pytest reports an inherited test under the concrete class, but the body lives
-in a mixin:
+Neither bug could have been found on set 1, and both were serious.
+
+**Set 2, first run: inherited tests resolved to nothing.** Three of eight
+tests scored zero on every metric. pytest reports an inherited test under the
+concrete class, but the body lives in a mixin:
 
 ```python
 class DecoratorTestMixin(_TestCaseProtocol):
@@ -73,99 +73,95 @@ class LRUDecoratorTest(unittest.TestCase, DecoratorTestMixin):
     DECORATOR = staticmethod(cachetools.func.lru_cache)   # the id says this
 ```
 
-`_locate` looked only in the named class's own body, found nothing, and
-returned an empty `NavResult`. This is not an edge case: `CacheTestMixin`
-supplies 23 of cachetools' tests on its own. The tuned set could never have
-exposed it, because all 10 of those tests happen to be defined directly in
-their own class.
+`CacheTestMixin` supplies 23 of cachetools' tests on its own. All 10 tests in
+set 1 happen to be defined directly in their own class, so set 1 was
+structurally incapable of noticing.
 
-Fixed in v0.3 by walking base classes depth-first with jedi when a method is
-not in the named class, and navigating against the file the body actually
-lives in. Regression test: `test_finds_a_test_inherited_from_a_mixin`.
+**Set 3, first run: the gold set itself was broken.** Fixture scores came back
+at precision 0.25 / recall 0.28. The navigator was returning exactly the right
+fixtures; the labels were wrong. Their line numbers had been read from the
+`main` checkout *before* the repo was pinned to tag 2.2.0, so every fixture in
+the file was off by one and scored as a miss.
 
-After the fix, on the same held-out set:
+That is a measurement failure, not a navigator failure, and hand-patching the
+numbers would have meant exercising judgment over the gold set again. Instead
+`tools/relocate_gold.py` recomputes every line mechanically from the pinned
+checkout by symbol name. It rewrites only `start_line`, never a name and never
+which entries exist, refuses any name matching several definitions (there are
+four `cache_info` closures in `_cached.py`, one per wrapper builder, and only
+one of them runs), and prints every change. Applied to all three sets: set 1
+needed **0** corrections, set 2 one, set 3 seventeen. Fixtures then scored
+0.90 / 1.00.
 
-```
-micro precision 0.579  recall 0.379  f1 0.458  correct-in-top-3 100.0%  (8 tests)
-```
+Worth keeping: a gold set pinned by line number is itself a thing that can
+silently break. Re-run that tool whenever a target repo is re-pinned.
 
-Top-3 went 62.5% to 100%, recall 0.26 to 0.38, F1 0.37 to 0.46. Precision fell
-slightly because the three previously-empty tests now return results, some of
-them wrong. The tuned set is unchanged at 1.00 / 0.86, so this is not a
-trade-off between the two sets.
+## v0.2 to v0.4: what moved the numbers
 
-**Disclosure: the post-fix number is no longer blind.** A bug was found using
-the held-out set and then fixed, which is exactly the contamination this set
-existed to avoid. 0.46 is therefore itself a mild over-estimate. It is reported
-because it is still far more honest than the tuned 0.92, and because hiding a
-real bug to protect a measurement would be the worse trade. No further tuning
-was done against this set after the fix. Eval 2 needs a *third*, fresh held-out
-set, ideally labelled by A or C.
+| change | why | effect |
+| --- | --- | --- |
+| find tests inherited from a mixin | pytest reports the id under the concrete class; the body is in the base | set 2 top-3 62.5% to 100% |
+| resolve `self.x` against the **concrete** class | the mixin declares the hook, the subclass supplies what runs; jedi resolves `self` to the base and finds the abstract stub | recovered `CacheWrapperTest.cache`, `DECORATOR` |
+| one step into a resolved function's body | `cached()` imports `_wrapper` inside itself and calls it from a closure, so the function doing the work is invisible from the test | largest recall bucket on set 2 |
+| callee default arguments | `cachedmethod(cache, key=keys.methodkey)` names the key function the test never mentions | recovered `methodkey`, `hashkey` |
+| fixtures: class scope, base classes, conftest chain, transitive, autouse | pytest resolves fixtures by name through all of these; v0.3 looked only at module level and conftest | fixture recall 1.00 on set 3 |
+| resolve what a **fixture builds** | the test sees an untyped parameter; the class under test is only reachable through the fixture that made it | without it, fixture-based suites resolved **nothing** |
+| drop abstract stubs (`...`, `pass`, `NotImplementedError`) | Protocol declarations and template hooks resolve like any function but never run | removed the `_TestCaseProtocol` false positives |
 
-## Where the remaining held-out recall goes
+Set 1 moved 0.92 to 0.95 F1, set 2 moved 0.46 to 0.56, and neither regressed,
+so these are genuine improvements rather than a trade between targets.
 
-Recall is 0.38, so roughly three in five gold entries are still missed. They
-are not scattered: three systematic causes account for nearly all of them.
+## What still misses, and why
 
-**1. Resolution does not enter function bodies (`_wrapper`, missed in 6 of 8).**
-`cached()` does `from ._cached import _wrapper` *inside* its own body and calls
-it from a nested `decorator` closure. v0.3 expands one hop outward (base
-classes, decorators) but never walks *into* a found function. Every decorator
-test in the held-out set loses `_wrapper` and its concrete builder this way.
-This is the largest single bucket and the obvious v0.4 target.
+**Runtime dispatch.** `cached()` picks one of eight wrapper builders from the
+*values* of `lock`, `condition` and `info` at decoration time. Static
+resolution reaches `cached` and stops. The navigator often returns the wrong
+variant's `cache_info`. No amount of AST work fixes this; it is the strongest
+argument for pairing static navigation with the runtime data A's collector
+produces.
 
-**2. Dispatch is inverted by the mixin pattern (`CacheWrapperTest.cache`,
-`Cache`).** The mixin calls `self.cache(2)`, and the mixin's own `cache` raises
-`NotImplementedError`; the real implementation is in the concrete subclass.
-Static resolution from inside the base cannot know which subclass is running.
-This is the template-method pattern, and it defeats name resolution by design.
-Runtime data from A's collector is the realistic answer, not more AST work.
+**Return types.** `hashkey()` returns a `_HashedTuple` whose `__hash__` and
+`__eq__` are what the test asserts on. Nothing in the source text names it.
+jedi can execute a function and report return types; v0.4 does not. This is
+the clearest remaining win.
 
-**3. Callee default arguments (`methodkey`, `hashkey`).** `cachedmethod(cache,
-key=keys.methodkey, ...)` carries the real key function as a default in the
-*callee's* signature. v0.3 reads defaults in the test being navigated, not in
-functions it resolves to.
-
-Also still missing from both sets, unchanged: `_HashedTuple` (a return type, no
-return-type inference) and `_condition_info` / `_unlocked` (which concrete
-wrapper runs is decided at runtime from argument values).
-
-New false positives the held-out set exposed: `tests/__init__.py:9,17,21`, the
-`assertEqual`-style stubs of `_TestCaseProtocol`. They are repo-local so they
-survive the filters. A Protocol-class filter would remove them — deliberately
-**not** added, because tuning on the held-out set again is how the first set
-was spoiled.
-
-## Latency
-
-Measured on laptop 1, tuned set: min 0.05 s, median 0.18 s, max 0.63 s,
-0.75 s cold including the import. Fast enough to run live in the demo.
+**Deep inheritance.** Expansion is one hop, so `TTLCache -> _TimedCache` is
+found and `_TimedCache -> Cache` is not. A deliberate bound: each hop costs
+jedi round trips and widens the chunk set C's bundle must fit in 2-4k tokens.
 
 ## Reproduce
 
 ```bash
-python -m flakeguard.navigator.evaluate --repo ../cachetools \
-    --gold docs/eval1/nav-gold-heldout.json --markdown    # the number to quote
-python -m flakeguard.navigator.evaluate --repo ../cachetools \
-    --gold docs/eval1/nav-gold.json --markdown            # the tuned set
-python -m flakeguard.navigator.evaluate --repo ../cachetools \
-    --gold docs/eval1/nav-gold-v1.json --markdown         # labels before revision
+git clone https://github.com/tkem/cachetools.git ../cachetools
+cd ../cachetools && git checkout 3c082c654c2804b9354e4b62dbd2994f1aac464d && cd -
+git clone https://github.com/pallets/itsdangerous.git ../itsdangerous
+cd ../itsdangerous && git checkout 2.2.0 && cd -
+
+# the number to quote
+python -m flakeguard.navigator.evaluate --repo ../itsdangerous \
+    --gold docs/eval1/nav-gold-itsdangerous.json --markdown
+# the cachetools sets, for contrast
+python -m flakeguard.navigator.evaluate --repo ../cachetools --gold docs/eval1/nav-gold.json
+python -m flakeguard.navigator.evaluate --repo ../cachetools --gold docs/eval1/nav-gold-heldout.json
+# after re-pinning any target repo
+python tools/relocate_gold.py docs/eval1/<gold>.json --repo ../<checkout>
 ```
 
-## Things this measurement does not tell you
+The navigator is purely static: it parses the target but never imports it, so
+the target's own dependencies need not be installed. itsdangerous' tests
+require `freezegun`, which is not in our venv, and navigation works anyway.
 
-- **No fixtures were exercised.** cachetools has no `conftest.py` and no pytest
-  fixtures anywhere; it is a `unittest` suite. The fixture and conftest-chain
-  logic is covered by `tests/test_navigator.py` against `tests/data/navsample`,
-  and will be exercised for real against C's `synthetic/`. Any claim about
-  fixture navigation rests on those, not on these tables.
-- **Shared state barely appears.** One module-level global in the whole
-  cachetools suite (`count` in `test_threading.py`, which the navigator finds).
-  Worse, `test_classmethod.py` keeps its mutable state in **class** attributes
-  (`Cached.cache`, `Cached.count`), which is the same flakiness mechanism but
-  outside the `NavResult` contract's wording of "module-level mutable globals".
-  Worth raising with A and C before Eval 2: the contract may need widening.
-- **18 tests across two sets is a small sample.** No confidence intervals are
-  quoted because they would be meaningless at this size.
-- **Both sets come from one repo.** cachetools is a clean, well-typed library.
-  Nothing here predicts behaviour on a messy codebase, which is what Emma is.
+## Things these measurements still do not tell you
+
+- **28 tests across two libraries is a small sample.** No confidence intervals
+  are quoted because they would be meaningless at this size.
+- **Both targets are clean, well-typed libraries.** Nothing here predicts
+  behaviour on a messy codebase, which is what Emma is.
+- **Shared state is barely represented.** One module-level global across both
+  suites. Worse, `test_classmethod.py` keeps its mutable state in **class**
+  attributes (`Cached.cache`, `Cached.count`) — the same flakiness mechanism,
+  but outside the `NavResult` contract's wording of "module-level mutable
+  globals". **Worth raising with A and C: the contract may need widening.**
+- **No measurement on planted flakes yet.** `synthetic/` is C's work package
+  and is where order-dependence and shared-state navigation get tested for
+  real.

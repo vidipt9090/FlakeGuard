@@ -93,11 +93,12 @@ Concretely, for the same test:
 | flag `time.sleep`, `random.`, `threading.` in reachable code | grep, unranked, whole repo | yes, scoped to this test |
 | output shaped as `NavResult` chunks for an LLM bundle | no | yes, that is the contract |
 
-Measured end to end on a **held-out** set of 8 tests the navigator was never
-built against: precision 0.58, recall 0.38, F1 0.46, correct answer in the top
-3 for 8 of 8, median 0.18 s per test. On the 10 tests it *was* tuned against it
-scores 1.00 / 0.86, which is why that number is not the one quoted here. See
-`nav-results.md` for both, the protocol, and the bug the held-out set caught.
+Measured end to end on a **second repository** (itsdangerous 2.2.0), labelled
+blind: recall 0.91, precision@5 0.72, correct answer in the top 3 for 10 of 10,
+and fixtures at precision 0.90 / recall 1.00. On the cachetools tests it was
+tuned against it scores 0.96 / 0.93, which is why that is not the number quoted
+here. See `nav-results.md` for all three gold sets, the protocol, and the two
+bugs the held-out sets caught.
 
 The capability table above is about what each tool can express, not about
 accuracy. A row marked "yes" means the navigator attempts it and the output

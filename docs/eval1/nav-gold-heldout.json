@@ -33,15 +33,55 @@
     {
       "test_id": "tests/test_func.py::LRUDecoratorTest::test_decorator",
       "code_under_test": [
-        {"path": "tests/test_func.py", "start_line": 13, "name": "DecoratorTestMixin.decorator"},
-        {"path": "src/cachetools/func.py", "start_line": 63, "name": "lru_cache", "why": "DECORATOR class attribute"},
-        {"path": "src/cachetools/func.py", "start_line": 22, "name": "_cache"},
-        {"path": "src/cachetools/__init__.py", "start_line": 287, "name": "LRUCache"},
-        {"path": "src/cachetools/__init__.py", "start_line": 45, "name": "Cache", "why": "base class"},
-        {"path": "src/cachetools/__init__.py", "start_line": 738, "name": "cached"},
-        {"path": "src/cachetools/_cached.py", "start_line": 230, "name": "_wrapper"},
-        {"path": "src/cachetools/_cached.py", "start_line": 14, "name": "_condition_info", "why": "_cache passes condition and info, so this builder runs"},
-        {"path": "src/cachetools/keys.py", "start_line": 37, "name": "hashkey", "why": "the test asserts 1 and 1.0 share a cache entry, which is hashkey behaviour"}
+        {
+          "path": "tests/test_func.py",
+          "start_line": 13,
+          "name": "DecoratorTestMixin.decorator"
+        },
+        {
+          "path": "src/cachetools/func.py",
+          "start_line": 63,
+          "name": "lru_cache",
+          "why": "DECORATOR class attribute"
+        },
+        {
+          "path": "src/cachetools/func.py",
+          "start_line": 22,
+          "name": "_cache"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 287,
+          "name": "LRUCache"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 45,
+          "name": "Cache",
+          "why": "base class"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 738,
+          "name": "cached"
+        },
+        {
+          "path": "src/cachetools/_cached.py",
+          "start_line": 230,
+          "name": "_wrapper"
+        },
+        {
+          "path": "src/cachetools/_cached.py",
+          "start_line": 14,
+          "name": "_condition_info",
+          "why": "_cache passes condition and info, so this builder runs"
+        },
+        {
+          "path": "src/cachetools/keys.py",
+          "start_line": 37,
+          "name": "hashkey",
+          "why": "the test asserts 1 and 1.0 share a cache entry, which is hashkey behaviour"
+        }
       ],
       "fixtures": [],
       "shared_state": [],
@@ -50,29 +90,96 @@
     {
       "test_id": "tests/test_func.py::TTLDecoratorTest::test_ttl_datetime",
       "code_under_test": [
-        {"path": "tests/test_func.py", "start_line": 13, "name": "DecoratorTestMixin.decorator"},
-        {"path": "src/cachetools/func.py", "start_line": 91, "name": "ttl_cache"},
-        {"path": "src/cachetools/func.py", "start_line": 22, "name": "_cache"},
-        {"path": "src/cachetools/__init__.py", "start_line": 451, "name": "TTLCache"},
-        {"path": "src/cachetools/__init__.py", "start_line": 373, "name": "_TimedCache", "why": "base class"},
-        {"path": "src/cachetools/__init__.py", "start_line": 738, "name": "cached"},
-        {"path": "src/cachetools/_cached.py", "start_line": 230, "name": "_wrapper"},
-        {"path": "src/cachetools/_cached.py", "start_line": 14, "name": "_condition_info"}
+        {
+          "path": "tests/test_func.py",
+          "start_line": 13,
+          "name": "DecoratorTestMixin.decorator"
+        },
+        {
+          "path": "src/cachetools/func.py",
+          "start_line": 91,
+          "name": "ttl_cache"
+        },
+        {
+          "path": "src/cachetools/func.py",
+          "start_line": 22,
+          "name": "_cache"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 451,
+          "name": "TTLCache"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 373,
+          "name": "_TimedCache",
+          "why": "base class"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 738,
+          "name": "cached"
+        },
+        {
+          "path": "src/cachetools/_cached.py",
+          "start_line": 230,
+          "name": "_wrapper"
+        },
+        {
+          "path": "src/cachetools/_cached.py",
+          "start_line": 14,
+          "name": "_condition_info"
+        }
       ],
       "fixtures": [],
       "shared_state": [],
-      "expected_smells": ["datetime.now", "time.monotonic"]
+      "expected_smells": [
+        "datetime.now",
+        "time.monotonic"
+      ]
     },
     {
       "test_id": "tests/test_cached.py::CacheWrapperTest::test_decorator",
       "code_under_test": [
-        {"path": "tests/test_cached.py", "start_line": 227, "name": "CacheWrapperTest.cache"},
-        {"path": "tests/test_cached.py", "start_line": 14, "name": "DecoratorTestMixin.func", "why": "the function being memoized"},
-        {"path": "src/cachetools/__init__.py", "start_line": 45, "name": "Cache"},
-        {"path": "src/cachetools/__init__.py", "start_line": 738, "name": "cached"},
-        {"path": "src/cachetools/_cached.py", "start_line": 230, "name": "_wrapper"},
-        {"path": "src/cachetools/_cached.py", "start_line": 204, "name": "_unlocked", "why": "no lock, no condition, no info"},
-        {"path": "src/cachetools/keys.py", "start_line": 37, "name": "hashkey", "why": "asserted on directly via cachetools.keys.hashkey(0)"}
+        {
+          "path": "tests/test_cached.py",
+          "start_line": 227,
+          "name": "CacheWrapperTest.cache"
+        },
+        {
+          "path": "tests/test_cached.py",
+          "start_line": 14,
+          "name": "DecoratorTestMixin.func",
+          "why": "the function being memoized"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 45,
+          "name": "Cache"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 738,
+          "name": "cached"
+        },
+        {
+          "path": "src/cachetools/_cached.py",
+          "start_line": 230,
+          "name": "_wrapper"
+        },
+        {
+          "path": "src/cachetools/_cached.py",
+          "start_line": 204,
+          "name": "_unlocked",
+          "why": "no lock, no condition, no info"
+        },
+        {
+          "path": "src/cachetools/keys.py",
+          "start_line": 37,
+          "name": "hashkey",
+          "why": "asserted on directly via cachetools.keys.hashkey(0)"
+        }
       ],
       "fixtures": [],
       "shared_state": [],
@@ -81,13 +188,43 @@
     {
       "test_id": "tests/test_cached.py::CacheWrapperTest::test_decorator_info",
       "code_under_test": [
-        {"path": "tests/test_cached.py", "start_line": 227, "name": "CacheWrapperTest.cache"},
-        {"path": "tests/test_cached.py", "start_line": 14, "name": "DecoratorTestMixin.func"},
-        {"path": "src/cachetools/__init__.py", "start_line": 45, "name": "Cache"},
-        {"path": "src/cachetools/__init__.py", "start_line": 738, "name": "cached"},
-        {"path": "src/cachetools/_cached.py", "start_line": 230, "name": "_wrapper"},
-        {"path": "src/cachetools/_cached.py", "start_line": 96, "name": "_unlocked_info", "why": "info=True, no lock"},
-        {"path": "src/cachetools/_cached.py", "start_line": 120, "name": "cache_info", "why": "called directly as wrapper.cache_info()"}
+        {
+          "path": "tests/test_cached.py",
+          "start_line": 227,
+          "name": "CacheWrapperTest.cache"
+        },
+        {
+          "path": "tests/test_cached.py",
+          "start_line": 14,
+          "name": "DecoratorTestMixin.func"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 45,
+          "name": "Cache"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 738,
+          "name": "cached"
+        },
+        {
+          "path": "src/cachetools/_cached.py",
+          "start_line": 230,
+          "name": "_wrapper"
+        },
+        {
+          "path": "src/cachetools/_cached.py",
+          "start_line": 96,
+          "name": "_unlocked_info",
+          "why": "info=True, no lock"
+        },
+        {
+          "path": "src/cachetools/_cached.py",
+          "start_line": 120,
+          "name": "_unlocked_info.cache_info",
+          "why": "called directly as wrapper.cache_info()"
+        }
       ],
       "fixtures": [],
       "shared_state": [],
@@ -96,12 +233,36 @@
     {
       "test_id": "tests/test_cached.py::DictWrapperTest::test_decorator_info",
       "code_under_test": [
-        {"path": "tests/test_cached.py", "start_line": 385, "name": "DictWrapperTest.cache"},
-        {"path": "tests/test_cached.py", "start_line": 14, "name": "DecoratorTestMixin.func"},
-        {"path": "src/cachetools/__init__.py", "start_line": 738, "name": "cached"},
-        {"path": "src/cachetools/_cached.py", "start_line": 230, "name": "_wrapper"},
-        {"path": "src/cachetools/_cached.py", "start_line": 96, "name": "_unlocked_info"},
-        {"path": "src/cachetools/_cached.py", "start_line": 120, "name": "cache_info"}
+        {
+          "path": "tests/test_cached.py",
+          "start_line": 385,
+          "name": "DictWrapperTest.cache"
+        },
+        {
+          "path": "tests/test_cached.py",
+          "start_line": 14,
+          "name": "DecoratorTestMixin.func"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 738,
+          "name": "cached"
+        },
+        {
+          "path": "src/cachetools/_cached.py",
+          "start_line": 230,
+          "name": "_wrapper"
+        },
+        {
+          "path": "src/cachetools/_cached.py",
+          "start_line": 96,
+          "name": "_unlocked_info"
+        },
+        {
+          "path": "src/cachetools/_cached.py",
+          "start_line": 120,
+          "name": "_unlocked_info.cache_info"
+        }
       ],
       "fixtures": [],
       "shared_state": [],
@@ -110,14 +271,47 @@
     {
       "test_id": "tests/test_cachedmethod.py::CacheMethodTest::test_decorator",
       "code_under_test": [
-        {"path": "tests/test_cachedmethod.py", "start_line": 519, "name": "CacheMethodTest.cache"},
-        {"path": "tests/test_cachedmethod.py", "start_line": 10, "name": "Cached"},
-        {"path": "tests/test_cachedmethod.py", "start_line": 22, "name": "Cached.get"},
-        {"path": "src/cachetools/__init__.py", "start_line": 45, "name": "Cache"},
-        {"path": "src/cachetools/__init__.py", "start_line": 769, "name": "cachedmethod"},
-        {"path": "src/cachetools/_cachedmethod.py", "start_line": 393, "name": "_wrapper"},
-        {"path": "src/cachetools/_cachedmethod.py", "start_line": 359, "name": "_unlocked"},
-        {"path": "src/cachetools/keys.py", "start_line": 46, "name": "methodkey", "why": "default key for cachedmethod"}
+        {
+          "path": "tests/test_cachedmethod.py",
+          "start_line": 519,
+          "name": "CacheMethodTest.cache"
+        },
+        {
+          "path": "tests/test_cachedmethod.py",
+          "start_line": 10,
+          "name": "Cached"
+        },
+        {
+          "path": "tests/test_cachedmethod.py",
+          "start_line": 23,
+          "name": "Cached.get"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 45,
+          "name": "Cache"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 769,
+          "name": "cachedmethod"
+        },
+        {
+          "path": "src/cachetools/_cachedmethod.py",
+          "start_line": 393,
+          "name": "_wrapper"
+        },
+        {
+          "path": "src/cachetools/_cachedmethod.py",
+          "start_line": 359,
+          "name": "_unlocked"
+        },
+        {
+          "path": "src/cachetools/keys.py",
+          "start_line": 46,
+          "name": "methodkey",
+          "why": "default key for cachedmethod"
+        }
       ],
       "fixtures": [],
       "shared_state": [],
@@ -126,31 +320,88 @@
     {
       "test_id": "tests/test_classmethod.py::CachedClassMethodTest::test",
       "code_under_test": [
-        {"path": "tests/test_classmethod.py", "start_line": 9, "name": "Cached"},
-        {"path": "tests/test_classmethod.py", "start_line": 17, "name": "Cached.get"},
-        {"path": "src/cachetools/__init__.py", "start_line": 287, "name": "LRUCache"},
-        {"path": "src/cachetools/__init__.py", "start_line": 769, "name": "cachedmethod"},
-        {"path": "src/cachetools/_cachedmethod.py", "start_line": 393, "name": "_wrapper"},
-        {"path": "src/cachetools/_cachedmethod.py", "start_line": 123, "name": "_DeprecatedDescriptorBase", "why": "the test asserts two DeprecationWarnings are raised"},
-        {"path": "src/cachetools/keys.py", "start_line": 46, "name": "methodkey"}
+        {
+          "path": "tests/test_classmethod.py",
+          "start_line": 9,
+          "name": "Cached"
+        },
+        {
+          "path": "tests/test_classmethod.py",
+          "start_line": 17,
+          "name": "Cached.get"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 287,
+          "name": "LRUCache"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 769,
+          "name": "cachedmethod"
+        },
+        {
+          "path": "src/cachetools/_cachedmethod.py",
+          "start_line": 393,
+          "name": "_wrapper"
+        },
+        {
+          "path": "src/cachetools/_cachedmethod.py",
+          "start_line": 123,
+          "name": "_DeprecatedDescriptorBase",
+          "why": "the test asserts two DeprecationWarnings are raised"
+        },
+        {
+          "path": "src/cachetools/keys.py",
+          "start_line": 46,
+          "name": "methodkey"
+        }
       ],
       "fixtures": [],
       "shared_state": [],
-      "expected_smells": ["threading."]
+      "expected_smells": [
+        "threading."
+      ]
     },
     {
       "test_id": "tests/test_classmethod.py::CachedClassMethodTest::test_clear",
       "code_under_test": [
-        {"path": "tests/test_classmethod.py", "start_line": 9, "name": "Cached"},
-        {"path": "tests/test_classmethod.py", "start_line": 17, "name": "Cached.get"},
-        {"path": "src/cachetools/__init__.py", "start_line": 287, "name": "LRUCache"},
-        {"path": "src/cachetools/__init__.py", "start_line": 769, "name": "cachedmethod"},
-        {"path": "src/cachetools/_cachedmethod.py", "start_line": 393, "name": "_wrapper"},
-        {"path": "src/cachetools/_cachedmethod.py", "start_line": 123, "name": "_DeprecatedDescriptorBase"}
+        {
+          "path": "tests/test_classmethod.py",
+          "start_line": 9,
+          "name": "Cached"
+        },
+        {
+          "path": "tests/test_classmethod.py",
+          "start_line": 17,
+          "name": "Cached.get"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 287,
+          "name": "LRUCache"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 769,
+          "name": "cachedmethod"
+        },
+        {
+          "path": "src/cachetools/_cachedmethod.py",
+          "start_line": 393,
+          "name": "_wrapper"
+        },
+        {
+          "path": "src/cachetools/_cachedmethod.py",
+          "start_line": 123,
+          "name": "_DeprecatedDescriptorBase"
+        }
       ],
       "fixtures": [],
       "shared_state": [],
-      "expected_smells": ["threading."]
+      "expected_smells": [
+        "threading."
+      ]
     }
   ]
 }
