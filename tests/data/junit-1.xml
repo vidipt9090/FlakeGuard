@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+  <testsuite name="pytest" tests="4" errors="0" failures="1" skipped="1" time="0.123">
+    <testcase classname="tests.test_cache" name="test_lru_cache_hit" time="0.010"/>
+    <testcase classname="tests.test_cache" name="test_lru_cache_miss" time="0.008">
+      <failure message="AssertionError">assert 0 == 1</failure>
+    </testcase>
+    <testcase classname="tests.test_cache" name="test_ttl_expire" time="0.050">
+      <skipped message="not implemented yet"/>
+    </testcase>
+    <testcase classname="tests.test_cache" name="test_lfu_eviction" time="0.015"/>
+  </testsuite>
+</testsuites>

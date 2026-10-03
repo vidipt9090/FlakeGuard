@@ -7,9 +7,10 @@ dist/
 build/
 .eggs/
 *.parquet
-data/
-artifacts/
-out/
+/data/
+/artifacts/
+/out/
+!tests/data/
 *.log
 .env
 *.env
