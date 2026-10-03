@@ -12,9 +12,9 @@ The full plan, with diagrams, is in the plan document (section numbers below ref
 
 | Person | Laptop | Role | Owns these packages | Reviews PRs from |
 | --- | --- | --- | --- | --- |
-| A: Name TODO | Laptop 3 (16 GB RAM, 135 GB free disk; CPU and GPU unknown) | Data and CI | `collector/`, `parser/`, `baselines/`, `.github/`, `docs/` | B |
-| B: Name TODO | Laptop 1 (RTX 3050, about 12 GB RAM free) | Retrieval and navigation | `navigator/`, `retrieval/`, `cluster/` | C |
-| C: Name TODO | Laptop 2 (Core Ultra 7, 32 GB RAM) | LLM and evaluation | `llm/`, `classify/`, `evidence/`, `eval/`, `synthetic/` | A |
+| A: Vidipt | Laptop 3 (16 GB RAM, 135 GB free disk; CPU and GPU unknown) | Data and CI | `collector/`, `parser/`, `baselines/`, `.github/`, `docs/` | B |
+| B: Samarth | Laptop 1 (RTX 3050, about 12 GB RAM free) | Retrieval and navigation | `navigator/`, `retrieval/`, `cluster/` | C |
+| C: Priyal | Laptop 2 (Core Ultra 7, 32 GB RAM) | LLM and evaluation | `llm/`, `classify/`, `evidence/`, `eval/`, `synthetic/` | A |
 
 Shared, built in phase 2 by root-cause family: `reproduce/`, `actions/`, `monitor/`, `app/`.
 
