@@ -1,16 +1,16 @@
 # CODEOWNERS
-# Replace @A-handle, @B-handle, @C-handle with actual GitHub usernames.
+# Handles: A=@vidipt9090, B=@sam2126, C=@priyalkhullar
 
-/flakeguard/collector/     @A-handle
-/flakeguard/parser/        @A-handle
-/flakeguard/baselines/     @A-handle
-/.github/                  @A-handle
-/flakeguard/navigator/     @B-handle
-/flakeguard/retrieval/     @B-handle
-/flakeguard/cluster/       @B-handle
-/flakeguard/llm/           @C-handle
-/flakeguard/classify/      @C-handle
-/flakeguard/evidence/      @C-handle
-/flakeguard/eval/          @C-handle
-/synthetic/                @C-handle
-/flakeguard/contracts.py   @A-handle @B-handle @C-handle
+/flakeguard/collector/     @vidipt9090
+/flakeguard/parser/        @vidipt9090
+/flakeguard/baselines/     @vidipt9090
+/.github/                  @vidipt9090
+/flakeguard/navigator/     @sam2126
+/flakeguard/retrieval/     @sam2126
+/flakeguard/cluster/       @sam2126
+/flakeguard/llm/           @priyalkhullar
+/flakeguard/classify/      @priyalkhullar
+/flakeguard/evidence/      @priyalkhullar
+/flakeguard/eval/          @priyalkhullar
+/synthetic/                @priyalkhullar
+/flakeguard/contracts.py   @vidipt9090 @sam2126 @priyalkhullar
