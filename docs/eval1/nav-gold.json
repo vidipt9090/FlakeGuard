@@ -1,0 +1,286 @@
+{
+  "repo": "cachetools",
+  "sha": "3c082c654c2804b9354e4b62dbd2994f1aac464d",
+  "labelled_by": "B",
+  "labelled_on": "2026-10-03",
+  "revision": "v2",
+  "revision_note": [
+    "v1 is kept in nav-gold-v1.json and both scores are reported in",
+    "nav-results.md. v1 listed only the class a test names. Re-reading the",
+    "source showed that was wrong about the mechanism, not just incomplete:",
+    "every 'cache[1] = 1' dispatches to Cache.__setitem__ on the base class,",
+    "_TimedCache holds the _Timer that the timed caches call, 'func.cache_info()'",
+    "is a direct call into _cached.cache_info, and bad_choice is a local",
+    "function the test hands in and the cache then invokes. All of that is",
+    "code under test by any honest reading, so v2 adds it.",
+    "The correction was made after seeing v0.2 output. It raises precision,",
+    "so it is reported alongside v1 rather than replacing it silently."
+  ],
+  "method": [
+    "Read each test body by hand and record the definitions whose behaviour the",
+    "test asserts on. Production code, inherited base classes and test-local",
+    "helpers all count, because all three run. The test function itself and its",
+    "own TestCase class do not count.",
+    "Entries the navigator is expected to miss are kept in. Removing them would",
+    "inflate recall and hide the real limits of name-based resolution."
+  ],
+  "match_rule": "a predicted chunk matches a gold entry when the path is equal and the gold start_line falls inside the predicted line span",
+  "tests": [
+    {
+      "test_id": "tests/test_lru.py::LRUCacheTest::test_lru",
+      "code_under_test": [
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 287,
+          "name": "LRUCache"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 45,
+          "name": "Cache",
+          "why": "base class: __setitem__ and __len__ run here"
+        }
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": []
+    },
+    {
+      "test_id": "tests/test_lfu.py::LFUCacheTest::test_lfu",
+      "code_under_test": [
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 203,
+          "name": "LFUCache"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 45,
+          "name": "Cache",
+          "why": "base class"
+        }
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": []
+    },
+    {
+      "test_id": "tests/test_fifo.py::FIFOCacheTest::test_fifo",
+      "code_under_test": [
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 171,
+          "name": "FIFOCache"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 45,
+          "name": "Cache",
+          "why": "base class"
+        }
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": []
+    },
+    {
+      "test_id": "tests/test_rr.py::RRCacheTest::test_rr",
+      "code_under_test": [
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 329,
+          "name": "RRCache"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 45,
+          "name": "Cache",
+          "why": "base class"
+        }
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": [
+        "random."
+      ]
+    },
+    {
+      "test_id": "tests/test_rr.py::RRCacheTest::test_rr_bad_choice",
+      "code_under_test": [
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 329,
+          "name": "RRCache"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 45,
+          "name": "Cache",
+          "why": "base class"
+        },
+        {
+          "path": "tests/test_rr.py",
+          "start_line": 72,
+          "name": "bad_choice",
+          "why": "callback the cache invokes on eviction"
+        }
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": [
+        "random."
+      ]
+    },
+    {
+      "test_id": "tests/test_ttl.py::TTLCacheTest::test_ttl",
+      "code_under_test": [
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 451,
+          "name": "TTLCache"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 373,
+          "name": "_TimedCache",
+          "why": "base class"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 376,
+          "name": "_TimedCache._Timer",
+          "why": "cache.timer() goes here"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 45,
+          "name": "Cache",
+          "why": "base of _TimedCache"
+        },
+        {
+          "path": "tests/test_ttl.py",
+          "start_line": 9,
+          "name": "Timer",
+          "why": "fake clock the test injects, same role as tests/test_tlru.py:13"
+        }
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": [
+        "time.monotonic"
+      ]
+    },
+    {
+      "test_id": "tests/test_tlru.py::TLRUCacheTest::test_ttu",
+      "code_under_test": [
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 592,
+          "name": "TLRUCache"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 373,
+          "name": "_TimedCache",
+          "why": "base class"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 376,
+          "name": "_TimedCache._Timer",
+          "why": "cache.timer() goes here"
+        },
+        {
+          "path": "tests/test_tlru.py",
+          "start_line": 13,
+          "name": "Timer",
+          "why": "fake clock the test injects"
+        }
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": [
+        "time.monotonic"
+      ]
+    },
+    {
+      "test_id": "tests/test_keys.py::CacheKeysTest::test_hashkey",
+      "code_under_test": [
+        {
+          "path": "src/cachetools/keys.py",
+          "start_line": 37,
+          "name": "hashkey"
+        },
+        {
+          "path": "src/cachetools/keys.py",
+          "start_line": 6,
+          "name": "_HashedTuple",
+          "why": "return type: the test asserts on its __hash__ and __eq__"
+        }
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": []
+    },
+    {
+      "test_id": "tests/test_keys.py::CacheKeysTest::test_typedkey",
+      "code_under_test": [
+        {
+          "path": "src/cachetools/keys.py",
+          "start_line": 51,
+          "name": "typedkey"
+        },
+        {
+          "path": "src/cachetools/keys.py",
+          "start_line": 6,
+          "name": "_HashedTuple",
+          "why": "return type"
+        }
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": []
+    },
+    {
+      "test_id": "tests/test_threading.py::ThreadingTest::test_cached_stampede",
+      "code_under_test": [
+        {
+          "path": "tests/test_threading.py",
+          "start_line": 12,
+          "name": "func",
+          "why": "the function the threads run"
+        },
+        {
+          "path": "src/cachetools/__init__.py",
+          "start_line": 738,
+          "name": "cached",
+          "why": "decorator applied to func"
+        },
+        {
+          "path": "src/cachetools/_cached.py",
+          "start_line": 14,
+          "name": "_condition_info",
+          "why": "the wrapper cached() actually builds"
+        },
+        {
+          "path": "src/cachetools/_cached.py",
+          "start_line": 49,
+          "name": "_condition_info.cache_info",
+          "why": "called directly as func.cache_info()"
+        }
+      ],
+      "fixtures": [],
+      "shared_state": [
+        {
+          "path": "tests/test_threading.py",
+          "start_line": 8,
+          "name": "count"
+        }
+      ],
+      "expected_smells": [
+        "threading.",
+        "time.sleep"
+      ]
+    }
+  ]
+}

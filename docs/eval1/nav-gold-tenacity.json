@@ -1,0 +1,129 @@
+{
+  "repo": "tenacity",
+  "sha": "62787c34bb052d28d814bc07e5c3caed22cd73a2",
+  "ref": "9.1.2",
+  "labelled_by": "B",
+  "labelled_on": "2026-10-03",
+  "revision": "set 4, third repository",
+  "protocol": [
+    "Fourth gold set, third repository. Sets 1-3 are all spent: set 1 was",
+    "tuned on, set 2 paid for the mixin bug, set 3 paid for the gold-line",
+    "bug and for the fixture work. None can measure generalisation now.",
+    "tenacity is a retry library, so unlike cachetools and itsdangerous it is",
+    "full of sleep, random and clock use. That makes it the first target that",
+    "can really score the smell detector rather than just exercise it.",
+    "Rules: labelled from source alone, before the navigator was run on any",
+    "id in this file; committed before the first scoring run; line numbers",
+    "then made exact with tools/relocate_gold.py, which is mechanical and",
+    "changes no names and no entries; reported whatever it says."
+  ],
+  "known_residual_bias": [
+    "Same person wrote the navigator and the labels. Unlike set 3, no part of",
+    "the implementation was written while reading this repository, so this is",
+    "the cleanest estimate so far. Independent labelling by A or C is still",
+    "the control that is missing."
+  ],
+  "match_rule": "a predicted chunk matches a gold entry when the path is equal and the gold start_line falls inside the predicted line span",
+  "tests": [
+    {
+      "test_id": "tests/test_utils.py::test_is_coroutine_callable",
+      "code_under_test": [
+        {"path": "tenacity/_utils.py", "start_line": 82, "name": "is_coroutine_callable"}
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": []
+    },
+    {
+      "test_id": "tests/test_after.py::TestAfterLogFormat::test_01_default",
+      "code_under_test": [
+        {"path": "tenacity/after.py", "start_line": 31, "name": "after_log"},
+        {"path": "tenacity/_utils.py", "start_line": 48, "name": "get_callback_name"},
+        {"path": "tenacity/_utils.py", "start_line": 44, "name": "to_ordinal"},
+        {"path": "tests/test_tenacity.py", "start_line": 55, "name": "make_retry_state"}
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": ["random."]
+    },
+    {
+      "test_id": "tests/test_after.py::TestAfterLogFormat::test_02_custom_sec_format",
+      "code_under_test": [
+        {"path": "tenacity/after.py", "start_line": 31, "name": "after_log"},
+        {"path": "tenacity/_utils.py", "start_line": 48, "name": "get_callback_name"},
+        {"path": "tenacity/_utils.py", "start_line": 44, "name": "to_ordinal"},
+        {"path": "tests/test_tenacity.py", "start_line": 55, "name": "make_retry_state"}
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": ["random."]
+    },
+    {
+      "test_id": "tests/test_tenacity.py::TestStopConditions::test_stop_after_attempt",
+      "code_under_test": [
+        {"path": "tenacity/stop.py", "start_line": 84, "name": "stop_after_attempt"},
+        {"path": "tenacity/stop.py", "start_line": 27, "name": "stop_base", "why": "base class"},
+        {"path": "tenacity/__init__.py", "start_line": 464, "name": "Retrying"},
+        {"path": "tenacity/__init__.py", "start_line": 218, "name": "BaseRetrying", "why": "r.stop lives here"},
+        {"path": "tests/test_tenacity.py", "start_line": 55, "name": "make_retry_state"}
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": []
+    },
+    {
+      "test_id": "tests/test_tenacity.py::TestWaitConditions::test_no_sleep",
+      "code_under_test": [
+        {"path": "tenacity/__init__.py", "start_line": 464, "name": "Retrying"},
+        {"path": "tenacity/__init__.py", "start_line": 218, "name": "BaseRetrying", "why": "r.wait lives here"},
+        {"path": "tenacity/wait.py", "start_line": 59, "name": "wait_none", "why": "the default wait strategy"},
+        {"path": "tests/test_tenacity.py", "start_line": 55, "name": "make_retry_state"}
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": []
+    },
+    {
+      "test_id": "tests/test_tenacity.py::TestWaitConditions::test_fixed_sleep",
+      "code_under_test": [
+        {"path": "tenacity/wait.py", "start_line": 49, "name": "wait_fixed"},
+        {"path": "tenacity/wait.py", "start_line": 27, "name": "wait_base", "why": "base class"},
+        {"path": "tenacity/_utils.py", "start_line": 76, "name": "to_seconds", "why": "wait_fixed converts through it, and the test passes a timedelta"},
+        {"path": "tenacity/__init__.py", "start_line": 464, "name": "Retrying"},
+        {"path": "tenacity/__init__.py", "start_line": 218, "name": "BaseRetrying"},
+        {"path": "tests/test_tenacity.py", "start_line": 55, "name": "make_retry_state"}
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": []
+    },
+    {
+      "test_id": "tests/test_tenacity.py::TestWaitConditions::test_random_sleep",
+      "code_under_test": [
+        {"path": "tenacity/wait.py", "start_line": 66, "name": "wait_random"},
+        {"path": "tenacity/wait.py", "start_line": 27, "name": "wait_base", "why": "base class"},
+        {"path": "tenacity/_utils.py", "start_line": 76, "name": "to_seconds"},
+        {"path": "tenacity/__init__.py", "start_line": 464, "name": "Retrying"},
+        {"path": "tenacity/__init__.py", "start_line": 218, "name": "BaseRetrying"},
+        {"path": "tests/test_tenacity.py", "start_line": 55, "name": "make_retry_state"}
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": ["random."]
+    },
+    {
+      "test_id": "tests/test_tenacity.py::TestWaitConditions::test_incrementing_sleep",
+      "code_under_test": [
+        {"path": "tenacity/wait.py", "start_line": 116, "name": "wait_incrementing"},
+        {"path": "tenacity/wait.py", "start_line": 27, "name": "wait_base", "why": "base class"},
+        {"path": "tenacity/_utils.py", "start_line": 76, "name": "to_seconds"},
+        {"path": "tenacity/__init__.py", "start_line": 464, "name": "Retrying"},
+        {"path": "tenacity/__init__.py", "start_line": 218, "name": "BaseRetrying"},
+        {"path": "tests/test_tenacity.py", "start_line": 55, "name": "make_retry_state"}
+      ],
+      "fixtures": [],
+      "shared_state": [],
+      "expected_smells": []
+    }
+  ]
+}

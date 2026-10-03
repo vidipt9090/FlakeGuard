@@ -17,6 +17,14 @@ dev = [
     "pydantic",
     "pandas",
     "pyarrow",
+    "jedi",
+]
+# Optional: the embedding retriever only. Kept out of `dev` on purpose,
+# because these pull in PyTorch (~2.5 GB) and CI does not need it to test
+# the chunker, which is pure ast.
+rag = [
+    "chromadb",
+    "sentence-transformers",
 ]
 
 [tool.setuptools.packages.find]
@@ -33,3 +41,6 @@ ignore = []
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# tests/data holds sample projects that the navigator parses. They look like
+# tests but must never be collected as ours.
+norecursedirs = ["tests/data"]
