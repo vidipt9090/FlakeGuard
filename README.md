@@ -74,11 +74,13 @@ FlakeGuard/
 
 ## Who owns what
 
-| Person | GitHub | Laptop | Packages |
-| --- | --- | --- | --- |
-| A (Vidip) | @vidipt9090 | Laptop 3 — 16 GB RAM, 135 GB disk | `collector/`, `parser/`, `baselines/`, `.github/`, `docs/` |
-| B (Sam) | @sam2126 | Laptop 1 — AMD Ryzen 7 6800H, RTX 3050 4 GB, 15.2 GB RAM | `navigator/`, `retrieval/`, `cluster/` |
-| C (Priyal) | @priyalkhullar | Laptop 2 — Core Ultra 7, 32 GB RAM, Intel Arc GPU | `llm/`, `classify/`, `evidence/`, `eval/`, `synthetic/` |
+| Person | GitHub | Role | Laptop | Packages |
+| --- | --- | --- | --- | --- |
+| A (Vidipt) | @vidipt9090 | Data and CI | Laptop 3 — 16 GB RAM, 135 GB disk | `collector/`, `parser/`, `baselines/`, `.github/`, `docs/` |
+| B (Samarth) | @sam2126 | Retrieval and navigation | Laptop 1 — AMD Ryzen 7 6800H, RTX 3050 4 GB, 15.2 GB RAM | `navigator/`, `retrieval/`, `cluster/` |
+| C (Priyal) | @priyalkhullar | LLM and evaluation | Laptop 2 — Core Ultra 7, 32 GB RAM, Intel Arc GPU | `llm/`, `classify/`, `evidence/`, `eval/`, `synthetic/` |
+
+Shared, built in phase 2 by root-cause family: `reproduce/`, `actions/`, `monitor/`, `app/`.
 
 Review rotation: **A reviews B, B reviews C, C reviews A.**
 
