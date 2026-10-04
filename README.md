@@ -1,236 +1,294 @@
-# flakeguard: team execution guide (shared)
+# FlakeGuard
 
-Read this file first, then your own file: `PERSON_A.md`, `PERSON_B.md` or `PERSON_C.md`.
+> Detect and triage flaky tests using LLM-assisted analysis.
 
-Last updated: 2026-10-03. Eval 1 is on Monday 2026-10-05. Anything marked **TODO** or **verify** is not confirmed yet. Do not treat it as settled.
+FlakeGuard collects shuffled test runs, detects instability statistically, retrieves relevant source code via semantic navigation, and asks a local LLM to explain the root cause — all without requiring a developer to reproduce the failure manually.
 
-The full plan, with diagrams, is in the plan document (section numbers below refer to it).
+**Eval 1 deadline:** Monday 2026-10-05. Full plan and diagrams are in the plan document.
 
 ---
 
-## 1. Who does what
+## Quick start (any laptop)
 
-| Person | Laptop | Role | Owns these packages | Reviews PRs from |
+```bash
+# 1. Clone
+git clone https://github.com/vidipt9090/FlakeGuard.git
+cd FlakeGuard
+
+# 2. Virtual environment — Python 3.12 required
+py -3.12 -m venv .venv
+
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
+
+# macOS / Linux
+source .venv/bin/activate
+
+# 3. Install
+pip install -e ".[dev]"
+
+# 4. Verify
+ruff check .
+pytest -q
+```
+
+Expected: `All checks passed!` from ruff and all tests passing (30+ passing).
+
+> **Gotcha (Windows):** If `Activate.ps1` is blocked, run once:
+> `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`
+
+---
+
+## Repository layout
+
+```
+FlakeGuard/
+├── .github/
+│   ├── CODEOWNERS                        # code ownership per package
+│   ├── pull_request_template.md          # PR checklist
+│   └── workflows/
+│       ├── ci.yml                        # lint + test on every PR
+│       └── collect.yml                   # 10-run shuffled matrix on cachetools
+├── docs/eval1/                           # charter, timeline, setup notes, results
+├── flakeguard/
+│   ├── contracts.py                      # FROZEN shared data types
+│   ├── collector/                        # (A) CI data collection
+│   ├── parser/                           # (A) JUnit XML → Parquet + redaction
+│   ├── baselines/                        # (A) B1–B3 baseline classifiers
+│   ├── navigator/                        # (B) AST + jedi code navigator
+│   ├── retrieval/                        # (B) vector retrieval / Chroma
+│   ├── cluster/                          # (B) test clustering
+│   ├── llm/                              # (C) Ollama LLM adapter
+│   ├── classify/prompts/                 # (C) prompt versions v1–v3
+│   ├── evidence/                         # (C) evidence bundle builder
+│   └── eval/                             # (C) evaluation harness
+├── synthetic/                            # (C) planted-flaky project + gold.json
+├── scripts/                              # one-off helper scripts
+├── tests/                                # flakeguard's own test suite
+├── pyproject.toml
+├── .python-version                       # 3.12
+└── LICENSE                               # MIT
+```
+
+---
+
+## Who owns what
+
+| Person | GitHub | Role | Laptop | Packages |
 | --- | --- | --- | --- | --- |
-| A: Vidipt | Laptop 3 (16 GB RAM, 135 GB free disk; CPU and GPU unknown) | Data and CI | `collector/`, `parser/`, `baselines/`, `.github/`, `docs/` | B |
-| B: Samarth | Laptop 1 (RTX 3050, about 12 GB RAM free) | Retrieval and navigation | `navigator/`, `retrieval/`, `cluster/` | C |
-| C: Priyal | Laptop 2 (Core Ultra 7, 32 GB RAM) | LLM and evaluation | `llm/`, `classify/`, `evidence/`, `eval/`, `synthetic/` | A |
+| A (Vidipt) | @vidipt9090 | Data and CI | Laptop 3 — 16 GB RAM, 135 GB disk | `collector/`, `parser/`, `baselines/`, `.github/`, `docs/` |
+| B (Samarth) | @sam2126 | Retrieval and navigation | Laptop 1 — AMD Ryzen 7 6800H, RTX 3050 4 GB, 15.2 GB RAM | `navigator/`, `retrieval/`, `cluster/` |
+| C (Priyal) | @priyalkhullar | LLM and evaluation | Laptop 2 — Core Ultra 7, 32 GB RAM, Intel Arc GPU | `llm/`, `classify/`, `evidence/`, `eval/`, `synthetic/` |
 
 Shared, built in phase 2 by root-cause family: `reproduce/`, `actions/`, `monitor/`, `app/`.
 
-Review rotation is A reviews B, B reviews C, C reviews A. Whoever owns a laptop runs the part that fits it.
-
-**Why this split also matters for marks:** individual contribution and understanding are scored at every eval (C5, C10, C15). Each person must be able to explain their part from raw data to output, and run the whole pipeline on their own laptop.
+Review rotation: **A reviews B, B reviews C, C reviews A.**
 
 ---
 
-## 2. Decisions that are frozen
+## Git workflow
+
+```
+main        ← protected; only tagged milestones (eval1, eval2, eval3) land here
+develop     ← protected integration branch; must always be green
+a/<topic>   ← A's feature branches
+b/<topic>   ← B's feature branches
+c/<topic>   ← C's feature branches
+```
+
+**Daily loop:**
+
+```bash
+git checkout develop && git pull
+git checkout -b a/my-feature       # use your prefix
+
+# ...work...
+
+ruff check . && pytest -q          # must pass locally first
+git add -A
+git commit -m "feat(parser): describe what and why"
+git push -u origin a/my-feature
+gh pr create --base develop --title "feat(parser): ..." --body "What, why, how to test."
+```
+
+**Commit message format:** `type(scope): summary`
+Types: `feat`, `fix`, `docs`, `test`, `ci`, `refactor`
+
+**PR rules:**
+- Small — one work package or less
+- Reviewer is the next person in rotation; nobody merges their own PR
+- `ci.yml` must be green; squash merge
+- Never commit secrets, tokens, `.env` files, or raw logs
+
+**PR checklist (paste into every PR):**
+```
+- [ ] ruff check . and pytest -q pass locally
+- [ ] New code has a test, or a note on why not
+- [ ] No secrets, personal data or large files
+- [ ] I can run the new thing with the command in the PR description
+- [ ] README or docs updated if setup or commands changed
+```
+
+---
+
+## Hardware & versions (verified)
+
+### Laptop 1 — B (@sam2126)
+
+| Item | Value |
+| --- | --- |
+| CPU | AMD Ryzen 7 6800H, 8 cores / 16 threads |
+| GPU | **RTX 3050 Laptop GPU, 4 GB VRAM** (driver 592.27) |
+| RAM | 15.2 GB |
+| OS | Windows 11, build 26300 |
+| Python | 3.12.2 |
+| jedi | 0.20.0 |
+| Ollama | 0.21.0 (installed, not needed until Eval 2) |
+| Docker | 29.8.0, Compose v5.5.1 |
+
+> **Note:** 4 GB VRAM fits a 3B model quantised to 4-bit (~2 GB). A 7B model spills to CPU.
+> Plan retriever work around 3B on this laptop; leave the 7B comparison to Laptop 2.
+
+### Laptop 2 — C (@priyalkhullar)
+
+| Item | Value |
+| --- | --- |
+| CPU | Intel Core Ultra 7 |
+| GPU | Intel Arc Graphics |
+| RAM | 32 GB |
+| Python | 3.12.10 |
+| Ollama models | `llama3.2:3b` (~4.4 s/call CPU), `codellama:latest` (~10.6 s/call CPU) |
+
+### Laptop 3 — A (@vidipt9090)
+
+| Item | Value |
+| --- | --- |
+| CPU | TODO (check Task Manager → Performance → CPU) |
+| GPU | TODO (check Task Manager → Performance → GPU) |
+| RAM | 16 GB |
+| Free disk | 135 GB |
+| Python | 3.12.6 |
+| Git | 2.47.0.windows.1 |
+| GitHub CLI | 2.102.0 |
+
+---
+
+## Additional setup for B's tools (navigator)
+
+```bash
+# Clone cachetools as a SIBLING of FlakeGuard (not inside it)
+cd ..
+git clone https://github.com/tkem/cachetools.git
+cd cachetools
+git checkout 3c082c654c2804b9354e4b62dbd2994f1aac464d   # pinned SHA
+cd ../FlakeGuard
+
+# Run the navigator demo
+python -m flakeguard.navigator.demo \
+    "tests/test_ttl.py::TTLCacheTest::test_ttl" \
+    --repo ../cachetools --repo-name cachetools --sha 3c082c6
+
+# Score against the gold set
+python -m flakeguard.navigator.evaluate \
+    --repo ../cachetools --gold docs/eval1/nav-gold.json --markdown
+```
+
+> **Gotcha:** Clone cachetools as a *sibling* of FlakeGuard. If you clone it
+> *inside*, its 337 test files get picked up by our `pytest` run.
+
+## Additional setup for C's tools (LLM)
+
+```bash
+# Install Ollama from https://ollama.com and pull the models
+ollama pull llama3.2:3b
+ollama pull codellama:latest
+
+# Extra Python deps for C's work
+pip install ollama freezegun
+
+# Run the prompt evaluation
+python scripts/run_prompt_eval.py
+
+# Run synthetic suite 20 times
+python scripts/run_synthetic_20_times.py
+```
+
+## Embeddings / retrieval (Eval 2 only — do not install yet)
+
+```bash
+pip install chromadb sentence-transformers
+pip install llama-index llama-index-llms-ollama \
+    llama-index-embeddings-huggingface llama-index-vector-stores-chroma
+```
+
+> Package names above are on the verify list and have not been confirmed by
+> installing. Do not quote them as settled until Eval 2.
+
+---
+
+## Collecting cachetools runs
+
+```bash
+# Trigger 10 shuffled runs (requires gh auth login)
+gh workflow run collect.yml --repo vidipt9090/FlakeGuard
+
+# Watch progress
+gh run list --limit 5 --repo vidipt9090/FlakeGuard
+gh run watch <run-id> --repo vidipt9090/FlakeGuard
+
+# Download artifacts when done
+gh run download <run-id> -D artifacts/ --repo vidipt9090/FlakeGuard
+
+# Parse to Parquet
+python -m flakeguard.parser.junit artifacts/ data/run_table.parquet
+```
+
+---
+
+## Decisions that are frozen
 
 | Item | Decision |
 | --- | --- |
-| Python | **3.12** on every machine and every workflow. Pin in `.python-version`, `pyproject.toml` and `actions/setup-python`. |
-| Repo | One public monorepo named `flakeguard`. Owner and name: **TODO**. MIT license. |
-| Targets | Emma (branch `emma-accuracy-and-listening`, SHA **TODO** after it is pushed). cachetools, pinned to `3c082c654c2804b9354e4b62dbd2994f1aac464d` (MIT, 337 tests). The synthetic project in `synthetic/`. |
-| LLM | Ollama locally, temperature 0, JSON output validated with Pydantic. Model tags: **TODO verify** in the Ollama library. |
+| Python | **3.12** on every machine and every workflow |
+| Repo | One public monorepo `FlakeGuard`. MIT license |
+| Targets | cachetools pinned to `3c082c654c2804b9354e4b62dbd2994f1aac464d`; Emma (SHA TBD); synthetic project in `synthetic/` |
+| LLM | Ollama locally, temperature 0, JSON output validated with Pydantic |
 | Verdicts | `flaky`, `real`, `uncertain` |
 | Root causes | `order_dep`, `shared_state`, `timing`, `network`, `randomness`, `time_tz`, `filesystem`, `none` |
-| Quarantine | Version 1 never quarantines on its own. A person approves every quarantine. |
-| Dev tools | `pytest`, `pytest-randomly`, `ruff`, `pydantic` |
-
-Measured in a sandbox on 2026-10-03 (Python 3.13, not 3.12): cachetools has 337 tests, about 4.4 s per run, and passed 15 of 15 random-order runs. Re-measure on 3.12 on your own laptop.
+| Quarantine | v1 never quarantines on its own — a person approves every quarantine |
 
 ---
 
-## 3. Contracts (frozen)
+## contracts.py (frozen)
 
-Person A commits these in `flakeguard/contracts.py` as the very first change. **Nobody changes them without all three agreeing.** A change needs a PR labeled `contract-change` and two approvals.
-
-```python
-# flakeguard/contracts.py
-from __future__ import annotations
-from dataclasses import dataclass, field
-from typing import Protocol
-
-
-@dataclass(frozen=True)
-class Chunk:
-    chunk_id: str        # "<repo>@<sha>:<path>:<start>-<end>"
-    path: str
-    start_line: int
-    end_line: int
-    kind: str            # "function" | "class" | "test" | "fixture" | "log"
-    text: str
-    score: float = 0.0
-
-
-@dataclass(frozen=True)
-class NavResult:
-    test_id: str                                   # "tests/test_x.py::TestA::test_b"
-    code_under_test: list[Chunk] = field(default_factory=list)
-    fixtures: list[Chunk] = field(default_factory=list)
-    shared_state: list[Chunk] = field(default_factory=list)  # module-level mutable globals touched
-    smells: list[str] = field(default_factory=list)          # e.g. "time.sleep", "random.random"
-
-
-class LLMProvider(Protocol):
-    def generate(self, prompt: str, schema: dict) -> dict: ...
-
-
-class Retriever(Protocol):
-    def retrieve(self, test_id: str, k: int) -> list[Chunk]: ...
-
-
-class Navigator(Protocol):
-    def related(self, test_id: str) -> NavResult: ...
-```
-
-### Data schemas
-
-**`run_table`** (Parquet, one row per test per run):
-`repo, sha, run_id, test_id, outcome, duration_s, order_index, seed, py_version, log_path`
-
-**`labels`** (CSV):
-`test_id, stability, label, root_cause, source`
-where `label` is `stable | flaky | real_fail` and `source` is `natural | injected | mutant`.
-
-**LLM output** (validated JSON):
-
-```json
-{
-  "verdict": "flaky",
-  "root_cause": "shared_state",
-  "confidence": 0.8,
-  "evidence": [{"id": "E3", "type": "static", "strength": "strong"}],
-  "explanation": "...",
-  "fix_hint": "..."
-}
-```
-
-Every `evidence.id` must exist in the evidence bundle. The reproduction result is attached by flakeguard after the LLM call, not produced by the LLM.
+`flakeguard/contracts.py` defines the shared data types used across all packages. **Nobody changes it without all three agreeing.** A change needs a PR labelled `contract-change` and two approvals.
 
 ---
 
-## 4. Repo layout
+## Eval 1 documents
 
-```
-flakeguard/
-  .github/workflows/   ci.yml, collect.yml, (later) triage.yml, eval.yml, monitor.yml
-  .github/CODEOWNERS
-  docs/                eval1/, eval2/, eval3/
-  flakeguard/
-    contracts.py
-    collector/  parser/  evidence/  navigator/  retrieval/
-    llm/  classify/  cluster/  baselines/  reproduce/
-    actions/  eval/  monitor/  app/
-  synthetic/           planted flaky and real-failure project, with gold.json
-  tests/               tests for flakeguard itself
-  pyproject.toml  .python-version  README.md  LICENSE
-```
+All in `docs/eval1/`:
 
----
-
-## 5. Git workflow (everyone follows this)
-
-**Branches**
-- `main`: protected. Only tagged milestones (`eval1`, `eval2`, `eval3`) are merged here, by PR.
-- `develop`: protected integration branch. It must always run. Merges only by PR with CI green.
-- Feature branches: `a/<topic>`, `b/<topic>`, `c/<topic>`. Branch from `develop`.
-
-**Daily loop**
-```bash
-git clone https://github.com/<OWNER>/flakeguard.git      # once
-git checkout develop && git pull
-git checkout -b b/navigator-v0
-# ...work...
-ruff check . && pytest -q                                 # must pass locally first
-git add -A
-git commit -m "feat(navigator): resolve code under test with jedi"
-git push -u origin b/navigator-v0
-gh pr create --base develop --title "feat(navigator): resolve code under test" --body "What and why. How to test."
-```
-
-**Commit messages:** `type(scope): summary`, with types `feat`, `fix`, `docs`, `test`, `ci`, `refactor`. Your commits and PRs are your contribution evidence, so commit under your own account, in small pieces, often.
-
-**PR rules**
-1. Small. One work package or less. Under about 400 changed lines where you can.
-2. Reviewer is the person next in the rotation. Nobody merges their own PR.
-3. `ci.yml` must be green. Squash merge.
-4. Keep `develop` runnable. If you break it, fix it first.
-5. Never commit secrets, tokens, `.env` files or raw logs from Emma. Redaction happens in `parser/` before anything is stored.
-
-**PR checklist (paste in every PR)**
-- [ ] `ruff check .` and `pytest -q` pass locally
-- [ ] New code has a test, or a note on why not
-- [ ] No secrets, personal data or large files
-- [ ] I can run the new thing with the command written in the PR description
-- [ ] README or docs updated if setup or commands changed
-
-**`CODEOWNERS`** (person A creates it; replace the handles with your GitHub usernames):
-```
-/flakeguard/collector/     @A-handle
-/flakeguard/parser/        @A-handle
-/flakeguard/baselines/     @A-handle
-/.github/                  @A-handle
-/flakeguard/navigator/     @B-handle
-/flakeguard/retrieval/     @B-handle
-/flakeguard/cluster/       @B-handle
-/flakeguard/llm/           @C-handle
-/flakeguard/classify/      @C-handle
-/flakeguard/evidence/      @C-handle
-/flakeguard/eval/          @C-handle
-/synthetic/                @C-handle
-/flakeguard/contracts.py   @A-handle @B-handle @C-handle
-```
-
-**Branch protection (person A, Settings, Branches)** for `main` and `develop`: require a pull request, require 1 approval, require the `ci` status check, block force pushes. These are available on public repos. **Verify** the exact menu names on your GitHub account.
+| File | Description |
+| --- | --- |
+| `charter.md` | Problem, pipeline, personas, research question, metrics, baselines |
+| `timeline.md` | WP1–WP19 across Eval 1/2/3 |
+| `responsibility-matrix.md` | Owner/reviewer per work package |
+| `setup-laptop1.md` | B's exact setup steps |
+| `setup-laptop2.md` | C's exact setup steps |
+| `setup-laptop3.md` | A's exact setup steps |
+| `nav-results.md` | Navigator accuracy results on gold sets |
+| `sourcegraph-vs-navigator.md` | Sourcegraph evaluation and justification |
+| `prompt-results.md` | Prompt v1–v3 comparison table |
+| `prompt-findings.md` | Prompt findings and refactor check |
+| `synthetic-notes.md` | Synthetic project notes |
 
 ---
 
-## 6. GitHub Actions in this repo
+## Not yet verified
 
-- Workflows live in `.github/workflows/*.yml`.
-- Manual run: `gh workflow run collect.yml -f target=cachetools`
-- Watch: `gh run list --limit 5`, then `gh run watch <run-id>`
-- Logs: `gh run view <run-id> --log-failed`
-- Artifacts: `gh run download <run-id> -D artifacts/`
-- Never put secrets in workflow files. Use the built-in `GITHUB_TOKEN` for PR comments.
-- Actions is free for public repos. Keep matrices small while testing, then scale up.
-
----
-
-## 7. Eval 1 timeline (Monday 2026-10-05)
-
-| When | A | B | C |
-| --- | --- | --- | --- |
-| Sat evening | Repo skeleton, `contracts.py`, `ci.yml`, protection, invite B and C | Environment setup per README. Start the Sourcegraph check | Environment setup. Start the synthetic project |
-| Sunday morning | `collect.yml` on cachetools, 10 runs | Navigator v0 | LLM adapter, 5 planted tests ready |
-| Sunday afternoon | Parser to run table. Charter, timeline, matrix drafts | Gold set and navigation measure | Prompts v1-v3 run, results table |
-| Sunday evening | Root README merged from everyone's setup notes | Demo script, justification note | Findings note, refactor prompt check |
-| Sunday night | **Everyone:** merge to `develop`, rehearse the demo end to end, fix breakages | | |
-| Monday | Present. Each person demos their own part and answers questions on it | | |
-
-**Cut order if you run out of time:** embeddings smoke test, then the 30-run collection (10 is enough), then the second model in the prompt table. Never cut: charter, timeline, matrix, the navigator demo, the prompt comparison, and the README.
-
----
-
-## 8. What the team shows on Monday (maps to the Eval 1 rubric)
-
-| Rubric line (weight) | Shown by | Evidence |
-| --- | --- | --- |
-| Synopsis, problem definition (5%) | A leads, all review | Charter, timeline, responsibility matrix in `docs/eval1/` |
-| Prompt engineering (5%) | C | Prompt v1-v3 files and the comparison table |
-| Source graph and semantic navigation (10%) | B | Navigator demo, gold-set measure, Sourcegraph justification |
-| Tool configuration (5%) | Everyone | Each person's setup checklist ticked and reproducible |
-| Documentation (5%) | A leads, all contribute | Root `README.md` that a stranger can follow |
-
----
-
-## 9. Not yet verified. Check before relying on it
-
-- Free self-hosting of Sourcegraph (B tests it, time-boxed).
-- Sweep.dev and Codium/Qodo status (needed from Eval 2, not Monday).
-- Ollama model tags and sizes, and whether a 7B model runs acceptably on laptop 2.
-- Laptop 3's CPU and GPU.
-- Exact package names for the LlamaIndex Ollama, HuggingFace-embedding and Chroma integrations. Confirm by installing them.
-- Whether the Emma branch can be public, and which modules to exclude.
-- Eval 2 and Eval 3 dates.
+- Laptop 3's CPU and GPU
+- LlamaIndex package names for Ollama + HuggingFace embeddings + Chroma
+- Whether the Emma branch can be public, and which modules to exclude
+- Eval 2 and Eval 3 dates
+- `gh` CLI installation on Laptop 1 (needed for scripted workflow in Eval 2)
