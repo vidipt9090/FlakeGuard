@@ -19,9 +19,10 @@ _PATTERNS: list[tuple[str, str]] = [
     (r"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}", "[REDACTED_EMAIL]"),
     # Phone-number-like strings: +91-XXXXXXXXXX, (XXX) XXX-XXXX, XXX-XXX-XXXX, etc.
     (r"(\+?\d[\d\s\-().]{7,}\d)", "[REDACTED_PHONE]"),
-    # Long token-like strings: 20+ consecutive non-space alphanumeric/special chars
-    # Covers API keys, JWT segments, base64 blobs, hex hashes, etc.
-    (r"[A-Za-z0-9+/=_\-]{20,}", "[REDACTED_TOKEN]"),
+    # High-entropy token-like strings: 20+ chars that contain BOTH a digit AND either
+    # an uppercase letter or a non-alphanumeric symbol (+/=).
+    # This avoids matching readable snake_case test names like test_cached_property.
+    (r"(?=[A-Za-z0-9+/=_\-]{20,})(?=[^\s]*\d)(?=[^\s]*[A-Z+/=])[A-Za-z0-9+/=_\-]{20,}", "[REDACTED_TOKEN]"),
 ]
 
 _COMPILED: list[tuple[re.Pattern[str], str]] = [
