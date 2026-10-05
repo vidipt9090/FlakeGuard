@@ -133,7 +133,11 @@ class AstNavigator:
         self.sha = sha
         # A jedi Project makes imports inside the repo resolvable, including
         # the src/ layout that cachetools uses.
-        added = [str(self.repo_root / "src")] if (self.repo_root / "src").is_dir() else []
+        added = []
+        if (self.repo_root / "src").is_dir():
+            added.append(str(self.repo_root / "src"))
+        if (self.repo_root / "synthetic" / "src").is_dir():
+            added.append(str(self.repo_root / "synthetic" / "src"))
         self.project = jedi.Project(path=str(self.repo_root), added_sys_path=added)
         self._source_cache: dict[Path, str] = {}
 

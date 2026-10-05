@@ -1,0 +1,28 @@
+{
+  "test_id": "synthetic/tests/test_suite_01.py::test_case_06",
+  "case_name": "test_case_06",
+  "model": "llama3.2:3b",
+  "version": "v1",
+  "prompt": "You are an expert software engineer analyzing test failures to triage test flakiness.\n\nAnalyze the following test failure evidence bundle:\n\n--- FAILURE STATS ---\n20 total runs, 12 passes, 8 fails (40.0% failure rate)\n\n--- LOG EXCERPT ---\nAssertionError: assert '' == 'valid_tok_99'\n\n--- TEST BODY ---\ndef test_case_06():\n    assert shop.get_session() == \"valid_tok_99\"\n\n--- CODE UNDER TEST ---\n# Function: get_session\ndef get_session():\n    return _session_token\n\nDetermine whether the test failure is due to a flaky test (e.g. order dependency, shared state, timing race condition, unseeded randomness, clock/timezone dependency), a real code bug (real failure), or a stable test.\n\nRespond with strict JSON containing the following keys:\n{\n  \"label\": \"<flaky | real | stable>\",\n  \"root_cause\": \"<order_dep | shared_state | timing | randomness | time_tz | none>\",\n  \"confidence\": <float between 0.0 and 1.0>,\n  \"reasoning\": \"<explanation>\"\n}\n",
+  "parsed_output": {
+    "label": "flaky",
+    "root_cause": "timing",
+    "confidence": 0.8,
+    "reasoning": "The test failure is likely due to a timing race condition. The test is asserting that the session token is equal to a specific value, but the code under test is returning a static value. This suggests that the test is waiting for a specific value to be returned by the get_session function, which may not be guaranteed due to the nature of the function. The fact that the previous attempt failed with an error related to extra data suggests that the test is not properly handling the asynchronous nature of the function, leading to a flaky test."
+  },
+  "raw_response": "{\"label\": \"flaky\", \"root_cause\": \"timing\", \"confidence\": 0.8, \"reasoning\": \"The test failure is likely due to a timing race condition. The test is asserting that the session token is equal to a specific value, but the code under test is returning a static value. This suggests that the test is waiting for a specific value to be returned by the get_session function, which may not be guaranteed due to the nature of the function. The fact that the previous attempt failed with an error related to extra data suggests that the test is not properly handling the asynchronous nature of the function, leading to a flaky test.\"}",
+  "self_consistency_runs": [
+    [
+      "flaky",
+      "timing"
+    ],
+    [
+      "flaky",
+      "timing"
+    ],
+    [
+      "flaky",
+      "timing"
+    ]
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "test_id": "synthetic/tests/test_suite_01.py::test_case_04",
+  "case_name": "test_case_04",
+  "model": "llama3.2:3b",
+  "version": "v1",
+  "prompt": "You are an expert software engineer analyzing test failures to triage test flakiness.\n\nAnalyze the following test failure evidence bundle:\n\n--- FAILURE STATS ---\n20 total runs, 8 passes, 12 fails (60.0% failure rate)\n\n--- LOG EXCERPT ---\nAssertionError: assert False is True\n\n--- TEST BODY ---\ndef test_case_04():\n    assert shop.is_configured() is True\n\n--- CODE UNDER TEST ---\n# Function: is_configured\ndef is_configured():\n    return _configured\n\nDetermine whether the test failure is due to a flaky test (e.g. order dependency, shared state, timing race condition, unseeded randomness, clock/timezone dependency), a real code bug (real failure), or a stable test.\n\nRespond with strict JSON containing the following keys:\n{\n  \"label\": \"<flaky | real | stable>\",\n  \"root_cause\": \"<order_dep | shared_state | timing | randomness | time_tz | none>\",\n  \"confidence\": <float between 0.0 and 1.0>,\n  \"reasoning\": \"<explanation>\"\n}\n",
+  "parsed_output": {
+    "label": "flaky",
+    "root_cause": "order_dep",
+    "confidence": 0.8,
+    "reasoning": "The test failure is likely due to an order dependency issue. The test case 04 is asserting that the shop.is_configured() is True, but the code under test is returning a value from a variable _configured which is not defined in the test scope. This suggests that the test is not properly seeding the _configured variable before running the test, leading to a flaky test failure."
+  },
+  "raw_response": "{\"label\": \"flaky\", \"root_cause\": \"order_dep\", \"confidence\": 0.8, \"reasoning\": \"The test failure is likely due to an order dependency issue. The test case 04 is asserting that the shop.is_configured() is True, but the code under test is returning a value from a variable _configured which is not defined in the test scope. This suggests that the test is not properly seeding the _configured variable before running the test, leading to a flaky test failure.\"}",
+  "self_consistency_runs": [
+    [
+      "flaky",
+      "order_dep"
+    ],
+    [
+      "flaky",
+      "order_dep"
+    ],
+    [
+      "flaky",
+      "order_dep"
+    ]
+  ]
+}

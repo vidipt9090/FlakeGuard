@@ -1,0 +1,28 @@
+{
+  "test_id": "synthetic/tests/test_suite_03.py::test_case_22",
+  "case_name": "test_case_22",
+  "model": "llama3.2:3b",
+  "version": "v1",
+  "prompt": "You are an expert software engineer analyzing test failures to triage test flakiness.\n\nAnalyze the following test failure evidence bundle:\n\n--- FAILURE STATS ---\n20 total runs, 0 passes, 20 fails (100.0% failure rate)\n\n--- LOG EXCERPT ---\nAssertionError: assert 10 == 11\n\n--- TEST BODY ---\ndef test_case_22():\n    assert shop.total_rounded([10.6]) == 11\n\n--- CODE UNDER TEST ---\n# Function: total_rounded\ndef total_rounded(prices):\n    return int(total(prices))\n\nDetermine whether the test failure is due to a flaky test (e.g. order dependency, shared state, timing race condition, unseeded randomness, clock/timezone dependency), a real code bug (real failure), or a stable test.\n\nRespond with strict JSON containing the following keys:\n{\n  \"label\": \"<flaky | real | stable>\",\n  \"root_cause\": \"<order_dep | shared_state | timing | randomness | time_tz | none>\",\n  \"confidence\": <float between 0.0 and 1.0>,\n  \"reasoning\": \"<explanation>\"\n}\n",
+  "parsed_output": {
+    "label": "flaky",
+    "root_cause": "order_dep",
+    "confidence": 0.8,
+    "reasoning": "The test failure is likely due to an order dependency issue. The test case is asserting that the total rounded value is 11, but the code under test is using the result of another function (total) which is not defined in the provided code snippet. This suggests that the test is dependent on the order of operations or the result of the total function, which is not guaranteed. The fact that the previous attempt failed with a similar error suggests that the issue is likely related to the order of operations or the result of the total function."
+  },
+  "raw_response": "{\"label\": \"flaky\", \"root_cause\": \"order_dep\", \"confidence\": 0.8, \"reasoning\": \"The test failure is likely due to an order dependency issue. The test case is asserting that the total rounded value is 11, but the code under test is using the result of another function (total) which is not defined in the provided code snippet. This suggests that the test is dependent on the order of operations or the result of the total function, which is not guaranteed. The fact that the previous attempt failed with a similar error suggests that the issue is likely related to the order of operations or the result of the total function.\"}",
+  "self_consistency_runs": [
+    [
+      "flaky",
+      "order_dep"
+    ],
+    [
+      "flaky",
+      "order_dep"
+    ],
+    [
+      "flaky",
+      "order_dep"
+    ]
+  ]
+}

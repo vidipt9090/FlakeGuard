@@ -1,0 +1,28 @@
+{
+  "test_id": "synthetic/tests/test_suite_01.py::test_case_05",
+  "case_name": "test_case_05",
+  "model": "llama3.2:3b",
+  "version": "v2",
+  "prompt": "You are a test-flakiness triage assistant. Your task is to analyze test failure evidence and output a structured JSON classification.\n\nTaxonomy of labels:\n- \"flaky\": Test failure is non-deterministic or depends on execution order/environment/timing/randomness.\n- \"real\": Test failure is deterministic and caused by a real bug in the code under test.\n- \"stable\": Test passes consistently.\n\nTaxonomy of root_cause categories:\n- \"order_dep\": Failure depends on the execution order of tests (victim or polluter test).\n- \"shared_state\": Failure caused by uncleaned global/module state, cache, or class attributes.\n- \"timing\": Failure caused by thread race condition, async timeout, or sleep timing.\n- \"randomness\": Failure caused by unseeded random number generation or non-deterministic iteration.\n- \"time_tz\": Failure caused by system clock time-of-day, date, or timezone dependency.\n- \"none\": Root cause is none (for real bugs or stable tests).\n\nEVIDENCE BUNDLE:\n--- FAILURE STATS ---\n20 total runs, 20 passes, 0 fails (0.0% failure rate)\n\n--- LOG EXCERPT ---\n(None - test passed)\n\n--- TEST BODY ---\ndef test_case_05():\n    shop.set_session(\"valid_tok_99\")\n\n--- CODE UNDER TEST ---\n# Function: set_session\ndef set_session(tok):\n    global _session_token\n    _session_token = tok\n\nYou MUST output strictly valid JSON with no markdown formatting or commentary outside the JSON object:\n{\n  \"label\": \"flaky\" | \"real\" | \"stable\",\n  \"root_cause\": \"order_dep\" | \"shared_state\" | \"timing\" | \"randomness\" | \"time_tz\" | \"none\",\n  \"confidence\": 0.95,\n  \"reasoning\": \"<concise explanation>\"\n}\n",
+  "parsed_output": {
+    "label": "flaky",
+    "root_cause": "order_dep",
+    "confidence": 0.95,
+    "reasoning": "Test failure depends on the execution order of tests"
+  },
+  "raw_response": "{\n  \"label\": \"flaky\",\n  \"root_cause\": \"order_dep\",\n  \"confidence\": 0.95,\n  \"reasoning\": \"Test failure depends on the execution order of tests\"\n}",
+  "self_consistency_runs": [
+    [
+      "flaky",
+      "order_dep"
+    ],
+    [
+      "flaky",
+      "order_dep"
+    ],
+    [
+      "flaky",
+      "order_dep"
+    ]
+  ]
+}

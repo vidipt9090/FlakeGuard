@@ -1,0 +1,28 @@
+{
+  "test_id": "synthetic/tests/test_suite_02.py::test_case_11",
+  "case_name": "test_case_11",
+  "model": "llama3.2:3b",
+  "version": "v1",
+  "prompt": "You are an expert software engineer analyzing test failures to triage test flakiness.\n\nAnalyze the following test failure evidence bundle:\n\n--- FAILURE STATS ---\n20 total runs, 20 passes, 0 fails (0.0% failure rate)\n\n--- LOG EXCERPT ---\n(None - test passed)\n\n--- TEST BODY ---\ndef test_case_11():\n    shop.StoreConfig.discount_tier = \"VIP\"\n\n--- CODE UNDER TEST ---\n# Function: StoreConfig\nclass StoreConfig:\n    discount_tier = \"STANDARD\"\n\n    @classmethod\n    def get_tier(cls):\n        return cls.discount_tier\n\nDetermine whether the test failure is due to a flaky test (e.g. order dependency, shared state, timing race condition, unseeded randomness, clock/timezone dependency), a real code bug (real failure), or a stable test.\n\nRespond with strict JSON containing the following keys:\n{\n  \"label\": \"<flaky | real | stable>\",\n  \"root_cause\": \"<order_dep | shared_state | timing | randomness | time_tz | none>\",\n  \"confidence\": <float between 0.0 and 1.0>,\n  \"reasoning\": \"<explanation>\"\n}\n",
+  "parsed_output": {
+    "label": "flaky",
+    "root_cause": "order_dep",
+    "confidence": 0.8,
+    "reasoning": "The test failure is likely due to an order dependency issue. The test modifies the `discount_tier` attribute of the `StoreConfig` class, which is then used in the `test_case_11` function. However, the test does not reset the `discount_tier` attribute after the test is run, which can cause the test to fail intermittently due to the order of operations. This is a classic example of an order dependency issue, where the test's behavior is dependent on the order in which the test is run and the test's setup and teardown."
+  },
+  "raw_response": "{\"label\": \"flaky\", \"root_cause\": \"order_dep\", \"confidence\": 0.8, \"reasoning\": \"The test failure is likely due to an order dependency issue. The test modifies the `discount_tier` attribute of the `StoreConfig` class, which is then used in the `test_case_11` function. However, the test does not reset the `discount_tier` attribute after the test is run, which can cause the test to fail intermittently due to the order of operations. This is a classic example of an order dependency issue, where the test's behavior is dependent on the order in which the test is run and the test's setup and teardown.\"}",
+  "self_consistency_runs": [
+    [
+      "flaky",
+      "order_dep"
+    ],
+    [
+      "flaky",
+      "order_dep"
+    ],
+    [
+      "flaky",
+      "order_dep"
+    ]
+  ]
+}
