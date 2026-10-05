@@ -1,0 +1,28 @@
+{
+  "test_id": "synthetic/tests/test_suite_01.py::test_case_07",
+  "case_name": "test_case_07",
+  "model": "llama3.2:3b",
+  "version": "v1",
+  "prompt": "You are an expert software engineer analyzing test failures to triage test flakiness.\n\nAnalyze the following test failure evidence bundle:\n\n--- FAILURE STATS ---\n20 total runs, 20 passes, 0 fails (0.0% failure rate)\n\n--- LOG EXCERPT ---\n(None - test passed)\n\n--- TEST BODY ---\ndef test_case_07():\n    shop._cache.clear()\n\n--- CODE UNDER TEST ---\n# Attribute/Function: _cache\n\nDetermine whether the test failure is due to a flaky test (e.g. order dependency, shared state, timing race condition, unseeded randomness, clock/timezone dependency), a real code bug (real failure), or a stable test.\n\nRespond with strict JSON containing the following keys:\n{\n  \"label\": \"<flaky | real | stable>\",\n  \"root_cause\": \"<order_dep | shared_state | timing | randomness | time_tz | none>\",\n  \"confidence\": <float between 0.0 and 1.0>,\n  \"reasoning\": \"<explanation>\"\n}\n",
+  "parsed_output": {
+    "label": "stable",
+    "root_cause": "none",
+    "confidence": 1.0,
+    "reasoning": "The test failure is not due to a flaky test or a real code bug. The test passed with no errors in the provided log excerpt, and the failure rate is 0.0%, indicating that the test is consistently passing. Therefore, the test is considered stable."
+  },
+  "raw_response": "{\n  \"label\": \"stable\",\n  \"root_cause\": \"none\",\n  \"confidence\": 1.0,\n  \"reasoning\": \"The test failure is not due to a flaky test or a real code bug. The test passed with no errors in the provided log excerpt, and the failure rate is 0.0%, indicating that the test is consistently passing. Therefore, the test is considered stable.\"\n}",
+  "self_consistency_runs": [
+    [
+      "stable",
+      "none"
+    ],
+    [
+      "stable",
+      "none"
+    ],
+    [
+      "stable",
+      "none"
+    ]
+  ]
+}

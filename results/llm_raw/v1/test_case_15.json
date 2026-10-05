@@ -1,0 +1,28 @@
+{
+  "test_id": "synthetic/tests/test_suite_02.py::test_case_15",
+  "case_name": "test_case_15",
+  "model": "llama3.2:3b",
+  "version": "v1",
+  "prompt": "You are an expert software engineer analyzing test failures to triage test flakiness.\n\nAnalyze the following test failure evidence bundle:\n\n--- FAILURE STATS ---\n20 total runs, 0 passes, 20 fails (100.0% failure rate)\n\n--- LOG EXCERPT ---\nAssertionError: assert 78 == 100\n\n--- TEST BODY ---\ndef test_case_15():\n    shop.COUNTER = 0\n    t1 = threading.Thread(target=shop.increment_counter)\n    t2 = threading.Thread(target=shop.increment_counter)\n    t1.start()\n    t2.start()\n    time.sleep(0.02)\n    assert shop.COUNTER == 100\n\n--- CODE UNDER TEST ---\n# Attribute/Function: COUNTER\n\n# Function: increment_counter\ndef increment_counter():\n    global COUNTER\n    for _ in range(50):\n        c = COUNTER\n        time.sleep(0.0001)\n        COUNTER = c + 1\n\nDetermine whether the test failure is due to a flaky test (e.g. order dependency, shared state, timing race condition, unseeded randomness, clock/timezone dependency), a real code bug (real failure), or a stable test.\n\nRespond with strict JSON containing the following keys:\n{\n  \"label\": \"<flaky | real | stable>\",\n  \"root_cause\": \"<order_dep | shared_state | timing | randomness | time_tz | none>\",\n  \"confidence\": <float between 0.0 and 1.0>,\n  \"reasoning\": \"<explanation>\"\n}\n",
+  "parsed_output": {
+    "label": "flaky",
+    "root_cause": "timing",
+    "confidence": 0.8,
+    "reasoning": "The test failure is likely due to a timing race condition. The test increments the counter 50 times with a short sleep in between, but the assertion is made immediately after starting the threads. This means that the assertion is made before the counter has a chance to be incremented 50 times, resulting in a false failure. The fact that the previous attempt failed with an Unterminated string error suggests that the test is still sensitive to the timing of the threads."
+  },
+  "raw_response": "{\"label\": \"flaky\", \"root_cause\": \"timing\", \"confidence\": 0.8, \"reasoning\": \"The test failure is likely due to a timing race condition. The test increments the counter 50 times with a short sleep in between, but the assertion is made immediately after starting the threads. This means that the assertion is made before the counter has a chance to be incremented 50 times, resulting in a false failure. The fact that the previous attempt failed with an Unterminated string error suggests that the test is still sensitive to the timing of the threads.\"}",
+  "self_consistency_runs": [
+    [
+      "flaky",
+      "timing"
+    ],
+    [
+      "flaky",
+      "timing"
+    ],
+    [
+      "flaky",
+      "timing"
+    ]
+  ]
+}

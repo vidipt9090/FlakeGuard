@@ -1,0 +1,28 @@
+{
+  "test_id": "synthetic/tests/test_suite_02.py::test_case_19",
+  "case_name": "test_case_19",
+  "model": "llama3.2:3b",
+  "version": "v1",
+  "prompt": "You are an expert software engineer analyzing test failures to triage test flakiness.\n\nAnalyze the following test failure evidence bundle:\n\n--- FAILURE STATS ---\n20 total runs, 0 passes, 20 fails (100.0% failure rate)\n\n--- LOG EXCERPT ---\nAssertionError: assert 'Good night' == 'Good day'\n\n--- TEST BODY ---\ndef test_case_19():\n    assert shop.greeting(datetime.now()) == \"Good day\"\n\n--- CODE UNDER TEST ---\n# Function: greeting\ndef greeting(now):\n    return \"Good night\" if now.hour >= 22 or now.hour < 5 else \"Good day\"\n\nDetermine whether the test failure is due to a flaky test (e.g. order dependency, shared state, timing race condition, unseeded randomness, clock/timezone dependency), a real code bug (real failure), or a stable test.\n\nRespond with strict JSON containing the following keys:\n{\n  \"label\": \"<flaky | real | stable>\",\n  \"root_cause\": \"<order_dep | shared_state | timing | randomness | time_tz | none>\",\n  \"confidence\": <float between 0.0 and 1.0>,\n  \"reasoning\": \"<explanation>\"\n}\n",
+  "parsed_output": {
+    "label": "flaky",
+    "root_cause": "order_dep",
+    "confidence": 0.8,
+    "reasoning": "The test failure is likely due to an order dependency issue. The test is asserting that the greeting function returns 'Good day' when the current hour is between 5 and 22, but the test is not providing the correct input for the datetime.now() function. The previous attempt failed with an error indicating that there was extra data on line 7, which suggests that the datetime.now() function was not properly seeded or initialized. This is a classic example of an order dependency issue, where the test is not properly setting up the environment before running the test case."
+  },
+  "raw_response": "{\"label\": \"flaky\", \"root_cause\": \"order_dep\", \"confidence\": 0.8, \"reasoning\": \"The test failure is likely due to an order dependency issue. The test is asserting that the greeting function returns 'Good day' when the current hour is between 5 and 22, but the test is not providing the correct input for the datetime.now() function. The previous attempt failed with an error indicating that there was extra data on line 7, which suggests that the datetime.now() function was not properly seeded or initialized. This is a classic example of an order dependency issue, where the test is not properly setting up the environment before running the test case.\"}",
+  "self_consistency_runs": [
+    [
+      "flaky",
+      "order_dep"
+    ],
+    [
+      "flaky",
+      "order_dep"
+    ],
+    [
+      "flaky",
+      "order_dep"
+    ]
+  ]
+}

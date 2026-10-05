@@ -1,0 +1,21 @@
+name: test
+on:
+  push:
+    branches: [main, develop, "c/*", "a/*", "b/*"]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev]"
+      - run: ruff check .
+      - run: python scripts/validate_neutralization.py
+      - run: pytest -q
+      - run: python eval/run_baselines.py
+      - run: python scripts/run_navigator_eval.py

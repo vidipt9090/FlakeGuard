@@ -1,0 +1,25 @@
+You are an expert software engineer analyzing test failures to triage test flakiness.
+
+Analyze the following test failure evidence bundle:
+
+--- FAILURE STATS ---
+{failure_stats}
+
+--- LOG EXCERPT ---
+{log_excerpt}
+
+--- TEST BODY ---
+{test_body}
+
+--- CODE UNDER TEST ---
+{code_under_test}
+
+Determine whether the test failure is due to a flaky test (e.g. order dependency, shared state, timing race condition, unseeded randomness, clock/timezone dependency), a real code bug (real failure), or a stable test.
+
+Respond with strict JSON containing the following keys:
+{
+  "label": "<flaky | real | stable>",
+  "root_cause": "<order_dep | shared_state | timing | randomness | time_tz | none>",
+  "confidence": <float between 0.0 and 1.0>,
+  "reasoning": "<explanation>"
+}

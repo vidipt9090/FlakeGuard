@@ -1,0 +1,28 @@
+{
+  "test_id": "synthetic/tests/test_suite_03.py::test_case_28",
+  "case_name": "test_case_28",
+  "model": "llama3.2:3b",
+  "version": "v1",
+  "prompt": "You are an expert software engineer analyzing test failures to triage test flakiness.\n\nAnalyze the following test failure evidence bundle:\n\n--- FAILURE STATS ---\n20 total runs, 20 passes, 0 fails (0.0% failure rate)\n\n--- LOG EXCERPT ---\n(None - test passed)\n\n--- TEST BODY ---\ndef test_case_28():\n    shop.set_discount(0.0)\n    assert shop.total([1.0, 2.0]) == 3.0\n\n--- CODE UNDER TEST ---\n# Function: total\ndef total(prices):\n    return sum(prices) * (1 - _discount)\n\n# Function: set_discount\ndef set_discount(d):\n    global _discount\n    _discount = d\n\nDetermine whether the test failure is due to a flaky test (e.g. order dependency, shared state, timing race condition, unseeded randomness, clock/timezone dependency), a real code bug (real failure), or a stable test.\n\nRespond with strict JSON containing the following keys:\n{\n  \"label\": \"<flaky | real | stable>\",\n  \"root_cause\": \"<order_dep | shared_state | timing | randomness | time_tz | none>\",\n  \"confidence\": <float between 0.0 and 1.0>,\n  \"reasoning\": \"<explanation>\"\n}\n",
+  "parsed_output": {
+    "label": "flaky",
+    "root_cause": "randomness",
+    "confidence": 0.8,
+    "reasoning": "The test failure is likely due to unseeded randomness. The test uses the `total` function, which multiplies the sum of prices by (1 - _discount). However, the `_discount` variable is not initialized before being used. This can lead to unpredictable behavior and test failures due to random chance. The fact that the test passes on 20 out of 20 runs suggests that the test is flaky and not a real code bug."
+  },
+  "raw_response": "{\"label\": \"flaky\", \"root_cause\": \"unseeded_randomness\", \"confidence\": 0.8, \"reasoning\": \"The test failure is likely due to unseeded randomness. The test uses the `total` function, which multiplies the sum of prices by (1 - _discount). However, the `_discount` variable is not initialized before being used. This can lead to unpredictable behavior and test failures due to random chance. The fact that the test passes on 20 out of 20 runs suggests that the test is flaky and not a real code bug.\"}",
+  "self_consistency_runs": [
+    [
+      "flaky",
+      "randomness"
+    ],
+    [
+      "flaky",
+      "randomness"
+    ],
+    [
+      "flaky",
+      "randomness"
+    ]
+  ]
+}

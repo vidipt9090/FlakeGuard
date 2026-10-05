@@ -1,0 +1,188 @@
+[
+  {
+    "id": "synthetic/tests/test_suite_01.py::test_case_01",
+    "label": "stable",
+    "root_cause": "none",
+    "file_path": "synthetic/tests/test_suite_01.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_01.py::test_case_02",
+    "label": "flaky",
+    "root_cause": "order_dep",
+    "file_path": "synthetic/tests/test_suite_01.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_01.py::test_case_03",
+    "label": "stable",
+    "root_cause": "none",
+    "file_path": "synthetic/tests/test_suite_01.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_01.py::test_case_04",
+    "label": "flaky",
+    "root_cause": "order_dep",
+    "file_path": "synthetic/tests/test_suite_01.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_01.py::test_case_05",
+    "label": "stable",
+    "root_cause": "none",
+    "file_path": "synthetic/tests/test_suite_01.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_01.py::test_case_06",
+    "label": "flaky",
+    "root_cause": "order_dep",
+    "file_path": "synthetic/tests/test_suite_01.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_01.py::test_case_07",
+    "label": "stable",
+    "root_cause": "none",
+    "file_path": "synthetic/tests/test_suite_01.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_01.py::test_case_08",
+    "label": "flaky",
+    "root_cause": "shared_state",
+    "file_path": "synthetic/tests/test_suite_01.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_01.py::test_case_09",
+    "label": "stable",
+    "root_cause": "none",
+    "file_path": "synthetic/tests/test_suite_01.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_01.py::test_case_10",
+    "label": "flaky",
+    "root_cause": "shared_state",
+    "file_path": "synthetic/tests/test_suite_01.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_02.py::test_case_11",
+    "label": "stable",
+    "root_cause": "none",
+    "file_path": "synthetic/tests/test_suite_02.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_02.py::test_case_12",
+    "label": "flaky",
+    "root_cause": "shared_state",
+    "file_path": "synthetic/tests/test_suite_02.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_02.py::test_case_13",
+    "label": "flaky",
+    "root_cause": "timing",
+    "file_path": "synthetic/tests/test_suite_02.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_02.py::test_case_14",
+    "label": "flaky",
+    "root_cause": "timing",
+    "file_path": "synthetic/tests/test_suite_02.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_02.py::test_case_15",
+    "label": "flaky",
+    "root_cause": "timing",
+    "file_path": "synthetic/tests/test_suite_02.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_02.py::test_case_16",
+    "label": "flaky",
+    "root_cause": "randomness",
+    "file_path": "synthetic/tests/test_suite_02.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_02.py::test_case_17",
+    "label": "flaky",
+    "root_cause": "randomness",
+    "file_path": "synthetic/tests/test_suite_02.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_02.py::test_case_18",
+    "label": "flaky",
+    "root_cause": "randomness",
+    "file_path": "synthetic/tests/test_suite_02.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_02.py::test_case_19",
+    "label": "flaky",
+    "root_cause": "time_tz",
+    "file_path": "synthetic/tests/test_suite_02.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_02.py::test_case_20",
+    "label": "flaky",
+    "root_cause": "time_tz",
+    "file_path": "synthetic/tests/test_suite_02.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_03.py::test_case_21",
+    "label": "flaky",
+    "root_cause": "time_tz",
+    "file_path": "synthetic/tests/test_suite_03.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_03.py::test_case_22",
+    "label": "real",
+    "root_cause": "none",
+    "file_path": "synthetic/tests/test_suite_03.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_03.py::test_case_23",
+    "label": "real",
+    "root_cause": "none",
+    "file_path": "synthetic/tests/test_suite_03.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_03.py::test_case_24",
+    "label": "real",
+    "root_cause": "none",
+    "file_path": "synthetic/tests/test_suite_03.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_03.py::test_case_25",
+    "label": "real",
+    "root_cause": "none",
+    "file_path": "synthetic/tests/test_suite_03.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_03.py::test_case_26",
+    "label": "real",
+    "root_cause": "none",
+    "file_path": "synthetic/tests/test_suite_03.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_03.py::test_case_27",
+    "label": "real",
+    "root_cause": "none",
+    "file_path": "synthetic/tests/test_suite_03.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_03.py::test_case_28",
+    "label": "stable",
+    "root_cause": "none",
+    "file_path": "synthetic/tests/test_suite_03.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_03.py::test_case_29",
+    "label": "stable",
+    "root_cause": "none",
+    "file_path": "synthetic/tests/test_suite_03.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_03.py::test_case_30",
+    "label": "stable",
+    "root_cause": "none",
+    "file_path": "synthetic/tests/test_suite_03.py"
+  },
+  {
+    "id": "synthetic/tests/test_suite_03.py::test_case_31",
+    "label": "stable",
+    "root_cause": "none",
+    "file_path": "synthetic/tests/test_suite_03.py"
+  }
+]

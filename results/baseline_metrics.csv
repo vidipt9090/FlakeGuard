@@ -1,0 +1,4 @@
+baseline,N,precision,precision_ci_lower,precision_ci_upper,recall,recall_ci_lower,recall_ci_upper,f1,f1_ci_lower,f1_ci_upper,root_cause_acc,false_quarantine_rate
+rerun,5,1.0,1.0,1.0,0.6,0.3333,0.8333,0.75,0.5,0.9091,0.5161,0.0
+rerun,10,1.0,1.0,1.0,0.6,0.3333,0.8333,0.75,0.5,0.9091,0.5161,0.0
+rerun,20,1.0,1.0,1.0,0.6667,0.4167,0.8889,0.8,0.5882,0.9412,0.5161,0.0

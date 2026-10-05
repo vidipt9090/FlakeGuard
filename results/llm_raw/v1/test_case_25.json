@@ -1,0 +1,28 @@
+{
+  "test_id": "synthetic/tests/test_suite_03.py::test_case_25",
+  "case_name": "test_case_25",
+  "model": "llama3.2:3b",
+  "version": "v1",
+  "prompt": "You are an expert software engineer analyzing test failures to triage test flakiness.\n\nAnalyze the following test failure evidence bundle:\n\n--- FAILURE STATS ---\n20 total runs, 0 passes, 20 fails (100.0% failure rate)\n\n--- LOG EXCERPT ---\nAssertionError: assert '$12.3' == '$12.35'\n\n--- TEST BODY ---\ndef test_case_25():\n    assert shop.format_currency(12.345) == \"$12.35\"\n\n--- CODE UNDER TEST ---\n# Function: format_currency\ndef format_currency(val):\n    return f\"${val:.1f}\"\n\nDetermine whether the test failure is due to a flaky test (e.g. order dependency, shared state, timing race condition, unseeded randomness, clock/timezone dependency), a real code bug (real failure), or a stable test.\n\nRespond with strict JSON containing the following keys:\n{\n  \"label\": \"<flaky | real | stable>\",\n  \"root_cause\": \"<order_dep | shared_state | timing | randomness | time_tz | none>\",\n  \"confidence\": <float between 0.0 and 1.0>,\n  \"reasoning\": \"<explanation>\"\n}\n",
+  "parsed_output": {
+    "label": "flaky",
+    "root_cause": "timing",
+    "confidence": 0.8,
+    "reasoning": "The test failure is likely due to a timing race condition. The `format_currency` function uses a fixed precision of 1 decimal place, which may not be sufficient to handle the floating-point arithmetic involved in the test case. The previous error message suggests that the string formatting was not properly terminated, indicating a potential issue with the timing of the function call. This is a classic example of a flaky test due to a timing dependency."
+  },
+  "raw_response": "{\"label\": \"flaky\", \"root_cause\": \"timing\", \"confidence\": 0.8, \"reasoning\": \"The test failure is likely due to a timing race condition. The `format_currency` function uses a fixed precision of 1 decimal place, which may not be sufficient to handle the floating-point arithmetic involved in the test case. The previous error message suggests that the string formatting was not properly terminated, indicating a potential issue with the timing of the function call. This is a classic example of a flaky test due to a timing dependency.\"}",
+  "self_consistency_runs": [
+    [
+      "flaky",
+      "timing"
+    ],
+    [
+      "flaky",
+      "timing"
+    ],
+    [
+      "flaky",
+      "timing"
+    ]
+  ]
+}
