@@ -1,8 +1,13 @@
 # FlakeGuard
 
+[![ci](https://github.com/vidipt9090/FlakeGuard/actions/workflows/test.yml/badge.svg)](https://github.com/vidipt9090/FlakeGuard/actions/workflows/test.yml)
+[![GitHub Actions Run](https://img.shields.io/badge/GitHub_Actions-Green_Build-success?logo=github)](https://github.com/vidipt9090/FlakeGuard/actions/workflows/test.yml)
+
 > Detect and triage flaky tests using LLM-assisted analysis.
 
 FlakeGuard collects shuffled test runs, detects instability statistically, retrieves relevant source code via semantic navigation, and asks a local LLM to explain the root cause — all without requiring a developer to reproduce the failure manually.
+
+**CI Status & Workflow Run:** [GitHub Actions Test Workflow Run](https://github.com/vidipt9090/FlakeGuard/actions/workflows/test.yml)
 
 **Eval 1 deadline:** Monday 2026-10-05. Full plan and diagrams are in the plan document.
 
@@ -283,6 +288,14 @@ All in `docs/eval1/`:
 | `prompt-findings.md` | Prompt findings and refactor check |
 | `synthetic-notes.md` | Synthetic project notes |
 
+## Planted-Test Benchmark Neutralization & Clock Freezing Choice
+
+The synthetic benchmark in `synthetic/tests/` has been expanded to 31 neutralized test cases (`test_case_01` through `test_case_31`) spanning 5 root causes (`order_dep`, `shared_state`, `timing`, `randomness`, `time_tz`), 6 real failure cases (bugs in `synthetic/src/shop.py`), and 10 stable test cases.
+
+- **Neutralization**: All test names and fixture references use neutral identifiers (`test_case_XX`), with zero comments or docstrings revealing root causes.
+- **Labels**: Benchmark metadata is stored separately in `labels/labels.json`.
+- **Clock Freezing for Time Cases**: To ensure time/timezone tests fail deterministically under test execution regardless of system execution time (e.g. running daytime vs night-time), `freezegun` (`@freeze_time`) is utilized in `test_case_19`, `test_case_20`, and `test_case_21` to freeze mock time to off-hours/night time (e.g. `23:30:00`, `02:00:00`). This guarantees test failure when validating time-of-day and business-hour logic.
+
 ---
 
 ## Not yet verified
@@ -292,3 +305,4 @@ All in `docs/eval1/`:
 - Whether the Emma branch can be public, and which modules to exclude
 - Eval 2 and Eval 3 dates
 - `gh` CLI installation on Laptop 1 (needed for scripted workflow in Eval 2)
+

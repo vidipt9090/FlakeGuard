@@ -1,0 +1,28 @@
+{
+  "test_id": "synthetic/tests/test_suite_02.py::test_case_12",
+  "case_name": "test_case_12",
+  "model": "llama3.2:3b",
+  "version": "v1",
+  "prompt": "You are an expert software engineer analyzing test failures to triage test flakiness.\n\nAnalyze the following test failure evidence bundle:\n\n--- FAILURE STATS ---\n20 total runs, 12 passes, 8 fails (40.0% failure rate)\n\n--- LOG EXCERPT ---\nAssertionError: assert 'VIP' == 'STANDARD'\n\n--- TEST BODY ---\ndef test_case_12():\n    assert shop.StoreConfig.get_tier() == \"STANDARD\"\n\n--- CODE UNDER TEST ---\n# Function: StoreConfig\nclass StoreConfig:\n    discount_tier = \"STANDARD\"\n\n    @classmethod\n    def get_tier(cls):\n        return cls.discount_tier\n\nDetermine whether the test failure is due to a flaky test (e.g. order dependency, shared state, timing race condition, unseeded randomness, clock/timezone dependency), a real code bug (real failure), or a stable test.\n\nRespond with strict JSON containing the following keys:\n{\n  \"label\": \"<flaky | real | stable>\",\n  \"root_cause\": \"<order_dep | shared_state | timing | randomness | time_tz | none>\",\n  \"confidence\": <float between 0.0 and 1.0>,\n  \"reasoning\": \"<explanation>\"\n}\n",
+  "parsed_output": {
+    "label": "flaky",
+    "root_cause": "timing",
+    "confidence": 0.8,
+    "reasoning": "The test failure is likely due to a timing race condition. The `StoreConfig` class is a class method, and its `get_tier` method returns the `discount_tier` attribute, which is a class attribute. This means that the value of `discount_tier` is not reinitialized on each test run, and it can be affected by the previous test run. This can cause the test to fail intermittently due to the stale value of `discount_tier`."
+  },
+  "raw_response": "{\"label\": \"flaky\", \"root_cause\": \"timing\", \"confidence\": 0.8, \"reasoning\": \"The test failure is likely due to a timing race condition. The `StoreConfig` class is a class method, and its `get_tier` method returns the `discount_tier` attribute, which is a class attribute. This means that the value of `discount_tier` is not reinitialized on each test run, and it can be affected by the previous test run. This can cause the test to fail intermittently due to the stale value of `discount_tier`.\"}",
+  "self_consistency_runs": [
+    [
+      "flaky",
+      "timing"
+    ],
+    [
+      "flaky",
+      "timing"
+    ],
+    [
+      "flaky",
+      "timing"
+    ]
+  ]
+}

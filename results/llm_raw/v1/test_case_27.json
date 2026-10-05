@@ -1,0 +1,28 @@
+{
+  "test_id": "synthetic/tests/test_suite_03.py::test_case_27",
+  "case_name": "test_case_27",
+  "model": "llama3.2:3b",
+  "version": "v1",
+  "prompt": "You are an expert software engineer analyzing test failures to triage test flakiness.\n\nAnalyze the following test failure evidence bundle:\n\n--- FAILURE STATS ---\n20 total runs, 0 passes, 20 fails (100.0% failure rate)\n\n--- LOG EXCERPT ---\nIndexError: list index out of range\n\n--- TEST BODY ---\ndef test_case_27():\n    assert shop.parse_sku(\"SKU1234\") == 1234\n\n--- CODE UNDER TEST ---\n# Function: parse_sku\ndef parse_sku(sku_str):\n    parts = sku_str.split(\"-\")\n    return int(parts[1])\n\nDetermine whether the test failure is due to a flaky test (e.g. order dependency, shared state, timing race condition, unseeded randomness, clock/timezone dependency), a real code bug (real failure), or a stable test.\n\nRespond with strict JSON containing the following keys:\n{\n  \"label\": \"<flaky | real | stable>\",\n  \"root_cause\": \"<order_dep | shared_state | timing | randomness | time_tz | none>\",\n  \"confidence\": <float between 0.0 and 1.0>,\n  \"reasoning\": \"<explanation>\"\n}\n",
+  "parsed_output": {
+    "label": "flaky",
+    "root_cause": "order_dep",
+    "confidence": 0.8,
+    "reasoning": "The test failure is likely due to an order dependency because the test is asserting a specific behavior (parse_sku returning an integer) without verifying the input format. The test is also not checking if the input string is in the correct format before attempting to parse it. This could lead to an IndexError if the input string is not in the expected format. The test is also not checking if the split function is working correctly, which could also lead to an IndexError. The high failure rate (100%) suggests that the test is not robust enough to handle different input scenarios."
+  },
+  "raw_response": "```json\n{\n  \"label\": \"flaky\",\n  \"root_cause\": \"order_dep\",\n  \"confidence\": 0.8,\n  \"reasoning\": \"The test failure is likely due to an order dependency because the test is asserting a specific behavior (parse_sku returning an integer) without verifying the input format. The test is also not checking if the input string is in the correct format before attempting to parse it. This could lead to an IndexError if the input string is not in the expected format. The test is also not checking if the split function is working correctly, which could also lead to an IndexError. The high failure rate (100%) suggests that the test is not robust enough to handle different input scenarios.\"\n}\n",
+  "self_consistency_runs": [
+    [
+      "flaky",
+      "order_dep"
+    ],
+    [
+      "flaky",
+      "order_dep"
+    ],
+    [
+      "flaky",
+      "order_dep"
+    ]
+  ]
+}

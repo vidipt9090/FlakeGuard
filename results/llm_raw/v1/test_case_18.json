@@ -1,0 +1,28 @@
+{
+  "test_id": "synthetic/tests/test_suite_02.py::test_case_18",
+  "case_name": "test_case_18",
+  "model": "llama3.2:3b",
+  "version": "v1",
+  "prompt": "You are an expert software engineer analyzing test failures to triage test flakiness.\n\nAnalyze the following test failure evidence bundle:\n\n--- FAILURE STATS ---\n20 total runs, 19 passes, 1 fails (5.0% failure rate)\n\n--- LOG EXCERPT ---\nAssertionError: assert 7343 % 7 != 0\n\n--- TEST BODY ---\ndef test_case_18():\n    assert shop.generate_nonce() % 7 != 0\n\n--- CODE UNDER TEST ---\n# Function: generate_nonce\ndef generate_nonce():\n    return random.randint(1000, 9999)\n\nDetermine whether the test failure is due to a flaky test (e.g. order dependency, shared state, timing race condition, unseeded randomness, clock/timezone dependency), a real code bug (real failure), or a stable test.\n\nRespond with strict JSON containing the following keys:\n{\n  \"label\": \"<flaky | real | stable>\",\n  \"root_cause\": \"<order_dep | shared_state | timing | randomness | time_tz | none>\",\n  \"confidence\": <float between 0.0 and 1.0>,\n  \"reasoning\": \"<explanation>\"\n}\n",
+  "parsed_output": {
+    "label": "flaky",
+    "root_cause": "randomness",
+    "confidence": 0.8,
+    "reasoning": "The test failure is likely due to flakiness caused by unseeded randomness. The test is asserting that the generated nonce is not divisible by 7, but the randomness is not seeded, leading to inconsistent results across different runs. This is a common issue with unseeded randomness, especially when using libraries like random. To fix this, the code should be seeded with a fixed value or a random seed should be provided to the test."
+  },
+  "raw_response": "{\"label\": \"flaky\", \"root_cause\": \"randomness\", \"confidence\": 0.8, \"reasoning\": \"The test failure is likely due to flakiness caused by unseeded randomness. The test is asserting that the generated nonce is not divisible by 7, but the randomness is not seeded, leading to inconsistent results across different runs. This is a common issue with unseeded randomness, especially when using libraries like random. To fix this, the code should be seeded with a fixed value or a random seed should be provided to the test.\"}",
+  "self_consistency_runs": [
+    [
+      "flaky",
+      "randomness"
+    ],
+    [
+      "flaky",
+      "randomness"
+    ],
+    [
+      "flaky",
+      "randomness"
+    ]
+  ]
+}

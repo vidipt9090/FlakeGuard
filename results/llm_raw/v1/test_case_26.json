@@ -1,0 +1,28 @@
+{
+  "test_id": "synthetic/tests/test_suite_03.py::test_case_26",
+  "case_name": "test_case_26",
+  "model": "llama3.2:3b",
+  "version": "v1",
+  "prompt": "You are an expert software engineer analyzing test failures to triage test flakiness.\n\nAnalyze the following test failure evidence bundle:\n\n--- FAILURE STATS ---\n20 total runs, 0 passes, 20 fails (100.0% failure rate)\n\n--- LOG EXCERPT ---\nAssertionError: assert {'a': [2]} == {'a': [1, 2]}\n\n--- TEST BODY ---\ndef test_case_26():\n    assert shop.merge_catalogs({\"a\": [1]}, {\"a\": [2]}) == {\"a\": [1, 2]}\n\n--- CODE UNDER TEST ---\n# Function: merge_catalogs\ndef merge_catalogs(cat1, cat2):\n    res = dict(cat1)\n    for k, v in cat2.items():\n        res[k] = v\n    return res\n\nDetermine whether the test failure is due to a flaky test (e.g. order dependency, shared state, timing race condition, unseeded randomness, clock/timezone dependency), a real code bug (real failure), or a stable test.\n\nRespond with strict JSON containing the following keys:\n{\n  \"label\": \"<flaky | real | stable>\",\n  \"root_cause\": \"<order_dep | shared_state | timing | randomness | time_tz | none>\",\n  \"confidence\": <float between 0.0 and 1.0>,\n  \"reasoning\": \"<explanation>\"\n}\n",
+  "parsed_output": {
+    "label": "flaky",
+    "root_cause": "order_dep",
+    "confidence": 0.8,
+    "reasoning": "The test failure is due to an order dependency issue. The test is asserting that the merge_catalogs function returns a specific order of keys in the resulting dictionary. However, the function is currently iterating over the keys of cat2 in the order they appear in the dictionary, which can lead to a different order of keys in the resulting dictionary. This can cause the test to fail even if the function is working correctly. To fix this, the function should be modified to always return the keys in a consistent order, such as by sorting the keys before merging the dictionaries."
+  },
+  "raw_response": "{\"label\": \"flaky\", \"root_cause\": \"order_dep\", \"confidence\": 0.8, \"reasoning\": \"The test failure is due to an order dependency issue. The test is asserting that the merge_catalogs function returns a specific order of keys in the resulting dictionary. However, the function is currently iterating over the keys of cat2 in the order they appear in the dictionary, which can lead to a different order of keys in the resulting dictionary. This can cause the test to fail even if the function is working correctly. To fix this, the function should be modified to always return the keys in a consistent order, such as by sorting the keys before merging the dictionaries.\"}",
+  "self_consistency_runs": [
+    [
+      "flaky",
+      "order_dep"
+    ],
+    [
+      "flaky",
+      "order_dep"
+    ],
+    [
+      "flaky",
+      "order_dep"
+    ]
+  ]
+}

@@ -1,0 +1,4 @@
+prompt_version,model,precision,precision_ci_lower,precision_ci_upper,recall,recall_ci_lower,recall_ci_upper,f1,f1_ci_lower,f1_ci_upper,root_cause_acc,false_quarantine_rate,self_consistency_agreement,parse_failures
+v1,llama3.2:3b,0.4815,0.2963,0.6667,0.8667,0.6667,1.0,0.619,0.4211,0.766,0.2903,1.0,1.0,2
+v2,llama3.2:3b,0.4839,0.3226,0.6452,1.0,1.0,1.0,0.6522,0.4878,0.7843,0.2581,1.0,1.0,0
+v3,llama3.2:3b,0.7143,0.5217,0.9,1.0,1.0,1.0,0.8333,0.6857,0.9474,0.6129,1.0,1.0,0

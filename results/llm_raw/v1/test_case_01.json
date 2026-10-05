@@ -1,0 +1,28 @@
+{
+  "test_id": "synthetic/tests/test_suite_01.py::test_case_01",
+  "case_name": "test_case_01",
+  "model": "llama3.2:3b",
+  "version": "v1",
+  "prompt": "You are an expert software engineer analyzing test failures to triage test flakiness.\n\nAnalyze the following test failure evidence bundle:\n\n--- FAILURE STATS ---\n20 total runs, 20 passes, 0 fails (0.0% failure rate)\n\n--- LOG EXCERPT ---\n(None - test passed)\n\n--- TEST BODY ---\ndef test_case_01():\n    shop.register(\"item_alpha\")\n\n--- CODE UNDER TEST ---\n# Function: register\ndef register(name):\n    _registry.append(name)\n\nDetermine whether the test failure is due to a flaky test (e.g. order dependency, shared state, timing race condition, unseeded randomness, clock/timezone dependency), a real code bug (real failure), or a stable test.\n\nRespond with strict JSON containing the following keys:\n{\n  \"label\": \"<flaky | real | stable>\",\n  \"root_cause\": \"<order_dep | shared_state | timing | randomness | time_tz | none>\",\n  \"confidence\": <float between 0.0 and 1.0>,\n  \"reasoning\": \"<explanation>\"\n}\n",
+  "parsed_output": {
+    "label": "flaky",
+    "root_cause": "timing",
+    "confidence": 0.8,
+    "reasoning": "The test failure is likely due to a timing issue. The test case `test_case_01` registers an item with the `shop` object, but the failure occurs when the test is run. It is possible that the `shop` object is not fully initialized or populated with data when the test is executed, causing the `register` method to fail. This is a classic example of a timing-related issue, where the test is sensitive to the order of operations or the timing of the execution."
+  },
+  "raw_response": "{\n  \"label\": \"flaky\",\n  \"root_cause\": \"timing\",\n  \"confidence\": 0.8,\n  \"reasoning\": \"The test failure is likely due to a timing issue. The test case `test_case_01` registers an item with the `shop` object, but the failure occurs when the test is run. It is possible that the `shop` object is not fully initialized or populated with data when the test is executed, causing the `register` method to fail. This is a classic example of a timing-related issue, where the test is sensitive to the order of operations or the timing of the execution.\"\n}",
+  "self_consistency_runs": [
+    [
+      "flaky",
+      "timing"
+    ],
+    [
+      "flaky",
+      "timing"
+    ],
+    [
+      "flaky",
+      "timing"
+    ]
+  ]
+}
