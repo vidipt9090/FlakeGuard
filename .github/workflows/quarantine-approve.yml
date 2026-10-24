@@ -1,0 +1,60 @@
+name: quarantine-approve
+
+on:
+  pull_request_target:
+    types: [labeled]
+
+# Concurrency group per PR so multiple rapid labels don't collide
+concurrency:
+  group: quarantine-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: read
+
+jobs:
+  quarantine:
+    if: github.event.label.name == 'approve-quarantine'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout base develop branch
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Update quarantine.json
+        id: update-db
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/approve_quarantine.py
+
+      - name: Create Quarantine Pull Request
+        if: steps.update-db.outputs.added_count != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUM: ${{ github.event.pull_request.number }}
+          ACTOR: ${{ github.event.sender.login }}
+          TESTS: ${{ steps.update-db.outputs.tests }}
+        run: |
+          BRANCH_NAME="bot/quarantine-pr-${PR_NUM}"
+          git config user.name "flakeguard-bot"
+          git config user.email "flakeguard-bot@users.noreply.github.com"
+          git checkout -b "$BRANCH_NAME"
+          git add quarantine.json
+          git commit -m "chore(quarantine): quarantine tests from PR #${PR_NUM} [skip ci]"
+          git push origin "$BRANCH_NAME" --force
+          
+          gh pr create \
+            --base develop \
+            --head "$BRANCH_NAME" \
+            --title "chore(quarantine): quarantine tests from PR #${PR_NUM}" \
+            --body "Automated quarantine approved by @${ACTOR} on PR #${PR_NUM}. Tests: \`${TESTS}\`." \
+            --label "quarantine" || true
