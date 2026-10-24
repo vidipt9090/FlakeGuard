@@ -22,7 +22,17 @@ dev = [
     "freezegun",
     "pandas",
     "pyarrow",
-    "jedi",
+    # The navigator resolves names against what is actually importable, so the
+    # jedi version is part of the result, not an implementation detail. We
+    # measured the same test id resolving to 3 chunks under jedi 0.20 and 1
+    # under 0.19 (0.19 could not see freezegun). Pinned to a minimum so a
+    # floating resolver cannot quietly change the numbers.
+    "jedi>=0.20.0",
+    # The dashboard is a deliverable, and tests/test_dashboard.py renders every
+    # page the way the server does. Without these, those tests skip and a
+    # broken page reaches the demo green.
+    "streamlit>=1.40",
+    "plotly>=6.0",
 ]
 # Optional: the embedding retriever only. Kept out of `dev` on purpose,
 # because these pull in PyTorch (~2.5 GB) and CI does not need it to test
@@ -50,3 +60,25 @@ testpaths = ["tests"]
 # tests/data holds sample projects that the navigator parses. They look like
 # tests but must never be collected as ours.
 norecursedirs = ["tests/data"]
+
+
+[tool.coverage.run]
+# Measure the package, not the tests. Including test files inflates the number
+# (they run top to bottom by definition) and hides which source is untested.
+source = ["flakeguard"]
+branch = true
+omit = [
+    # The dashboard is covered by tests/test_dashboard.py rendering every
+    # page, but Streamlit's module-level script body does not attribute to
+    # this process, so its line coverage here is misleading rather than low.
+    "flakeguard/app/dashboard.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
