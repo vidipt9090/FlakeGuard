@@ -66,3 +66,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python scripts/post_triage_comment.py out/junit-synthetic.xml out/timestamps.json
+      - name: Upload updated triage metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: triage-metrics
+          path: out/timestamps.json
+          retention-days: 14
+

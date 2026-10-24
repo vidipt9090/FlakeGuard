@@ -162,6 +162,31 @@ def main():
     body = build_comment_body(failures, run_url, failed_at, comment_at)
     post_or_edit_comment(comments_url, body)
 
+    # Save comment_posted_at and delta back to timestamps_path
+    if timestamps_path:
+        ts_data = {}
+        if os.path.exists(timestamps_path):
+            try:
+                with open(timestamps_path, "r", encoding="utf-8") as tf:
+                    ts_data = json.load(tf)
+            except Exception:
+                ts_data = {}
+        ts_data["comment_posted_at"] = comment_at
+        if failed_at and failed_at != "Unknown":
+            try:
+                t_fail = datetime.fromisoformat(failed_at)
+                t_comment = datetime.fromisoformat(comment_at)
+                delta_sec = round((t_comment - t_fail).total_seconds(), 2)
+                ts_data["red_build_to_comment_seconds"] = delta_sec
+                print(f"[METRIC] red_build_to_comment_seconds: {delta_sec}s")
+            except Exception as e:
+                print(f"Could not calculate delta: {e}")
+        os.makedirs(os.path.dirname(os.path.abspath(timestamps_path)), exist_ok=True)
+        with open(timestamps_path, "w", encoding="utf-8") as tf:
+            json.dump(ts_data, tf, indent=2)
+        print(f"Updated timestamps saved to {timestamps_path}")
+
+
 
 if __name__ == "__main__":
     main()
