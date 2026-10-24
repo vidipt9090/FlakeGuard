@@ -33,6 +33,9 @@ dev = [
     # broken page reaches the demo green.
     "streamlit>=1.40",
     "plotly>=6.0",
+    # tests/test_cicd_page.py parses the workflow files. Without it the whole
+    # module skips, so CI would pass without ever checking the CI page.
+    "pyyaml",
 ]
 # Optional: the embedding retriever only. Kept out of `dev` on purpose,
 # because these pull in PyTorch (~2.5 GB) and CI does not need it to test
