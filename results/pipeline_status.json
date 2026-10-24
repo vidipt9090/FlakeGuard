@@ -1,0 +1,173 @@
+{
+  "generated_at": "2026-10-11T06:28:13+00:00",
+  "commit": "bed1428c7458",
+  "branch": "",
+  "run_id": "",
+  "run_number": "",
+  "workflow": "local",
+  "actor": "",
+  "repository": "",
+  "python": "3.12.2",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "strict": false,
+  "promote": true,
+  "verdict": "promote",
+  "counts": {
+    "pass": 14,
+    "fail": 0,
+    "warn": 1,
+    "skip": 0
+  },
+  "checks": [
+    {
+      "name": "navigator resolves its cases",
+      "stage": "navigate",
+      "status": "pass",
+      "detail": "1.00 (needs >= 0.95)",
+      "why": "measured 1.00 on all 31 planted cases; below 0.95 means test ids stopped resolving, which silently empties the evidence bundle",
+      "measured": 1.0,
+      "threshold": 0.95,
+      "source": "results/nav_trace_summary.json"
+    },
+    {
+      "name": "jedi hit rate",
+      "stage": "navigate",
+      "status": "pass",
+      "detail": "1.00 (needs >= 0.80)",
+      "why": "measured 1.00 synthetic / 0.90 on cachetools; a collapse here means the environment changed under us (jedi version, missing package)",
+      "measured": 1.0,
+      "threshold": 0.8,
+      "source": "results/nav_trace_summary.json"
+    },
+    {
+      "name": "mean knowledge tree size",
+      "stage": "navigate",
+      "status": "pass",
+      "detail": "10.77 nodes (needs >= 3 nodes)",
+      "why": "measured 12.4 nodes; a tree of one node is a test with no context",
+      "measured": 10.77,
+      "threshold": 3.0,
+      "source": "results/nav_trace_summary.json"
+    },
+    {
+      "name": "trees reaching hop 2",
+      "stage": "navigate",
+      "status": "pass",
+      "detail": "1.00 (needs >= 1.00)",
+      "why": "a bare floor, and deliberately not more: the synthetic benchmark is a flat module, so only one of its trees has a second hop at all. The real guard on the expansion pass is the external check below, where all 10 cachetools trees reach hop 2",
+      "measured": 1.0,
+      "threshold": 1.0,
+      "source": "results/nav_trace_summary.json"
+    },
+    {
+      "name": "navigation latency",
+      "stage": "navigate",
+      "status": "pass",
+      "detail": "1024.2 ms (needs <= 5000 ms)",
+      "why": "measured max 1.0 s on synthetic, 1.6 s on cachetools; a live demo cannot afford more than a few seconds per test",
+      "measured": 1024.2,
+      "threshold": 5000.0,
+      "source": "results/nav_trace_summary.json"
+    },
+    {
+      "name": "external resolution rate",
+      "stage": "generalise",
+      "status": "pass",
+      "detail": "1.00 (needs >= 0.90)",
+      "why": "10/10 gold cases resolve on cachetools at the pinned SHA",
+      "measured": 1.0,
+      "threshold": 0.9,
+      "source": "results/cachetools/nav_trace_summary.json"
+    },
+    {
+      "name": "external jedi hit rate",
+      "stage": "generalise",
+      "status": "pass",
+      "detail": "0.90 (needs >= 0.75)",
+      "why": "measured 0.90. Lower than synthetic because a container library resolves a lot of stdlib; a collapse means jedi.infer broke",
+      "measured": 0.8996,
+      "threshold": 0.75,
+      "source": "results/cachetools/nav_trace_summary.json"
+    },
+    {
+      "name": "external trees reach a second hop",
+      "stage": "generalise",
+      "status": "pass",
+      "detail": "10 trees (needs >= 8 trees)",
+      "why": "all 10 reach hop 2 today. cachetools' API *is* its class hierarchy, so this is the check that the expansion hop still works -- the synthetic set is too flat to notice",
+      "measured": 10.0,
+      "threshold": 8.0,
+      "source": "results/cachetools/nav_trace_summary.json"
+    },
+    {
+      "name": "best prompt F1",
+      "stage": "evaluate",
+      "status": "pass",
+      "detail": "0.83 (needs >= 0.70)",
+      "why": "the charter's target. Best recorded is v3 at F1 0.8333",
+      "measured": 0.8333,
+      "threshold": 0.7,
+      "source": "results/llm_metrics.csv"
+    },
+    {
+      "name": "JSON parse failures (best prompt)",
+      "stage": "evaluate",
+      "status": "pass",
+      "detail": "0.00 (needs <= 0.00)",
+      "why": "v3 parses cleanly on all 31 cases; any parse failure means the schema contract with the model broke",
+      "measured": 0.0,
+      "threshold": 0.0,
+      "source": "results/llm_metrics.csv"
+    },
+    {
+      "name": "false quarantine rate",
+      "stage": "evaluate",
+      "status": "warn",
+      "detail": "1.00 (needs <= 0.10)",
+      "why": "a real failure called flaky hides a real bug. Does not block delivery because a human approves every quarantine (frozen decision), but at 1.0 the prompt mislabels every real bug and cannot be trusted unattended",
+      "measured": 1.0,
+      "threshold": 0.1,
+      "source": "results/llm_metrics.csv"
+    },
+    {
+      "name": "LLM beats the baseline",
+      "stage": "evaluate",
+      "status": "pass",
+      "detail": "LLM F1 0.833 vs rerun baseline 0.800",
+      "why": "if the rerun baseline wins, the LLM is not earning its cost",
+      "measured": 0.8333,
+      "threshold": 0.8,
+      "source": "results/baseline_metrics.csv"
+    },
+    {
+      "name": "navigation success on planted cases",
+      "stage": "data",
+      "status": "pass",
+      "detail": "1.00 (needs >= 0.95)",
+      "why": "31/31 cases resolve today",
+      "measured": 1.0,
+      "threshold": 0.95,
+      "source": "results/navigation.csv"
+    },
+    {
+      "name": "benchmark size",
+      "stage": "data",
+      "status": "pass",
+      "detail": "31 cases (needs >= 31 cases)",
+      "why": "the benchmark is 31 neutralised cases; shrinking it quietly would make every rate above look better than it is",
+      "measured": 31.0,
+      "threshold": 31.0,
+      "source": "labels/labels.json"
+    },
+    {
+      "name": "root-cause coverage",
+      "stage": "data",
+      "status": "pass",
+      "detail": "6 causes (needs >= 5 causes)",
+      "why": "five planted root-cause families plus 'none'; fewer means a whole failure class left the benchmark",
+      "measured": 6.0,
+      "threshold": 5.0,
+      "source": "labels/labels.json"
+    }
+  ]
+}
