@@ -16,7 +16,10 @@ jobs:
   test-synthetic:
     name: run-synthetic-tests
     runs-on: ubuntu-latest
+    outputs:
+      has_failures: ${{ steps.check-failure.outputs.has_failures }}
     steps:
+
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
@@ -33,7 +36,7 @@ jobs:
       - name: Check if synthetic tests failed
         id: check-failure
         run: |
-          python -c "import xml.etree.ElementTree as ET, sys; tree = ET.parse('out/junit-synthetic.xml'); root = tree.getroot(); fails = sum(1 for tc in root.iter('testcase') if tc.find('failure') is not None or tc.find('error') is not None); sys.exit(1 if fails > 0 else 0)"
+          python -c "import xml.etree.ElementTree as ET, sys, os; tree = ET.parse('out/junit-synthetic.xml'); root = tree.getroot(); fails = sum(1 for tc in root.iter('testcase') if tc.find('failure') is not None or tc.find('error') is not None); has_fails = 'true' if fails > 0 else 'false'; open(os.environ['GITHUB_OUTPUT'], 'a').write(f'has_failures={has_fails}\n')"
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -45,7 +48,8 @@ jobs:
   triage-comment:
     name: post-triage-comment
     needs: [test-synthetic]
-    if: failure()
+    if: needs.test-synthetic.outputs.has_failures == 'true'
+
     runs-on: ubuntu-latest
     permissions:
       contents: read
