@@ -1,0 +1,18 @@
+{
+  "repo": "synthetic",
+  "sha": "local",
+  "gold": "labels\\labels.json",
+  "cases": 31,
+  "resolved": 31,
+  "resolution_rate": 1.0,
+  "unresolved_cases": [],
+  "mean_tree_nodes": 10.77,
+  "mean_tree_depth": 1.03,
+  "max_tree_depth": 2,
+  "trees_with_depth_2plus": 1,
+  "mean_ast_names": 7.16,
+  "total_jedi_calls": 176,
+  "jedi_hit_rate": 1.0,
+  "median_ms": 21.73,
+  "max_ms": 1024.2
+}
