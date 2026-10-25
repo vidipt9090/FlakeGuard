@@ -1,0 +1,172 @@
+.tree-canvas {
+  overflow: auto;
+  padding: 4px;
+  min-height: 220px;
+}
+.tree-canvas svg {
+  display: block;
+  min-width: 100%;
+}
+
+.tree-empty {
+  padding: 36px;
+  text-align: center;
+  color: var(--text-4);
+  font-size: 13px;
+}
+
+/* depth columns: a ruler you do not have to read */
+.tree-col-line {
+  stroke: var(--line-soft);
+  stroke-width: 1;
+  stroke-dasharray: 2 6;
+}
+.tree-col-label {
+  fill: var(--text-4);
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-anchor: middle;
+}
+
+/* edges are data, not chrome: visible, still quieter than the nodes */
+.tree-edge {
+  stroke: var(--edge);
+  stroke-width: 1.6;
+  transition:
+    opacity 0.45s var(--ease-out),
+    stroke 0.3s var(--ease);
+}
+.tree-edge.is-off {
+  opacity: 0;
+}
+.tree-edge.is-on {
+  opacity: 1;
+  /* draw-on: the dash length is generous so any edge length completes */
+  stroke-dasharray: 1400;
+  animation: draw 0.55s var(--ease-out) both;
+}
+.tree-edge.is-new {
+  stroke: var(--accent);
+}
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1400;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* nodes */
+.tree-node {
+  cursor: pointer;
+  transition: opacity 0.35s var(--ease-out);
+}
+.tree-node.is-off {
+  opacity: 0;
+  pointer-events: none;
+}
+.tree-node.is-on {
+  opacity: 1;
+  animation: pop 0.4s var(--ease-out) both;
+}
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translate(var(--tx, 0), var(--ty, 0)) scale(0.4);
+  }
+}
+.tree-node.is-on .tree-marker {
+  animation: markerIn 0.4s var(--ease-out) both;
+}
+@keyframes markerIn {
+  from {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.tree-marker {
+  stroke: var(--surface-1);
+  stroke-width: 2;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.tree-node:hover .tree-marker {
+  stroke: var(--text-2);
+}
+
+.tree-label {
+  fill: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  dominant-baseline: middle;
+  pointer-events: none;
+}
+.tree-sublabel {
+  fill: var(--text-4);
+  font-family: var(--sans);
+  font-size: 10px;
+  pointer-events: none;
+}
+
+.tree-halo {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  opacity: 0.85;
+}
+
+/* a single ring on the node the current step just created */
+.tree-pulse {
+  fill: none;
+  stroke-width: 2;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pulse 0.85s var(--ease-out) both;
+}
+@keyframes pulse {
+  0% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3.2);
+  }
+}
+
+/* depth key */
+.depth-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--text-4);
+}
+.depth-key-label {
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.depth-key-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.depth-key-step i {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+}

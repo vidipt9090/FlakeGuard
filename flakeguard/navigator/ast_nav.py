@@ -15,6 +15,12 @@ Two resolution paths, because real test suites use both:
 
 Path 2 matters: a navigator with only path 1 finds almost nothing in a
 container library like cachetools, where the API *is* the operators.
+
+Every step is reportable. Pass a ``NavTrace`` and the navigator records what
+the AST walk collected, every jedi call and what it returned, and the hop
+depth each result was found at; ``explain()`` returns that alongside the
+result and a knowledge tree built from it. Without a trace the recording
+calls hit a shared no-op and nothing changes.
 """
 
 from __future__ import annotations
@@ -22,10 +28,21 @@ from __future__ import annotations
 import ast
 from dataclasses import dataclass, replace
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import jedi
 
 from flakeguard.contracts import Chunk, NavResult
+from flakeguard.navigator.trace import (
+    NULL_TRACE,
+    VIA_AST,
+    VIA_JEDI,
+    NavTrace,
+    Provenance,
+)
+
+if TYPE_CHECKING:  # avoids a cycle: knowledge_tree does not import this module
+    from flakeguard.navigator.knowledge_tree import KnowledgeTree
 
 # Names that look like flakiness when they appear in a test or in the code it
 # exercises. Matched against dotted source text, so "time.sleep" also catches
@@ -98,6 +115,59 @@ W_EXPAND = 0.45      # per hop: 0.45, then 0.20, then 0.09
 
 
 @dataclass(frozen=True)
+class NavExplain:
+    """What ``AstNavigator.explain`` hands back.
+
+    ``result`` is the contract answer, unchanged. ``trace`` is the ordered
+    record of how it was produced, and ``tree`` is the same answer arranged
+    by distance from the test. The dashboard reads all three; the evidence
+    bundle still reads only ``result``.
+    """
+
+    result: NavResult
+    trace: "NavTrace"
+    tree: "KnowledgeTree"
+    # The test's own source, so a viewer can show which line the AST walk is
+    # reading at each step. Every ast_walk event carries a line number, and
+    # without the text those numbers point at nothing.
+    test_source: Chunk | None = None
+
+    def to_dict(self, include_text: bool = False) -> dict:
+        return {
+            "test_id": self.result.test_id,
+            "tree": self.tree.to_dict(include_text=include_text),
+            "trace": self.trace.to_dict(),
+            "test_source": (
+                {
+                    "path": self.test_source.path,
+                    "start_line": self.test_source.start_line,
+                    "end_line": self.test_source.end_line,
+                    "text": self.test_source.text,
+                }
+                if self.test_source is not None
+                else None
+            ),
+            "result": {
+                "code_under_test": [
+                    {
+                        "path": c.path,
+                        "start_line": c.start_line,
+                        "end_line": c.end_line,
+                        "kind": c.kind,
+                        "score": c.score,
+                    }
+                    for c in self.result.code_under_test
+                ],
+                "fixtures": [f"{c.path}:{c.start_line}" for c in self.result.fixtures],
+                "shared_state": [
+                    f"{c.path}:{c.start_line}" for c in self.result.shared_state
+                ],
+                "smells": list(self.result.smells),
+            },
+        }
+
+
+@dataclass(frozen=True)
 class _Target:
     """A located test function, plus the class that holds it (if any)."""
 
@@ -127,10 +197,21 @@ def parse_test_id(test_id: str) -> tuple[str, list[str]]:
 class AstNavigator:
     """Navigate one repository checkout. One instance per repo + sha."""
 
-    def __init__(self, repo_root: str | Path, repo: str = "repo", sha: str = "local") -> None:
+    def __init__(
+        self,
+        repo_root: str | Path,
+        repo: str = "repo",
+        sha: str = "local",
+        trace: NavTrace | None = None,
+    ) -> None:
         self.repo_root = Path(repo_root).resolve()
         self.repo = repo
         self.sha = sha
+        # Where each result came from, keyed the same way as ``hits``:
+        # (relative path, start line). Filled during ``_code_under_test``
+        # and read by the knowledge tree to draw its edges.
+        self.trace: NavTrace = trace if trace is not None else NULL_TRACE
+        self.provenance: dict[tuple[str, int], Provenance] = {}
         # A jedi Project makes imports inside the repo resolvable, including
         # the src/ layout that cachetools uses.
         added = []
@@ -145,9 +226,14 @@ class AstNavigator:
 
     def related(self, test_id: str) -> NavResult:
         """The ``Navigator`` contract. Never raises on a missing test."""
+        self.provenance = {}
+        self.trace.test_id = self.trace.test_id or test_id
         try:
             target = self._locate(test_id)
-        except (FileNotFoundError, ValueError, SyntaxError):
+        except (FileNotFoundError, ValueError, SyntaxError) as exc:
+            self.trace.record(
+                "locate", "fail", test_id, ok=False, detail=f"{type(exc).__name__}: {exc}"
+            )
             return NavResult(test_id=test_id)
 
         fixtures = self._fixtures(target)
@@ -161,6 +247,30 @@ class AstNavigator:
             fixtures=fixtures,
             shared_state=shared_state,
             smells=smells,
+        )
+
+    def explain(self, test_id: str) -> "NavExplain":
+        """Navigate, and also hand back how it was done.
+
+        This is what the dashboard calls: the result, the ordered trace of
+        AST and jedi steps that produced it, and the knowledge tree those
+        steps describe. ``related()`` stays the contract surface and is
+        unaffected.
+        """
+        from flakeguard.navigator.knowledge_tree import build_tree
+
+        trace = NavTrace(test_id=test_id, repo=self.repo, sha=self.sha)
+        previous, self.trace = self.trace, trace
+        try:
+            result = self.related(test_id)
+        finally:
+            self.trace = previous
+        tree = build_tree(result, self.provenance, repo=self.repo, sha=self.sha)
+        return NavExplain(
+            result=result,
+            trace=trace,
+            tree=tree,
+            test_source=self.test_chunk(test_id),
         )
 
     def test_chunk(self, test_id: str) -> Chunk | None:
@@ -180,7 +290,12 @@ class AstNavigator:
             raise FileNotFoundError(path)
 
         source = self._read(path)
-        tree = ast.parse(source, filename=str(path))
+        with self.trace.step(
+            "locate", "parse", rel_path, path=rel_path, via=VIA_AST
+        ) as step:
+            tree = ast.parse(source, filename=str(path))
+            step.results = len(tree.body)
+            step.detail = f"ast.parse -> {len(tree.body)} top-level statements"
 
         cls: ast.ClassDef | None = None
         scope: list[ast.stmt] = list(tree.body)
@@ -205,11 +320,42 @@ class AstNavigator:
                 # Remember where we came from before following the base.
                 concrete_cls, concrete_path = cls, path
                 path, source, tree, node, cls = inherited
+                self.trace.record(
+                    "inherit",
+                    "resolve",
+                    f"{name} (inherited)",
+                    via=VIA_JEDI,
+                    path=self._rel(path),
+                    line=node.lineno,
+                    results=1,
+                    kept=1,
+                    detail=f"body lives in {cls.name}, not in the class the id names",
+                )
             if isinstance(node, ast.ClassDef):
                 cls = node
                 scope = list(node.body)
+                self.trace.record(
+                    "locate",
+                    "enter-class",
+                    node.name,
+                    via=VIA_AST,
+                    path=self._rel(path),
+                    line=node.lineno,
+                    results=len(node.body),
+                )
             else:
                 func = node
+                self.trace.record(
+                    "locate",
+                    "found-test",
+                    node.name,
+                    via=VIA_AST,
+                    path=self._rel(path),
+                    line=node.lineno,
+                    end_line=_end(node),
+                    results=1,
+                    kept=1,
+                )
                 break
 
         if func is None:
@@ -290,6 +436,24 @@ class AstNavigator:
         # (line, column, weight) positions to ask jedi about, in source order.
         goto_points: list[tuple[int, int]] = []
         infer_points: list[tuple[int, int]] = []
+        # What the AST walk named at each position, for the trace. The walk is
+        # the step that turns a test body into a work list, so the dashboard
+        # shows it node by node.
+        named_at: dict[tuple[int, int], str] = {}
+
+        def seen(node: ast.AST, point: tuple[int, int], why: str) -> None:
+            label = _label_of(node)
+            named_at.setdefault(point, label)
+            self.trace.record(
+                "ast_walk",
+                type(node).__name__,
+                label,
+                depth=0,
+                via=VIA_AST,
+                path=target.rel_path,
+                line=point[0],
+                detail=why,
+            )
 
         for node in ast.walk(target.func):
             # Path 1: a call with a resolvable name.
@@ -297,15 +461,19 @@ class AstNavigator:
                 point = _name_position(node.func)
                 if point is not None:
                     goto_points.append(point)
+                    seen(node.func, point, "call target -> goto")
             # Path 2: operator use -- the receiver's *type* is the real target.
             elif isinstance(node, ast.Subscript):
                 point = _name_position(node.value)
                 if point is not None:
                     infer_points.append(point)
+                    seen(node.value, point, "subscript receiver -> infer its type")
             # A bare name read as a value: ``Thread(target=func)`` never calls
             # func by name, but func is still the code under test.
             elif isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
-                goto_points.append((node.lineno, node.col_offset))
+                point = (node.lineno, node.col_offset)
+                goto_points.append(point)
+                seen(node, point, "name read as a value -> goto")
             elif isinstance(node, ast.Attribute):
                 # Resolve the attribute itself (``cachetools.keys.hashkey``
                 # handed in as a default argument is never called by name),
@@ -313,9 +481,11 @@ class AstNavigator:
                 here = _name_position(node)
                 if here is not None:
                     goto_points.append(here)
+                    seen(node, here, "attribute -> goto")
                 point = _name_position(node.value)
                 if point is not None:
                     infer_points.append(point)
+                    seen(node.value, point, "attribute receiver -> infer its type")
 
         # Key on (path, start_line), not the full range: goto and infer can
         # disagree by a line on where a class body ends, and that would show
@@ -324,14 +494,55 @@ class AstNavigator:
         counts: dict[tuple[str, int], float] = {}
         order: dict[tuple[str, int], int] = {}
 
-        def record(names, seq: int, weight: float = 1.0) -> None:
+        def record(
+            names,
+            seq: int,
+            weight: float = 1.0,
+            *,
+            edge: str = "calls",
+            via: str = VIA_JEDI,
+            depth: int = 1,
+            parent: str = "",
+            source: str = "",
+            produced: list[str] | None = None,
+        ) -> int:
+            """Fold jedi definitions into the result, remembering the edge.
+
+            Returns how many survived filtering, which is what the trace
+            reports as ``kept``: a jedi call that returned three definitions
+            none of which live in this repo found nothing useful, and the
+            difference between ``results`` and ``kept`` is where the
+            navigator's precision comes from.
+            """
+            kept = 0
             for defn in names:
                 chunk = self._chunk_from_definition(defn, target)
                 if chunk is None:
                     continue
+                kept += 1
                 key = (chunk.path, chunk.start_line)
+                if produced is not None:
+                    marker = f"{chunk.path}:{chunk.start_line}"
+                    if marker not in produced:
+                        produced.append(marker)
                 counts[key] = counts.get(key, 0) + weight
                 order.setdefault(key, seq)
+                # First edge to reach a chunk is the one the tree draws: it is
+                # the shortest path from the test, because the phases run in
+                # increasing distance order.
+                known = self.provenance.get(key)
+                if known is None:
+                    self.provenance[key] = Provenance(
+                        edge=edge,
+                        via=via,
+                        depth=depth,
+                        seq=seq,
+                        weight=weight,
+                        parent=parent,
+                        sources=[source] if source else [],
+                    )
+                elif source and source not in known.sources:
+                    known.sources.append(source)
                 # Prefer the wider span, so a class wins over a part of it.
                 prev = hits.get(key)
                 if prev is None or chunk.end_line > prev.end_line:
@@ -340,19 +551,64 @@ class AstNavigator:
                 # Keep the structural label whichever order they arrive in.
                 if chunk.kind == "class" and hits[key].kind != "class":
                     hits[key] = replace(hits[key], kind="class")
+            return kept
 
         # A call's own name is also walked as a Name node, so drop repeats.
         for seq, (line, col) in enumerate(_unique(goto_points)[:MAX_RESOLUTIONS]):
-            try:
-                record(script.goto(line, col, follow_imports=True), seq)
-            except Exception:  # jedi raises a zoo of errors on odd syntax
-                continue
+            name = named_at.get((line, col), f"{target.rel_path}:{line}:{col}")
+            with self.trace.step(
+                "jedi_goto",
+                "goto",
+                name,
+                depth=1,
+                via=VIA_JEDI,
+                path=target.rel_path,
+                line=line,
+                weight=1.0,
+                detail="jedi.goto(follow_imports=True): name -> definition",
+            ) as step:
+                try:
+                    found = script.goto(line, col, follow_imports=True)
+                except Exception:  # jedi raises a zoo of errors on odd syntax
+                    step.ok = False
+                    continue
+                step.results = len(found)
+                step.kept = record(
+                    found,
+                    seq,
+                    edge="calls",
+                    depth=1,
+                    source=f"{target.rel_path}:{line}",
+                    produced=step.produced,
+                )
 
         for seq, (line, col) in enumerate(_unique(infer_points)[:MAX_RESOLUTIONS], start=1000):
-            try:
-                record(script.infer(line, col), seq)
-            except Exception:
-                continue
+            name = named_at.get((line, col), f"{target.rel_path}:{line}:{col}")
+            with self.trace.step(
+                "jedi_infer",
+                "infer",
+                name,
+                depth=1,
+                via=VIA_JEDI,
+                path=target.rel_path,
+                line=line,
+                weight=1.0,
+                detail="jedi.infer: expression -> the type whose operator runs",
+            ) as step:
+                try:
+                    found = script.infer(line, col)
+                except Exception:
+                    step.ok = False
+                    continue
+                step.results = len(found)
+                step.kept = record(
+                    found,
+                    seq,
+                    edge="infers",
+                    depth=1,
+                    source=f"{target.rel_path}:{line}",
+                    produced=step.produced,
+                )
 
         # Further hops: what the definitions we just found are built on.
         # A test on TTLCache exercises its base _TimedCache, which in turn
@@ -366,8 +622,40 @@ class AstNavigator:
             if not pending:
                 break
             expanded.update((c.path, c.start_line) for c in pending)
-            for defn in self._expand(pending):
-                record([defn], 2000 + round_no, W_EXPAND**(round_no + 1))
+            hop = round_no + 2  # depth 1 is a direct hit, so a first hop is 2
+            self.trace.record(
+                "expand",
+                "round",
+                f"hop {hop}: {len(pending)} definitions to expand",
+                depth=hop,
+                via=VIA_AST,
+                results=len(pending),
+                detail="bases, decorators, callee defaults and one step into the body",
+            )
+            # The per-definition jedi calls are traced inside _expand. This
+            # step reports what the hop as a whole folded in, which is the
+            # unit a replay reveals: a hop either reached something new or
+            # it did not.
+            with self.trace.step(
+                "expand",
+                "fold",
+                f"hop {hop} results",
+                depth=hop,
+                via=VIA_JEDI,
+                detail="definitions reached by this hop that survived filtering",
+            ) as step:
+                for parent, defn in self._expand(pending, depth=hop):
+                    step.results += 1
+                    step.kept += record(
+                        [defn],
+                        2000 + round_no,
+                        W_EXPAND ** (round_no + 1),
+                        edge="expands",
+                        depth=hop,
+                        parent=f"{parent.path}:{parent.start_line}",
+                        source=f"{parent.path}:{parent.start_line}",
+                        produced=step.produced,
+                    )
 
         # Return-type inference was tried here and removed: see
         # nav-results.md. jedi can execute a function and report what it
@@ -378,8 +666,26 @@ class AstNavigator:
         # What a fixture builds is what the test then calls methods on. The
         # test only ever sees an untyped argument, so without this a
         # fixture-based suite resolves to nothing at all.
-        for defn in self._from_fixtures(fixtures or []):
-            record([defn], 1500, W_FIXTURE)
+        with self.trace.step(
+            "fixture",
+            "fold",
+            "types the fixtures built",
+            depth=2,
+            via=VIA_JEDI,
+            detail="the test only ever sees an untyped argument",
+        ) as step:
+            for parent, defn in self._from_fixtures(fixtures or []):
+                step.results += 1
+                step.kept += record(
+                    [defn],
+                    1500,
+                    W_FIXTURE,
+                    edge="fixture-builds",
+                    depth=2,
+                    parent=f"{parent.path}:{parent.start_line}",
+                    source=f"{parent.path}:{parent.start_line}",
+                    produced=step.produced,
+                )
 
         # self.x inside an inherited test: the base declares the hook, the
         # concrete class named in the test id supplies what actually runs.
@@ -389,8 +695,41 @@ class AstNavigator:
             counts[key] = counts.get(key, 0) + 2
             order.setdefault(key, 500)
             hits.setdefault(key, chunk)
+            self.provenance.setdefault(
+                key,
+                Provenance(
+                    edge="overrides",
+                    via=VIA_AST,
+                    depth=1,
+                    seq=500,
+                    weight=2.0,
+                    detail="self.x resolved against the class the test id names",
+                ),
+            )
+            self.trace.record(
+                "concrete",
+                "override",
+                f"{chunk.path}:{chunk.start_line}",
+                depth=1,
+                via=VIA_AST,
+                path=chunk.path,
+                line=chunk.start_line,
+                end_line=chunk.end_line,
+                results=len(defns),
+                kept=1,
+                produced=[f"{chunk.path}:{chunk.start_line}"],
+                detail="the concrete class supplies what actually runs",
+            )
             for defn in defns:
-                record([defn], 500, W_CONCRETE)
+                record(
+                    [defn],
+                    500,
+                    W_CONCRETE,
+                    edge="overrides",
+                    depth=2,
+                    parent=f"{chunk.path}:{chunk.start_line}",
+                    source=f"{chunk.path}:{chunk.start_line}",
+                )
 
         # Score: how often the definition was reached, tie-broken by how early
         # it appears. This is what the top-3 metric in B3 ranks on.
@@ -468,15 +807,19 @@ class AstNavigator:
                 return node
         return None
 
-    def _from_fixtures(self, fixtures: list[Chunk]) -> list:
-        """Definitions named inside fixture bodies.
+    def _from_fixtures(self, fixtures: list[Chunk]) -> list[tuple[Chunk, object]]:
+        """Definitions named inside fixture bodies, paired with the fixture.
 
         ``def signer(signer_factory): return signer_factory()`` hands the test
         a Signer. The test then calls signer.sign(...), but statically that is
         a bare parameter with no type, so the class under test is only
         reachable through the fixture that built it.
+
+        Each definition is returned with the fixture chunk it came from, so
+        the knowledge tree can hang it under that fixture instead of under
+        the test directly -- which is the truth: the test never names it.
         """
-        extra: list = []
+        extra: list[tuple[Chunk, object]] = []
         for chunk in fixtures[:MAX_EXPAND]:
             path = (self.repo_root / chunk.path).resolve()
             try:
@@ -502,11 +845,23 @@ class AstNavigator:
                     if point is not None:
                         points.append(point)
             script = jedi.Script(code=source, path=str(path), project=self.project)
-            for line, col in _unique(points)[:MAX_EXPAND_POINTS]:
-                try:
-                    extra.extend(script.goto(line, col, follow_imports=True))
-                except Exception:
-                    continue
+            with self.trace.step(
+                "fixture",
+                "goto-body",
+                f"inside fixture {chunk.path}:{chunk.start_line}",
+                depth=2,
+                via=VIA_JEDI,
+                path=chunk.path,
+                line=chunk.start_line,
+                detail="what the fixture builds is what the test calls methods on",
+            ) as step:
+                for line, col in _unique(points)[:MAX_EXPAND_POINTS]:
+                    try:
+                        found = script.goto(line, col, follow_imports=True)
+                    except Exception:
+                        continue
+                    extra.extend((chunk, defn) for defn in found)
+                    step.results += len(found)
         return extra
 
     def _concrete_overrides(self, target: _Target):
@@ -562,14 +917,18 @@ class AstNavigator:
                         continue
             yield chunk, definitions
 
-    def _expand(self, chunks: list[Chunk]) -> list:
+    def _expand(self, chunks: list[Chunk], depth: int = 2) -> list[tuple[Chunk, object]]:
         """Base classes and decorators of the definitions already found.
 
         Inheritance and decoration are both "code that runs when this test
         runs" without ever being named in the test, so a navigator that stops
         at the first hop under-reports on any library built with either.
+
+        Returns (parent chunk, definition) pairs: ``depth`` is the hop this
+        round sits at, and the parent is what the knowledge tree hangs the
+        definition under.
         """
-        extra: list = []
+        extra: list[tuple[Chunk, object]] = []
         # Only the strongest first-hop results earn a second hop; descending
         # into everything is where a navigator turns into a whole-repo dump.
         for chunk in sorted(chunks, key=lambda c: -c.score)[:MAX_EXPAND]:
@@ -621,11 +980,25 @@ class AstNavigator:
             if not points:
                 continue
             script = jedi.Script(code=source, path=str(path), project=self.project)
-            for line, col in _unique(points)[:MAX_EXPAND_POINTS]:
-                try:
-                    extra.extend(script.goto(line, col, follow_imports=True))
-                except Exception:
-                    continue
+            with self.trace.step(
+                "expand",
+                "goto",
+                f"{chunk.path}:{chunk.start_line} ({chunk.kind})",
+                depth=depth,
+                via=VIA_JEDI,
+                path=chunk.path,
+                line=chunk.start_line,
+                end_line=chunk.end_line,
+                weight=W_EXPAND ** (depth - 1),
+                detail=f"{len(_unique(points))} base/decorator/default/callee names",
+            ) as step:
+                for line, col in _unique(points)[:MAX_EXPAND_POINTS]:
+                    try:
+                        found = script.goto(line, col, follow_imports=True)
+                    except Exception:
+                        continue
+                    extra.extend((chunk, defn) for defn in found)
+                    step.results += len(found)
         # The caller filters these the same way as a first-hop resolution.
         return extra
 
@@ -667,7 +1040,7 @@ class AstNavigator:
         found: list[Chunk] = []
         seen: set[tuple[str, int]] = set()
 
-        def take(path: Path, node) -> None:
+        def take(path: Path, node, hop: int = 1, why: str = "") -> None:
             # Start at the decorator, not at ``def``: scope="module" is the
             # difference between a fresh object per test and state shared
             # across the whole file, and autouse changes who gets it.
@@ -677,6 +1050,20 @@ class AstNavigator:
             if key not in seen:
                 seen.add(key)
                 found.append(chunk)
+                self.trace.record(
+                    "fixture",
+                    "resolve",
+                    node.name,
+                    depth=hop,
+                    via=VIA_AST,
+                    path=chunk.path,
+                    line=chunk.start_line,
+                    end_line=chunk.end_line,
+                    results=1,
+                    kept=1,
+                    produced=[f"{chunk.path}:{chunk.start_line}"],
+                    detail=why or "named by the test, nearest conftest scope wins",
+                )
 
         # A fixture can request other fixtures, and pytest resolves those too,
         # so walk the chain rather than stopping at the directly named ones.
@@ -689,7 +1076,16 @@ class AstNavigator:
                     node = _find_fixture_in(body, name)
                     if node is None:
                         continue
-                    take(path, node)
+                    take(
+                        path,
+                        node,
+                        hop=depth + 1,
+                        why=(
+                            "requested by the test"
+                            if depth == 0
+                            else f"requested by another fixture (chain depth {depth + 1})"
+                        ),
+                    )
                     nxt.extend(
                         a.arg for a in node.args.args if a.arg not in {"self", "cls"}
                     )
@@ -701,7 +1097,7 @@ class AstNavigator:
         for path, body in scopes:
             for node in body:
                 if _is_fixture(node) and _is_autouse(node):
-                    take(path, node)
+                    take(path, node, hop=1, why="autouse: applies without being asked for")
         return found
 
     def _base_class_scopes(
@@ -822,7 +1218,36 @@ class AstNavigator:
                     # test never names it -- it is reached through the API.
                     if not provable and path == target.path and name not in touched:
                         continue
-                    out.append(self._chunk(path, node.lineno, _end(node), "global"))
+                    chunk = self._chunk(path, node.lineno, _end(node), "global")
+                    out.append(chunk)
+                    self.trace.record(
+                        "shared_state",
+                        "global",
+                        name,
+                        depth=1 if path == target.path else 2,
+                        via=VIA_AST,
+                        path=chunk.path,
+                        line=chunk.start_line,
+                        end_line=chunk.end_line,
+                        results=1,
+                        kept=1,
+                        produced=[f"{chunk.path}:{chunk.start_line}"],
+                        detail=(
+                            "rebound with `global` somewhere in this module"
+                            if provable
+                            else "module-level mutable value in a file this test reaches"
+                        ),
+                    )
+        self.trace.record(
+            "shared_state",
+            "scan",
+            f"{len(files)} reachable file(s)",
+            depth=1,
+            via=VIA_AST,
+            results=len(out),
+            kept=len(out),
+            detail="module-level mutable state is the order_dep / shared_state family",
+        )
         return out
 
     # ----------------------------------------------------------------- smells
@@ -886,9 +1311,42 @@ class AstNavigator:
                 if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
                     if node.func.id in SMELL_BARE:
                         found.setdefault(node.func.id, where)
+
+        for name, place in found.items():
+            file_part, _, line_part = place.rpartition(":")
+            self.trace.record(
+                "smell",
+                "match",
+                name,
+                depth=1,
+                via=VIA_AST,
+                path=file_part or place,
+                line=int(line_part) if line_part.isdigit() else 0,
+                results=1,
+                kept=1,
+                produced=[f"smell:{name}"],
+                detail=f"pattern found at {place}",
+            )
+        self.trace.record(
+            "smell",
+            "scan",
+            f"{len(blobs)} blob(s): test + setUp/tearDown + top {len(direct)} direct chunk(s)",
+            depth=1,
+            via=VIA_AST,
+            results=len(found),
+            kept=len(found),
+            detail="scan is bounded to directly-exercised code on purpose",
+        )
         return [f"{name} ({place})" for name, place in found.items()]
 
     # --------------------------------------------------------------- helpers
+
+    def _rel(self, path: Path) -> str:
+        """Repo-relative posix path, or the absolute one if it is outside."""
+        try:
+            return path.resolve().relative_to(self.repo_root).as_posix()
+        except ValueError:
+            return path.as_posix()
 
     def _read(self, path: Path) -> str:
         if path not in self._source_cache:
@@ -932,6 +1390,26 @@ def _find_first_test(body: list[ast.stmt]):
     return None
 
 
+def _label_of(node: ast.AST) -> str:
+    """A readable dotted name for an AST node, for the trace.
+
+    ``shop.cart.add`` reads as itself; anything that is not a plain name or
+    attribute chain falls back to its node type, because the trace is for a
+    human and "Call at line 12" beats an unparsed blob.
+    """
+    if isinstance(node, ast.Name):
+        return node.id
+    if isinstance(node, ast.Attribute):
+        return f"{_label_of(node.value)}.{node.attr}"
+    if isinstance(node, ast.Call):
+        return f"{_label_of(node.func)}()"
+    if isinstance(node, ast.Subscript):
+        return f"{_label_of(node.value)}[...]"
+    if isinstance(node, ast.Constant):
+        return repr(node.value)[:30]
+    return type(node).__name__
+
+
 def _name_position(node: ast.expr) -> tuple[int, int] | None:
     """A (line, column) jedi can resolve, for a Name or dotted Attribute.
 
@@ -956,8 +1434,46 @@ def _unique(points: list[tuple[int, int]]) -> list[tuple[int, int]]:
     return out
 
 
+# Directories that are inside the checkout but are not the project's code.
+# A virtualenv is the common case: `.venv/` sits in the repo root, so a plain
+# "is this path under the repo?" test says yes to every installed package.
+VENDOR_DIRS: frozenset[str] = frozenset(
+    {
+        "site-packages",
+        "dist-packages",
+        ".venv",
+        "venv",
+        ".tox",
+        ".nox",
+        "node_modules",
+        "__pypackages__",
+        ".eggs",
+    }
+)
+
+
+def _is_vendored(path: Path, root: Path) -> bool:
+    """True for a path that is under the repo but belongs to a dependency.
+
+    Found the hard way: ``@freeze_time`` made jedi resolve into
+    ``.venv/Lib/site-packages/freezegun/api.py``, and because ``.venv`` is
+    inside the repo root that counted as code under test. On
+    ``test_case_21`` eleven of twenty chunks were freezegun internals. The
+    evidence bundle only carries the top few chunks, so third-party source
+    does not merely add noise -- it pushes the real answer out.
+    """
+    try:
+        parts = path.resolve().relative_to(root).parts
+    except ValueError:
+        return False
+    return any(part in VENDOR_DIRS for part in parts)
+
+
 def _is_within(path: Path, root: Path) -> bool:
-    return path == root or root in path.parents
+    """Inside the repository, and part of the repository's own source."""
+    if path != root and root not in path.parents:
+        return False
+    return not _is_vendored(path, root)
 
 
 def _module_level_assignments(node: ast.stmt):

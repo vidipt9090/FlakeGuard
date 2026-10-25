@@ -198,3 +198,59 @@ def test_test_chunk_returns_the_test_body(nav):
 
 def test_test_chunk_is_none_for_a_missing_test(nav):
     assert nav.test_chunk("tests/test_shop.py::test_nope") is None
+
+
+# --------------------------------------------- dependencies are not our code
+
+
+def test_a_virtualenv_inside_the_repo_is_not_code_under_test(tmp_path):
+    """A .venv sits inside the checkout, so "is this path under the repo?"
+    says yes to every installed package.
+
+    Found by looking at a real tree: ``@freeze_time`` made jedi resolve into
+    ``.venv/Lib/site-packages/freezegun/api.py``, and eleven of twenty chunks
+    for one case were freezegun internals. The evidence bundle carries only
+    the top few chunks, so third-party source does not just add noise — it
+    pushes the real answer out of the bundle entirely.
+    """
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "shop.py").write_text(
+        "TOTALS = []\n\n\ndef total(prices):\n    return sum(prices)\n",
+        encoding="utf-8",
+    )
+    # A dependency, installed where a virtualenv would put it.
+    vendor = tmp_path / ".venv" / "Lib" / "site-packages" / "vendorlib"
+    vendor.mkdir(parents=True)
+    (vendor / "__init__.py").write_text(
+        "CACHE = {}\n\n\ndef helper(x):\n    return x\n", encoding="utf-8"
+    )
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests" / "test_shop.py").write_text(
+        "import shop\nimport vendorlib\n\n\n"
+        "def test_total():\n"
+        "    assert vendorlib.helper(shop.total([1.0])) == 1.0\n",
+        encoding="utf-8",
+    )
+
+    navigator = AstNavigator(tmp_path, repo="sample", sha="test")
+    result = navigator.related("tests/test_shop.py::test_total")
+
+    reached = [c.path for c in result.code_under_test + result.shared_state]
+    assert reached, "the navigator found nothing at all"
+    assert not any("site-packages" in p for p in reached), (
+        f"a dependency reached the result: {reached}"
+    )
+    assert not any(p.startswith(".venv") for p in reached), reached
+    # ...and the project's own code is still found.
+    assert any(p.endswith("shop.py") for p in reached), reached
+
+
+@pytest.mark.parametrize(
+    "vendor_dir", ["node_modules", ".tox", "venv", ".eggs", "dist-packages"]
+)
+def test_other_vendor_directories_are_excluded_too(tmp_path, vendor_dir):
+    from flakeguard.navigator.ast_nav import _is_within
+
+    root = tmp_path.resolve()
+    assert not _is_within(root / vendor_dir / "pkg" / "mod.py", root)
+    assert _is_within(root / "src" / "mod.py", root)

@@ -1,0 +1,18 @@
+{
+  "repo": "cachetools",
+  "sha": "3c082c6",
+  "gold": "docs\\eval1\\nav-gold.json",
+  "cases": 10,
+  "resolved": 10,
+  "resolution_rate": 1.0,
+  "unresolved_cases": [],
+  "mean_tree_nodes": 4.4,
+  "mean_tree_depth": 2.0,
+  "max_tree_depth": 2,
+  "trees_with_depth_2plus": 10,
+  "mean_ast_names": 132.1,
+  "total_jedi_calls": 966,
+  "jedi_hit_rate": 0.8996,
+  "median_ms": 513.86,
+  "max_ms": 997.67
+}
