@@ -1,0 +1,47 @@
+name: quarantine-approve
+
+on:
+  pull_request:
+    types: [labeled]
+
+# Concurrency group per PR so multiple rapid labels don't collide
+concurrency:
+  group: quarantine-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: read
+  issues: read
+
+jobs:
+  quarantine:
+    if: github.event.label.name == 'approve-quarantine'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR head branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Update quarantine.json
+        id: update-db
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/approve_quarantine.py
+
+      - name: Commit and push quarantine update to PR head branch
+        if: steps.update-db.outputs.added_count != '0'
+        run: |
+          git config user.name "flakeguard-bot"
+          git config user.email "flakeguard-bot@users.noreply.github.com"
+          git add quarantine.json
+          git commit -m "chore(quarantine): quarantine tests from PR #${{ github.event.pull_request.number }} [skip ci]"
+          git push origin HEAD:${{ github.head_ref }}
