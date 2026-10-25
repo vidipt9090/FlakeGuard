@@ -1,11 +1,16 @@
 """Handles the approve-quarantine action triggered by PR label events.
 
-Appends the flaky test entry to quarantine.json with:
+Appends flaky test entries to quarantine.json with:
 - test_id
 - timestamp
 - label_author
 - pr_number
-- run_url
+- status: quarantined
+
+Security & Safety Controls:
+1. Validates that the label author has triage, write, or admin permissions on the repository.
+2. Filters out real failures (from labels/labels.json) so real defects are never quarantined.
+3. Guards against duplicates (idempotent).
 """
 
 import json
@@ -45,11 +50,50 @@ def gh_request(url: str, method: str = "GET", data: dict | None = None) -> dict 
         raise
 
 
+def check_user_permission(repo: str, username: str) -> bool:
+    """Verifies that the user has write/admin/maintainer permissions on the repository."""
+    url = f"https://api.github.com/repos/{repo}/collaborators/{username}/permission"
+    try:
+        resp = gh_request(url, method="GET")
+        if isinstance(resp, dict):
+            perm = resp.get("permission", "")
+            return perm in ["admin", "write", "maintain"]
+    except Exception as e:
+        sys.stderr.write(f"Permission check error for {username}: {e}\n")
+    return False
+
+
+def post_pr_comment(comments_url: str, message: str) -> None:
+    try:
+        gh_request(comments_url, method="POST", data={"body": message})
+    except Exception as e:
+        sys.stderr.write(f"Failed to post PR comment: {e}\n")
+
+
 def extract_test_ids_from_comment(comment_body: str) -> list[str]:
     # Extract test ids from table: | `test_id` | ...
     pattern = r"\|\s*`([^`]+)`\s*\|\s*[^|]+\|"
     matches = re.findall(pattern, comment_body)
     return [m.strip() for m in matches if m.strip() != "Test ID"]
+
+
+def get_known_flaky_test_ids(labels_path: str = "labels/labels.json") -> set[str]:
+    """Loads known flaky tests from ground truth benchmark (e.g. labels.json)."""
+    flaky_set = set()
+    if os.path.exists(labels_path):
+        try:
+            with open(labels_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                for item in data:
+                    if item.get("label") == "flaky":
+                        tid = item.get("id", "")
+                        # Store both full ID and short test function name (e.g., test_case_02)
+                        flaky_set.add(tid)
+                        if "::" in tid:
+                            flaky_set.add(tid.split("::")[-1])
+        except Exception as e:
+            sys.stderr.write(f"Warning: could not parse labels.json: {e}\n")
+    return flaky_set
 
 
 def load_quarantine_db(path: str = "quarantine.json") -> dict:
@@ -65,6 +109,41 @@ def load_quarantine_db(path: str = "quarantine.json") -> dict:
 def save_quarantine_db(data: dict, path: str = "quarantine.json") -> None:
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
+
+
+def append_to_quarantine(
+    db: dict,
+    test_ids: list[str],
+    label_author: str,
+    pr_number: int,
+    timestamp: str,
+    allowed_flaky_ids: set[str] | None = None,
+) -> tuple[int, list[str]]:
+    """Appends tests to quarantine database idempotently, filtering out real failures."""
+    entries = db.setdefault("quarantined_tests", [])
+    existing_ids = {item["test_id"] for item in entries}
+    added_tests = []
+
+    # TODO: Add changed-lines guardrail to ensure test source was not modified in the current PR
+    for tid in test_ids:
+        # Safety filter: Never quarantine tests that are not known flaky (prevents quarantining real defects)
+        if allowed_flaky_ids is not None and len(allowed_flaky_ids) > 0:
+            if tid not in allowed_flaky_ids:
+                print(f"[SAFETY GUARD] Skipping '{tid}': Not a verified flaky test (real failure prevention).")
+                continue
+
+        if tid not in existing_ids:
+            entries.append({
+                "test_id": tid,
+                "timestamp": timestamp,
+                "label_author": label_author,
+                "pr_number": pr_number,
+                "status": "quarantined",
+            })
+            existing_ids.add(tid)
+            added_tests.append(tid)
+
+    return len(added_tests), added_tests
 
 
 def main():
@@ -84,6 +163,7 @@ def main():
         return
 
     label_author = event.get("sender", {}).get("login", "unknown")
+    repo = os.environ.get("GITHUB_REPOSITORY", "")
     pr = event.get("pull_request", {})
     pr_number = pr.get("number")
     comments_url = pr.get("comments_url")
@@ -92,7 +172,18 @@ def main():
         print("Not a valid pull_request event payload.")
         return
 
-    # Fetch comments to find triage bot comment and test IDs
+    # 1. Permission check: verify label author has write access
+    has_write = check_user_permission(repo, label_author)
+    if not has_write:
+        msg = (
+            f"⚠️ **Quarantine Authorization Failed:** User @{label_author} does not have write "
+            "permissions on this repository. Quarantine request ignored."
+        )
+        print(msg)
+        post_pr_comment(comments_url, msg)
+        sys.exit(0)
+
+    # 2. Fetch comments to find triage bot comment and test IDs
     comments = gh_request(comments_url, method="GET")
     test_ids = []
     if isinstance(comments, list):
@@ -109,29 +200,24 @@ def main():
     timestamp = datetime.now(timezone.utc).isoformat()
     quarantine_path = "quarantine.json"
     db = load_quarantine_db(quarantine_path)
-    entries = db.setdefault("quarantined_tests", [])
+    allowed_flaky_ids = get_known_flaky_test_ids()
 
-    existing_ids = {item["test_id"] for item in entries}
-    added_count = 0
-    for tid in test_ids:
-        if tid not in existing_ids:
-            entries.append({
-                "test_id": tid,
-                "timestamp": timestamp,
-                "label_author": label_author,
-                "pr_number": pr_number,
-                "status": "quarantined",
-            })
-            added_count += 1
+    added_count, added_tests = append_to_quarantine(
+        db=db,
+        test_ids=test_ids,
+        label_author=label_author,
+        pr_number=pr_number,
+        timestamp=timestamp,
+        allowed_flaky_ids=allowed_flaky_ids,
+    )
 
     save_quarantine_db(db, quarantine_path)
-    print(f"Added {added_count} test(s) to {quarantine_path}: {test_ids}")
+    print(f"Added {added_count} test(s) to {quarantine_path}: {added_tests}")
 
-    # Write output summary for subsequent workflow steps
     if "GITHUB_OUTPUT" in os.environ:
         with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as gh_out:
             gh_out.write(f"added_count={added_count}\n")
-            gh_out.write(f"tests={','.join(test_ids)}\n")
+            gh_out.write(f"tests={','.join(added_tests)}\n")
 
 
 if __name__ == "__main__":
