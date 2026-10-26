@@ -10,6 +10,8 @@ FlakeGuard collects shuffled test runs, detects instability statistically, retri
 **CI Status & Workflow Run:** [GitHub Actions Test Workflow Run](https://github.com/vidipt9090/FlakeGuard/actions/workflows/test.yml)
 
 **Eval 1 deadline:** Monday 2026-10-05. Full plan and diagrams are in the plan document.
+<!-- test: quarantine-approve workflow verification -->
+
 
 ---
 
