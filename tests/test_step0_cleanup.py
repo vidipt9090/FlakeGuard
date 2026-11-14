@@ -31,3 +31,4 @@ def test_package_readmes_exist():
         readme = root / "flakeguard" / pkg / "README.md"
         assert readme.is_file(), f"Missing README in flakeguard/{pkg}"
         assert len(readme.read_text(encoding="utf-8").strip()) > 0
+

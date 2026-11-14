@@ -11,6 +11,9 @@ dependencies = [
     "ollama",
 ]
 
+[project.scripts]
+flakeguard = "flakeguard.cli:main"
+
 [project.optional-dependencies]
 dev = [
     "pytest",
