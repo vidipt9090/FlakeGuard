@@ -28,13 +28,13 @@ def main():
     run_command("20-Run Shuffled Benchmark", ["scripts/run_benchmark_runs.py"])
 
     # Step 3: Rerun Baselines Evaluation
-    run_command("Rerun Baselines Evaluation", ["eval/run_baselines.py"])
+    run_command("Rerun Baselines Evaluation", ["-m", "flakeguard.eval.run_baselines"])
 
     # Step 4: LLM Prompts Evaluation
-    run_command("LLM Prompts Evaluation (v1, v2, v3)", ["llm/run_prompts.py"])
+    run_command("LLM Prompts Evaluation (v1, v2, v3)", ["-m", "flakeguard.llm.run_prompts"])
 
     # Step 5: Failure Log Generation
-    run_command("Failure Log Generation", ["analysis/failure_log.py"])
+    run_command("Failure Log Generation", ["-m", "flakeguard.analysis.failure_log"])
 
     # Step 6: Navigator Call Graph Evaluation
     run_command("Navigator Call Graph Evaluation", ["scripts/run_navigator_eval.py"])
