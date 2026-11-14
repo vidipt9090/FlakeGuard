@@ -86,3 +86,4 @@ def detect_repository(repo_path: str | Path) -> FrameworkInfo:
         install_cmd=install_cmd,
         test_files_count=len(valid_test_files),
     )
+

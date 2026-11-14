@@ -9,6 +9,39 @@ def test_import_contracts():
     assert hasattr(contracts, "LLMProvider")
     assert hasattr(contracts, "Retriever")
     assert hasattr(contracts, "Navigator")
+    assert hasattr(contracts, "EvidenceTier")
+    assert hasattr(contracts, "InterventionRecord")
+    assert hasattr(contracts, "EvidenceReport")
+
+
+def test_evidence_contracts():
+    """Verify evidence contract types, immutability, and tier values."""
+    assert contracts.EvidenceTier.OBSERVED == "observed"
+    assert contracts.EvidenceTier.REPRODUCED == "reproduced"
+    assert contracts.EvidenceTier.INTERVENTION_CONFIRMED == "intervention-confirmed"
+
+    record = contracts.InterventionRecord(
+        kind="pin_seed",
+        parameters={"seed": 42},
+        flipped=True,
+        outcome="PASS",
+        details="Flipped from FAIL to PASS when seed pinned",
+    )
+    assert record.kind == "pin_seed"
+    assert record.flipped is True
+
+    report = contracts.EvidenceReport(
+        test_id="test_suite.py::test_case",
+        tier=contracts.EvidenceTier.INTERVENTION_CONFIRMED,
+        category="randomness",
+        polluter_test_id=None,
+        interventions=[record],
+        shared_state_reads=["_cache"],
+        shared_state_writes=[],
+        details={"runs": 10},
+    )
+    assert report.tier == contracts.EvidenceTier.INTERVENTION_CONFIRMED
+    assert len(report.interventions) == 1
 
 
 def test_chunk_frozen():
