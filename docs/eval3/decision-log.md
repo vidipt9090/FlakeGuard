@@ -1,0 +1,7 @@
+# FlakeGuard Eval 3 Decision Log
+
+| ID | Date | Decision | Why | Alternatives rejected | Consequence | Status | Owner |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| D11 | 2026-11-14 | Use `real_fail` as the canonical real regression label | Clarifies distinct difference between real test failures (code regressions) and true flaky failures while eliminating ambiguity with the adjective 'real'. | Keeping `real` | Schemas and metrics functions accept `real_fail` (with legacy compatibility for `real`). | accepted | Team |
+| D12 | 2026-11-14 | Configure `jedi` and `parso` cache directories to safe temp directory | Default user AppData/Local cache directories cause `WinError 5 Access is denied` in sandboxed or read-only CI/developer environments. | Disabling parso/jedi caching entirely or forcing global system PATH permissions. | Navigator executes reliably and deterministically across all environments without access violation exceptions. | accepted | B, C |
+| D13 | 2026-11-14 | Complete Step 0 repo cleanup and consolidate all code under `flakeguard/` | Root-level code directories (`llm/`, `analysis/`) and root shims caused confusing import split and failed packaging encapsulation. | Keeping root shims indefinitely or duplicating implementation across packages. | Eliminates root shims; `run_eval.py` executes modular entry points; historical docs archived to `docs/archive/`; all empty packages documented. | accepted | Team |
