@@ -10,6 +10,9 @@ dependencies = [
     "pydantic",
     "ollama",
     "langchain-core",
+    "starlette",
+    "uvicorn",
+    "httpx",
 ]
 
 [project.scripts]
@@ -23,6 +26,10 @@ dev = [
     "ruff",
     "pydantic",
     "ollama",
+    "langchain-core",
+    "starlette",
+    "uvicorn",
+    "httpx",
     "freezegun",
     "pandas",
     "pyarrow",

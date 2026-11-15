@@ -617,6 +617,10 @@ async def start_scan(request: Request) -> Response:
             status_code=400,
         )
 
+    fallback_banner = None
+    if is_remote and not os.environ.get("GITHUB_TOKEN"):
+        fallback_banner = "GitHub Actions unavailable. Running on this computer."
+
     if is_remote and os.environ.get("GITHUB_TOKEN"):
         gh = GitHubClient()
         owner_repo = target.replace("https://github.com/", "").replace(".git", "").strip("/")
@@ -684,7 +688,12 @@ async def start_scan(request: Request) -> Response:
             BROADCASTER.broadcast({"stage": "report", "type": "error", "data": {"error": str(e)}})
 
     threading.Thread(target=_execute, daemon=True).start()
-    return ok({"status": "started", "target": target})
+    return ok({
+        "status": "started",
+        "target": target,
+        "mode": "local_fallback" if fallback_banner else "local",
+        "fallback_banner": fallback_banner,
+    })
 
 
 async def scan_status(request: Request) -> Response:
