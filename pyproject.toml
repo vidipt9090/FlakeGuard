@@ -9,6 +9,7 @@ description = "Detect and triage flaky tests using LLM-assisted analysis"
 dependencies = [
     "pydantic",
     "ollama",
+    "langchain-core",
 ]
 
 [project.scripts]
