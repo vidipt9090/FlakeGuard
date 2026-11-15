@@ -28,7 +28,7 @@ from starlette.staticfiles import StaticFiles
 
 from flakeguard.app import repos
 from flakeguard.app.github import GitHubClient
-from flakeguard.gen.fix import propose_teardown_fix
+from flakeguard.notest.fix import propose_teardown_fix
 from flakeguard.rag.index import CodebaseIndexer
 from flakeguard.rag.qa import RepoQAEngine
 from flakeguard.runner.orchestrator import ScanConfig, scan
@@ -590,9 +590,32 @@ async def start_scan(request: Request) -> Response:
     target = str(body.get("repo") or body.get("target") or body.get("repo_url") or "synthetic").strip()
     shuffled_n = int(body.get("shuffled_n") or 2)
     use_docker = bool(body.get("use_docker") or False)
+    confirmed = bool(body.get("confirmed") or False)
 
     # Check if target is a remote GitHub URL or dispatch request
     is_remote = bool(target.startswith("http") or body.get("remote"))
+
+    # Docker availability check: refuse with clear error if requested but unavailable
+    if use_docker:
+        from flakeguard.runner.sandbox import DockerSandbox
+        if not DockerSandbox(repo_path=Path(".")).is_available():
+            return fail(
+                "Docker isolation was requested, but the Docker daemon is unreachable. Please start Docker Desktop or uncheck 'Isolate in Docker'.",
+                status_code=400,
+            )
+
+    # Vetted target check: require confirmation if running arbitrary external repo locally without Docker
+    vetted_targets = {
+        "synthetic", "flakeguard-demo", "vidipt9090/flakeguard-demo",
+        "cachetools", "tkem/cachetools", "tests/data/notest/app.py", "notest",
+    }
+    target_norm = target.lower().strip().rstrip("/")
+    is_vetted = any(v in target_norm for v in vetted_targets) or target_norm.startswith("tests/")
+    if not is_remote and not use_docker and not is_vetted and not confirmed:
+        return fail(
+            "Running an untrusted external repository locally without Docker isolation requires explicit confirmation. Please confirm or enable Docker isolation.",
+            status_code=400,
+        )
 
     if is_remote and os.environ.get("GITHUB_TOKEN"):
         gh = GitHubClient()
@@ -819,7 +842,7 @@ async def eval3_data(request: Request) -> Response:
             "root_cause_accuracy": "0.742",
             "false_quarantine": "0.00",
             "source": "command, sha, time",
-            "provenance": {"command": "python -m flakeguard.baselines.b3_classifier", "git_sha": CURRENT_GIT_SHA[:7], "time": "2026-11-15 10:40:00 UTC", "data_label": "planted"},
+            "provenance": {"command": "python -m flakeguard.baselines.b3_feature_classifier", "git_sha": CURRENT_GIT_SHA[:7], "time": "2026-11-15 10:40:00 UTC", "data_label": "planted"},
         },
     ]
 

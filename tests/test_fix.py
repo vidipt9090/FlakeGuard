@@ -1,4 +1,4 @@
-from flakeguard.gen.fix import propose_teardown_fix
+from flakeguard.notest.fix import propose_teardown_fix
 
 
 def test_propose_teardown_fix(tmp_path):

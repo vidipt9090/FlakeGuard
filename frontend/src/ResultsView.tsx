@@ -66,7 +66,7 @@ export const ResultsView: React.FC = () => {
               false_quarantine: "from the latest run",
               source: "command, sha, time",
               provenance: {
-                command: "python -m flakeguard.baselines.b3_classifier",
+                command: "python -m flakeguard.baselines.b3_feature_classifier",
                 git_sha: "ca79ba6",
                 time: "2026-11-15 10:40:00 UTC",
                 data_label: "planted",

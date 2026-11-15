@@ -247,23 +247,24 @@ def scan(config: ScanConfig) -> ScanResult:
                 base_image=config.base_image,
                 default_timeout=config.timeout,
             )
-            if docker_sb.is_available():
-                sandbox = docker_sb
+            if not docker_sb.is_available():
                 event_logger.log(
-                    "discover",
-                    "progress",
-                    data={"sandbox": "docker", "base_image": config.base_image},
-                )
-            else:
-                event_logger.log(
-                    "discover",
-                    "progress",
+                    "ingest",
+                    "error",
                     data={
-                        "sandbox": "local_process",
-                        "note": "Docker requested but unreachable; falling back to LocalProcessSandbox",
+                        "outcome": "docker unavailable",
+                        "reason": "Docker isolation was requested, but the Docker daemon is unreachable. Please start Docker Desktop or uncheck 'Isolate in Docker'.",
                     },
                 )
-                sandbox = LocalProcessSandbox(default_timeout=config.timeout)
+                raise RuntimeError(
+                    "Docker isolation was requested, but the Docker daemon is unreachable. Please start Docker Desktop or uncheck 'Isolate in Docker'."
+                )
+            sandbox = docker_sb
+            event_logger.log(
+                "discover",
+                "progress",
+                data={"sandbox": "docker", "base_image": config.base_image},
+            )
         else:
             sandbox = LocalProcessSandbox(default_timeout=config.timeout)
 

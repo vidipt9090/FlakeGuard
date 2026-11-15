@@ -85,3 +85,23 @@ def test_quarantine_refusal_on_deterministic_bug():
     assert resp_flaky.status_code == 200
     assert resp_flaky.json()["status"] == "approved"
     assert "provenance" in resp_flaky.json()
+
+
+def test_docker_refusal_when_unavailable(monkeypatch):
+    client = TestClient(app)
+    # Mock DockerSandbox.is_available to return False
+    from flakeguard.runner.sandbox import DockerSandbox
+    monkeypatch.setattr(DockerSandbox, "is_available", lambda self: False)
+
+    resp = client.post("/api/scan", json={"repo": "synthetic", "use_docker": True})
+    assert resp.status_code == 400
+    assert "Docker isolation was requested, but the Docker daemon is unreachable" in resp.json()["error"]
+
+
+def test_unvetted_repo_confirmation_required():
+    client = TestClient(app)
+    # Untrusted repo without docker and without confirmed flag -> 400
+    resp = client.post("/api/scan", json={"repo": "some-random-org/malicious-repo", "use_docker": False, "confirmed": False})
+    assert resp.status_code == 400
+    assert "explicit confirmation" in resp.json()["error"].lower()
+
