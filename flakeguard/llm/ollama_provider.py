@@ -10,6 +10,8 @@ from typing import Any
 import ollama
 from pydantic import BaseModel, Field, ValidationError
 
+from flakeguard.llm.providers import LocalOllamaProvider
+
 
 class EvidenceItem(BaseModel):
     id: str = Field(description="Evidence identifier, e.g., E1, E2")
@@ -181,3 +183,9 @@ class OllamaProvider:
                 error=str(e),
             )
             return FALLBACK_RESULT
+
+
+# Also alias LocalOllamaProvider to OllamaProvider in flakeguard.llm.providers for consistency
+LocalOllamaProviderWrapper = LocalOllamaProvider
+
+__all__ = ["OllamaProvider", "LLMOutputSchema", "EvidenceItem", "FALLBACK_RESULT"]
