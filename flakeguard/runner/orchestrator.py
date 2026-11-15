@@ -76,6 +76,8 @@ def _resolve_target(
     candidates = [
         Path.cwd() / target_clean,
         Path.cwd().parent / target_clean,
+        repo_root / target_clean,
+        repo_root / repo_name_only,
         repo_root.parent / target_clean,
         repo_root.parent / repo_name_only,
     ]
