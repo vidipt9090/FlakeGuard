@@ -58,6 +58,23 @@ def build_parser() -> argparse.ArgumentParser:
         help="Directory to save JUnit XML reports and execution artifacts.",
     )
 
+    # `flakeguard serve [--host 127.0.0.1] [--port 8000]`
+    serve_parser = subparsers.add_parser(
+        "serve",
+        help="Start the FlakeGuard lightweight web dashboard server.",
+    )
+    serve_parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Host address to bind the dashboard server (default: 127.0.0.1).",
+    )
+    serve_parser.add_argument(
+        "--port",
+        type=int,
+        default=8000,
+        help="Port to bind the dashboard server (default: 8000).",
+    )
+
     return parser
 
 
@@ -104,6 +121,21 @@ def main(argv: list[str] | None = None) -> int:
             stats = result.test_summaries.get(ft, {})
             print(f"  - {ft:<60} (Fail rate: {stats.get('failure_rate', 0.0) * 100:.1f}%)")
         print("=" * 80)
+        return 0
+
+    if args.command == "serve":
+        from flakeguard.app.server import run_server
+
+        server = run_server(host=args.host, port=args.port)
+        print("=" * 80)
+        print("FLAKEGUARD DASHBOARD SERVER")
+        print(f"URL: http://{args.host}:{server.server_port}")
+        print("=" * 80)
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            print("\nShutting down dashboard server...")
+            server.shutdown()
         return 0
 
     return 0
