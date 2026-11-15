@@ -37,6 +37,50 @@ LABELS_PATH = REPO_ROOT / "labels" / "labels.json"
 SYNTHETIC_DIR = REPO_ROOT / "synthetic"
 
 
+def _seed_demo_run_if_missing() -> None:
+    """Create a minimal historical run when no event log files exist.
+
+    The replay UI and the API contract expect at least one run to be available,
+    even in a fresh checkout where no data/events/*.jsonl files have been created
+    yet.
+    """
+    if EVENTS_DIR.exists() and any(EVENTS_DIR.glob("*.jsonl")):
+        return
+
+    EVENTS_DIR.mkdir(parents=True, exist_ok=True)
+    demo_run_id = "demo_run_001"
+    demo_events = [
+        {
+            "stage": "scan",
+            "type": "initiated",
+            "data": {
+                "requested_sha": "demo",
+                "target": "synthetic",
+                "flaky_tests_count": 1,
+            },
+        },
+        {
+            "stage": "scan",
+            "type": "log",
+            "data": {"message": "Running synthetic flake check"},
+        },
+        {
+            "stage": "scan",
+            "type": "completed",
+            "data": {
+                "run_id": demo_run_id,
+                "outcome": "pass",
+                "flaky_tests": ["synthetic/tests/test_suite_01.py::test_case_02"],
+                "total_tests": 3,
+            },
+        },
+    ]
+    run_path = EVENTS_DIR / f"{demo_run_id}.jsonl"
+    with open(run_path, "w", encoding="utf-8") as handle:
+        for event in demo_events:
+            handle.write(json.dumps(event) + "\n")
+
+
 class SSEBroadcaster:
     """Thread-safe event broadcaster for Server-Sent Events (SSE)."""
 
@@ -113,6 +157,7 @@ _QUARANTINE_REGISTRY: dict[str, Any] = {
 
 def _load_available_runs() -> list[dict[str, Any]]:
     """List all available event runs on disk."""
+    _seed_demo_run_if_missing()
     runs = []
     if EVENTS_DIR.exists():
         for f in sorted(EVENTS_DIR.glob("*.jsonl"), reverse=True):
@@ -156,6 +201,7 @@ def _load_available_runs() -> list[dict[str, Any]]:
 
 def _load_run_events(run_id: str) -> list[dict[str, Any]]:
     """Load all events from a given run ID."""
+    _seed_demo_run_if_missing()
     p = EVENTS_DIR / f"{run_id}.jsonl"
     if not p.exists():
         # Check if run_id contains extension
