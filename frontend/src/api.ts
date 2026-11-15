@@ -94,7 +94,7 @@ export const api = {
     get<{ runs: RunItem[]; tests: unknown[] }>("/api/runs"),
   getRun: (id: string) =>
     get<RunItem>(`/api/runs/${encodeURIComponent(id)}`),
-  scan: (body: { repo: string; shuffled_n?: number; use_docker?: boolean }) =>
+  scan: (body: { repo: string; shuffled_n?: number; use_docker?: boolean; remote?: boolean; confirmed?: boolean }) =>
     post<{ status: string; run_id?: string; target?: string }>("/api/scan", body),
   status: () =>
     get<{
@@ -112,6 +112,8 @@ export const api = {
     post<FixResponse>("/api/fix", body),
   ask: (body: { question: string; test_id?: string; repo?: string }) =>
     post<AskResponse>("/api/ask", body),
+  askQuestion: (question: string, testId?: string, repo?: string) =>
+    post<AskResponse>("/api/ask", { question, test_id: testId, repo }),
   eval3Data: () =>
     get<Eval3Payload>("/api/eval3/data"),
 };

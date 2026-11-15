@@ -219,6 +219,7 @@ export interface Discovery {
 /* -------------------------------------------------- Triage & Pipeline contracts ---- */
 
 export interface Finding {
+  id?: string;
   test_id: string;
   verdict: "flaky" | "real" | "stable" | "abstain";
   root_cause: string;
@@ -233,6 +234,9 @@ export interface Finding {
   polluter_line?: number;
   polluter_snippet?: string;
   tags?: string[];
+  metrics_summary?: string[];
+  where_it_lives?: string;
+  code_read?: Array<{ citation: string; name: string; content: string }>;
   can_quarantine?: boolean;
   has_fix?: boolean;
   fail_rate?: number;
@@ -242,6 +246,7 @@ export interface StageItem {
   name: string;
   status: "done" | "running" | "waiting" | "error";
   duration_s?: number;
+  duration?: string;
 }
 
 export interface HumanStep {
@@ -262,6 +267,9 @@ export interface RunItem {
   latest_events?: string[];
   findings?: Finding[];
   github_url?: string;
+  total_tests?: number;
+  use_docker?: boolean;
+  mode?: string;
 }
 
 export interface Eval3Provenance {

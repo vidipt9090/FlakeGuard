@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
 import { TriageView } from "./TriageView";
+import { RepoMapView } from "./RepoMapView";
 import { PipelineView } from "./PipelineView";
 import { ResultsView } from "./ResultsView";
 import "./App.css";
 
-type Tab = "triage" | "pipeline" | "results";
+type Tab = "triage" | "repomap" | "pipeline" | "results";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     try {
       const hash = window.location.hash.replace("#", "") as Tab;
-      if (["triage", "pipeline", "results"].includes(hash)) return hash;
+      if (["triage", "repomap", "pipeline", "results"].includes(hash)) return hash;
     } catch {
       // ignore
     }
@@ -39,6 +40,12 @@ export default function App() {
               Triage
             </button>
             <button
+              className={`nav-tab-btn ${activeTab === "repomap" ? "active" : ""}`}
+              onClick={() => setActiveTab("repomap")}
+            >
+              Repo map
+            </button>
+            <button
               className={`nav-tab-btn ${activeTab === "pipeline" ? "active" : ""}`}
               onClick={() => setActiveTab("pipeline")}
             >
@@ -56,7 +63,13 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="app-main">
-        {activeTab === "triage" && <TriageView onNavigateToPipeline={() => setActiveTab("pipeline")} />}
+        {activeTab === "triage" && (
+          <TriageView
+            onNavigateToPipeline={() => setActiveTab("pipeline")}
+            onNavigateToRepoMap={() => setActiveTab("repomap")}
+          />
+        )}
+        {activeTab === "repomap" && <RepoMapView />}
         {activeTab === "pipeline" && <PipelineView />}
         {activeTab === "results" && <ResultsView />}
       </main>

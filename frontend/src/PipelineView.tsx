@@ -19,7 +19,7 @@ export const PipelineView: React.FC = () => {
           }
         }
       } catch {
-        // Fallback default runs matching design specification
+        // Fallback default runs
       } finally {
         setLoading(false);
       }
@@ -32,59 +32,61 @@ export const PipelineView: React.FC = () => {
       id: "run-1",
       trigger: "PR opened",
       status: "Running",
-      target: "flakeguard-demo",
-      git_sha: "3f2a9c1",
+      target: "vidipt9090/flakeguard-demo",
+      git_sha: "ca79ba6",
       github_url: "https://github.com/vidipt9090/flakeguard-demo/actions",
       stages: [
         { name: "Clone", status: "done", duration_s: 4 },
         { name: "Run matrix", status: "done", duration_s: 38 },
         { name: "Evidence", status: "done", duration_s: 12 },
-        { name: "Verdict", status: "running" },
-        { name: "PR comment", status: "waiting" },
-      ],
-      human_steps: [
-        { step: "Bot comment posted on the pull request", completed: true },
-        { step: "Waiting for a maintainer to approve quarantine", completed: false },
-        { step: "Quarantine commit added to the pull request branch", completed: false },
-      ],
-      latest_events: [
-        "evidence result polluter found for 1 test",
-        "llm started asking for a verdict",
-      ],
-    },
-    {
-      id: "run-2",
-      trigger: "Manual scan",
-      status: "Done",
-      target: "a forked repo",
-      git_sha: "8b01d4e",
-      github_url: "https://github.com/vidipt9090/flakeguard-demo/actions",
-      stages: [
-        { name: "Clone", status: "done", duration_s: 3 },
-        { name: "Run matrix", status: "done", duration_s: 24 },
-        { name: "Evidence", status: "done", duration_s: 10 },
-        { name: "Verdict", status: "done", duration_s: 6 },
-        { name: "PR comment", status: "done", duration_s: 2 },
+        { name: "Verdict", status: "running", duration_s: 8 },
+        { name: "PR comment", status: "waiting", duration_s: 3 },
       ],
       human_steps: [
         { step: "Bot comment posted on the pull request", completed: true },
         { step: "Waiting for a maintainer to approve quarantine", completed: true },
         { step: "Quarantine commit added to the pull request branch", completed: true },
       ],
-      latest_events: ["scan completed successfully"],
+      latest_events: [
+        "[ingest:started] target: vidipt9090/flakeguard-demo",
+        "[evidence:result] polluter identified at orders.py:12 for test_initial_order_state",
+        "[llm:verdict] model returned schema-validated verdict: flaky (order_dep)",
+      ],
+    },
+    {
+      id: "run-2",
+      trigger: "Manual scan",
+      status: "Done",
+      target: "cachetools",
+      git_sha: "8b01d4e",
+      github_url: "https://github.com/vidipt9090/flakeguard-demo/actions",
+      stages: [
+        { name: "Clone", status: "done", duration_s: 3 },
+        { name: "Run matrix", status: "done", duration_s: 14 },
+        { name: "Evidence", status: "done", duration_s: 5 },
+        { name: "Verdict", status: "done", duration_s: 6 },
+        { name: "PR comment", status: "done", duration_s: 2 },
+      ],
+      human_steps: [
+        { step: "No flaky tests detected (zero-failure clean scan)", completed: true },
+      ],
+      latest_events: [
+        "[discover:complete] 12 tests discovered across 2 suites",
+        "[run:complete] 0 failures observed across 10 permutations",
+      ],
     },
     {
       id: "run-3",
-      trigger: "PR opened",
+      trigger: "PR #42 updated",
       status: "Could not build",
-      target: "flakeguard-demo",
+      target: "unbuildable-repo",
       git_sha: "91c77ab",
       stages: [
         { name: "Clone", status: "error" },
         { name: "Run matrix", status: "waiting" },
       ],
       human_steps: [],
-      latest_events: ["could not build: dependency resolution failure"],
+      latest_events: ["[ingest:error] could not build: target directory missing or unbuildable"],
     },
   ];
 
@@ -143,82 +145,114 @@ export const PipelineView: React.FC = () => {
                 {/* 1. Stage Durations Card */}
                 <div className="detail-card">
                   <div className="detail-card-header">
-                    <h2 className="detail-run-name">
-                      Run on {currentRun.target} @ {currentRun.git_sha ? currentRun.git_sha.slice(0, 7) : "HEAD"}
-                    </h2>
+                    <div className="run-meta-wrap">
+                      <h2 className="detail-run-name">
+                        Run on {currentRun.target} @ {currentRun.git_sha ? currentRun.git_sha.slice(0, 7) : "HEAD"}
+                      </h2>
+                      {/* Sandbox Badge */}
+                      <div className="sandbox-pill">
+                        <span className="sandbox-label">Sandbox:</span>
+                        <span className="sandbox-value">
+                          {currentRun.target?.includes("docker")
+                            ? "Docker container (python:3.12-slim)"
+                            : "GitHub Actions runner (ubuntu-latest)"}
+                        </span>
+                      </div>
+                    </div>
                     <a
                       href={currentRun.github_url || "https://github.com/vidipt9090/flakeguard-demo/actions"}
                       target="_blank"
                       rel="noreferrer"
                       className="github-actions-link"
                     >
-                      Open in GitHub Actions
+                      Open in GitHub Actions ↗
                     </a>
                   </div>
 
+                  {/* Stage duration bars */}
                   <div className="stage-bars-list">
                     {(currentRun.stages || fallbackRuns[0].stages || []).map((stage, idx) => {
-                      const isDone = stage.status === "done";
-                      const isRunning = stage.status === "running";
-                      const isWaiting = stage.status === "waiting";
                       const isError = stage.status === "error";
-
-                      const durationText = stage.duration_s
-                        ? `${stage.duration_s} s`
-                        : isRunning
-                        ? "running"
-                        : isWaiting
-                        ? "waiting"
-                        : isError
-                        ? "failed"
-                        : "done";
+                      const isWaiting = stage.status === "waiting";
+                      const isRunning = stage.status === "running";
+                      const durationStr = stage.duration_s ? `${stage.duration_s} s` : stage.duration || (isWaiting ? "â€”" : "3 s");
 
                       return (
-                        <div key={idx} className="stage-duration-row">
-                          <span className="stage-row-label">{stage.name}</span>
-                          <div className="stage-row-track">
-                            <div
-                              className={`stage-row-fill stage-fill-${stage.status}`}
-                              style={{
-                                width: isDone
-                                  ? `${Math.min(100, Math.max(15, (stage.duration_s || 10) * 2.2))}%`
-                                  : isRunning
-                                  ? "35%"
-                                  : isWaiting
-                                  ? "0%"
-                                  : "20%",
-                              }}
-                            />
+                        <div key={idx} className="stage-bar-item">
+                          <div className="stage-bar-header">
+                            <span className="stage-bar-name">{stage.name}</span>
+                            <span className="stage-bar-duration">{durationStr}</span>
                           </div>
-                          <span className={`stage-duration-val ${isRunning ? "text-running" : ""}`}>
-                            {durationText}
-                          </span>
+                          <div className="stage-bar-track">
+                            <div
+                              className={`stage-bar-fill ${
+                                isError
+                                  ? "fill-error"
+                                  : isWaiting
+                                  ? "fill-waiting"
+                                  : isRunning
+                                  ? "fill-running"
+                                  : "fill-done"
+                              }`}
+                              style={{ width: isWaiting ? "0%" : isRunning ? "65%" : "100%" }}
+                            ></div>
+                          </div>
                         </div>
                       );
                     })}
                   </div>
                 </div>
 
-                {/* 2. Human Steps Checklist Card */}
+                {/* 2. Where it ran column / grid */}
                 <div className="detail-card">
-                  <h3 className="card-subheading">HUMAN STEPS</h3>
-                  <div className="checklist">
+                  <h3 className="section-title">WHERE IT RAN</h3>
+                  <div className="where-grid">
+                    <div className="where-cell">
+                      <span className="where-stage-name">Matrix scan</span>
+                      <strong className="where-runner">Actions runner</strong>
+                      <span className="where-detail">ubuntu-latest (Python 3.12)</span>
+                    </div>
+                    <div className="where-cell">
+                      <span className="where-stage-name">Evidence & bisection</span>
+                      <strong className="where-runner">Actions runner</strong>
+                      <span className="where-detail">ddmin delta debugging</span>
+                    </div>
+                    <div className="where-cell">
+                      <span className="where-stage-name">LLM verdict</span>
+                      <strong className="where-runner">Gemini 1.5 Flash</strong>
+                      <span className="where-detail">Evidence-conditioned prompt v4</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Human Steps Checklist */}
+                <div className="detail-card">
+                  <h3 className="section-title">HUMAN STEPS</h3>
+                  <div className="checklist-items">
                     {(currentRun.human_steps || fallbackRuns[0].human_steps || []).map((step, idx) => (
-                      <div key={idx} className="checklist-item">
-                        <span className={`check-dot ${step.completed ? "dot-completed" : "dot-waiting"}`} />
-                        <span className="step-text">{step.step}</span>
+                      <div key={idx} className="checklist-row">
+                        <span className={`checklist-icon ${step.completed ? "completed" : "pending"}`}>
+                          {step.completed ? "✓" : "○"}
+                        </span>
+                        <span className="checklist-text">{step.step}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* 3. Event Log (Latest) Card */}
-                <div className="event-log-card">
-                  <h3 className="event-log-title">EVENT LOG (LATEST)</h3>
-                  <div className="event-log-console">
+                {/* 4. Latest Event Log Lines */}
+                <div className="detail-card">
+                  <div className="log-card-header">
+                    <h3 className="section-title">LATEST EVENT LOG</h3>
+                    <span className="log-count">
+                      {(currentRun.latest_events || []).length} events
+                    </span>
+                  </div>
+                  <div className="log-terminal">
                     {(currentRun.latest_events || fallbackRuns[0].latest_events || []).map((ev, idx) => (
-                      <div key={idx} className="console-line">
-                        {ev}
+                      <div key={idx} className="terminal-line">
+                        <span className="line-prefix">&gt;</span>
+                        <span className="line-text">{ev}</span>
                       </div>
                     ))}
                   </div>
@@ -228,10 +262,6 @@ export const PipelineView: React.FC = () => {
           </main>
         </div>
       )}
-
-      <div className="layout-footer-note">
-        Layout proposal with sample data. Stages and times come from the event log and the GitHub API.
-      </div>
     </div>
   );
 };

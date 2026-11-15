@@ -8,6 +8,7 @@ interface FindingDrawerProps {
   onClose: () => void;
   onProposeFix: (testId: string) => void;
   onQuarantine: (testId: string) => void;
+  onNavigateToRepoMap?: (nodeId?: string) => void;
 }
 
 export const FindingDrawer: React.FC<FindingDrawerProps> = ({
@@ -15,6 +16,7 @@ export const FindingDrawer: React.FC<FindingDrawerProps> = ({
   onClose,
   onProposeFix,
   onQuarantine,
+  onNavigateToRepoMap,
 }) => {
   const [question, setQuestion] = useState("Why does this fail only sometimes?");
   const [asking, setAsking] = useState(false);
@@ -95,6 +97,30 @@ export const FindingDrawer: React.FC<FindingDrawerProps> = ({
           </div>
         </section>
 
+        {/* WHERE IT LIVES */}
+        <section className="drawer-section">
+          <div className="section-header-row">
+            <h3 className="drawer-section-title">WHERE IT LIVES</h3>
+            {onNavigateToRepoMap && (
+              <button
+                className="btn-view-repomap"
+                onClick={() => {
+                  onClose();
+                  onNavigateToRepoMap(finding.test_id);
+                }}
+              >
+                View in Repo map ↗
+              </button>
+            )}
+          </div>
+          <div className="where-lives-card">
+            <p className="where-lives-prose">
+              {finding.where_it_lives ||
+                `${finding.test_id} reads shared state written by another test in ${finding.polluter_file || "orders.py"}:${finding.polluter_line || 12}.`}
+            </p>
+          </div>
+        </section>
+
         {/* THE POLLUTER */}
         {finding.polluter_test_id && (
           <section className="drawer-section">
@@ -114,6 +140,38 @@ export const FindingDrawer: React.FC<FindingDrawerProps> = ({
             </div>
           </section>
         )}
+
+        {/* CODE THE MODEL READ */}
+        <section className="drawer-section">
+          <h3 className="drawer-section-title">CODE THE MODEL READ</h3>
+          <p className="code-read-desc">
+            The AST chunks retrieval supplied to the verdict prompt:
+          </p>
+          <div className="code-read-list">
+            {(finding.code_read || [
+              {
+                citation: `${finding.polluter_file || "orders.py"}:${finding.polluter_line || 12}`,
+                name: "PENDING_ORDERS",
+                content: finding.polluter_snippet || "PENDING_ORDERS = []\n\ndef add_order(order):\n    PENDING_ORDERS.append(order)",
+              },
+              {
+                citation: "tests/test_orders.py:45",
+                name: finding.test_id,
+                content: `def ${finding.test_id}():\n    assert len(PENDING_ORDERS) == 0`,
+              }
+            ]).map((chunk: { citation: string; name: string; content: string }, i: number) => (
+              <div key={i} className="code-read-card">
+                <div className="chunk-header">
+                  <span className="citation-pill">{chunk.citation}</span>
+                  <span className="chunk-name">{chunk.name}</span>
+                </div>
+                <pre className="chunk-pre">
+                  <code>{chunk.content}</code>
+                </pre>
+              </div>
+            ))}
+          </div>
+        </section>
 
         {/* ASK ABOUT THIS FAILURE */}
         <section className="drawer-section">
