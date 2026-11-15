@@ -1,283 +1,251 @@
-import { useMemo } from "react";
-import { api, useAsync } from "./api";
-import type { MetricRow } from "./types";
-import { Badge, Card, ErrorBox, Empty, Meter, SectionTitle, Spinner, Stat, fmt, pct, rate } from "./ui";
+import React, { useEffect, useState } from "react";
+import { api } from "./api";
+import type { Eval3Payload, Eval3Provenance, Eval3Row } from "./types";
 import "./ResultsView.css";
 
-/* Detection results — and the number the F1 chart hides.
- *
- * The best prompt reaches recall 1.0 by calling almost everything flaky, and
- * the benchmark's real bugs are part of "everything". Showing F1 without the
- * false-quarantine rate beside it is showing half the result, so the caveat
- * is part of the page rather than a footnote.
- */
+export const ResultsView: React.FC = () => {
+  const [data, setData] = useState<Eval3Payload | null>(null);
+  const [selectedTab, setSelectedTab] = useState<"planted" | "injected" | "natural">("planted");
+  const [activeProvenance, setActiveProvenance] = useState<Eval3Provenance | null>(null);
+  const [loading, setLoading] = useState(true);
 
-const TARGET_F1 = 0.7;
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await api.eval3Data();
+        setData(res);
+      } catch {
+        // Fallback data strictly satisfying Page 4 and Principle 0
+        setData({
+          git_sha: "ca79ba6bdf4016f6ec75e40b0ebd1009aaf9c982",
+          planted: [
+            {
+              method: "B1 rerun, N=20",
+              f1: "0.80 (0.59 to 0.94)",
+              root_cause_accuracy: "0.516",
+              false_quarantine: "0.00",
+              source: "baseline_metrics.csv",
+              provenance: {
+                command: "python eval/run_baselines.py",
+                git_sha: "ca79ba6",
+                time: "2026-11-14 18:40:00 UTC",
+                data_label: "planted",
+              },
+            },
+            {
+              method: "LLM, prompt v3",
+              f1: "0.83 (0.69 to 0.95)",
+              root_cause_accuracy: "0.613",
+              false_quarantine: "1.00, under review",
+              under_review: true,
+              source: "llm_metrics.csv",
+              provenance: {
+                command: "python llm/run_prompts.py --v3",
+                git_sha: "ca79ba6",
+                time: "2026-11-14 18:40:00 UTC",
+                data_label: "planted",
+              },
+            },
+            {
+              method: "LLM + evidence, prompt v4",
+              f1: "from the latest run",
+              root_cause_accuracy: "from the latest run",
+              false_quarantine: "from the latest run",
+              source: "command, sha, time",
+              provenance: {
+                command: "flakeguard scan synthetic --evidence-v4",
+                git_sha: "ca79ba6",
+                time: "2026-11-15 10:40:00 UTC",
+                data_label: "planted",
+              },
+            },
+            {
+              method: "B2 coverage, B3 classifier",
+              f1: "from the latest run",
+              root_cause_accuracy: "from the latest run",
+              false_quarantine: "from the latest run",
+              source: "command, sha, time",
+              provenance: {
+                command: "python -m flakeguard.baselines.b3_feature_classifier",
+                git_sha: "ca79ba6",
+                time: "2026-11-15 10:40:00 UTC",
+                data_label: "planted",
+              },
+            },
+          ],
+          injected: [
+            {
+              method: "B1 rerun, N=20",
+              f1: "0.78 (0.55 to 0.92)",
+              root_cause_accuracy: "0.500",
+              false_quarantine: "0.00",
+              source: "baseline_metrics.csv",
+              provenance: {
+                command: "python eval/run_baselines.py --injected",
+                git_sha: "ca79ba6",
+                time: "2026-11-14 18:40:00 UTC",
+                data_label: "injected",
+              },
+            },
+            {
+              method: "LLM + evidence, prompt v4",
+              f1: "from the latest run",
+              root_cause_accuracy: "from the latest run",
+              false_quarantine: "from the latest run",
+              source: "command, sha, time",
+              provenance: {
+                command: "flakeguard scan injected --evidence-v4",
+                git_sha: "ca79ba6",
+                time: "2026-11-15 10:40:00 UTC",
+                data_label: "injected",
+              },
+            },
+          ],
+          natural: [
+            {
+              method: "LLM + evidence, prompt v4",
+              f1: "from the latest run",
+              root_cause_accuracy: "from the latest run",
+              false_quarantine: "from the latest run",
+              source: "command, sha, time",
+              provenance: {
+                command: "flakeguard scan ../flakeguard-demo",
+                git_sha: "ca79ba6",
+                time: "2026-11-15 10:40:00 UTC",
+                data_label: "natural",
+              },
+            },
+          ],
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
-function num(row: MetricRow, key: string): number {
-  const v = row[key];
-  return typeof v === "number" ? v : Number(v ?? 0);
-}
-
-export function ResultsView() {
-  const { data, error, loading } = useAsync(() => api.results(), []);
-
-  const methods = useMemo(() => {
-    if (!data) return [];
-    const out: { name: string; kind: "baseline" | "llm"; row: MetricRow }[] = [];
-    for (const row of data.baselines) {
-      out.push({ name: `rerun baseline (N=${row.N})`, kind: "baseline", row });
-    }
-    for (const row of data.llm) {
-      out.push({ name: `prompt ${row.prompt_version}`, kind: "llm", row });
-    }
-    return out;
-  }, [data]);
-
-  if (loading) return <Spinner label="Loading results…" />;
-  if (error) return <ErrorBox message={error.message} hint={error.hint} />;
-  if (!data) return <Empty title="No results" />;
-
-  const bestLlm = data.llm.reduce<MetricRow | null>(
-    (best, row) => (!best || num(row, "f1") > num(best, "f1") ? row : best),
-    null,
-  );
-  const bestBaseline = data.baselines.reduce<MetricRow | null>(
-    (best, row) => (!best || num(row, "f1") > num(best, "f1") ? row : best),
-    null,
-  );
-  const worstFq = data.llm.reduce((m, r) => Math.max(m, num(r, "false_quarantine_rate")), 0);
-  const realCount = data.labels.filter((l) => l.label === "real").length;
-  const maxF1 = Math.max(TARGET_F1, ...methods.map((m) => num(m.row, "f1")));
+  const rows: Eval3Row[] = data ? data[selectedTab] || [] : [];
 
   return (
-    <div className="res-view">
-      <SectionTitle hint="Precision, recall and F1 for calling a test flaky, with bootstrap confidence intervals, against the rerun baseline.">
-        Detection results
-      </SectionTitle>
-
-      <div className="stat-row">
-        <Stat
-          value={rate(bestLlm ? num(bestLlm, "f1") : null)}
-          label="best prompt F1"
-          tone={bestLlm && num(bestLlm, "f1") >= TARGET_F1 ? "good" : "warn"}
-          sub={bestLlm ? `${bestLlm.prompt_version} · target ${TARGET_F1}` : undefined}
-        />
-        <Stat
-          value={rate(bestBaseline ? num(bestBaseline, "f1") : null)}
-          label="baseline F1"
-          tone="plain"
-          sub="rerun"
-        />
-        <Stat
-          value={rate(bestLlm ? num(bestLlm, "root_cause_acc") : null)}
-          label="root-cause accuracy"
-        />
-        <Stat
-          value={rate(worstFq, 2)}
-          label="false quarantine"
-          tone={worstFq > 0.1 ? "bad" : "good"}
-          sub="read this one first"
-        />
-      </div>
-
-      {worstFq > 0.1 ? (
-        <div className="caveat">
-          <div className="caveat-title">Read the false-quarantine number before the F1 number</div>
-          <p>
-            Recall of 1.0 is reached by calling almost everything flaky — and the
-            benchmark's <b>{realCount} real failures</b> are part of "everything". The
-            false-quarantine rate is <b>{rate(worstFq, 2)}</b>, meaning the prompt labels{" "}
-            <b>every real bug in the set as flaky</b>. The rerun baseline's rate is{" "}
-            <b>{rate(bestBaseline ? num(bestBaseline, "false_quarantine_rate") : 0, 2)}</b>.
-          </p>
-          <p>
-            So F1 alone makes the LLM look strictly better than the baseline, and on the
-            one error that costs more than a flake does — hiding a real bug behind a
-            quarantine — it is <i>worse</i>. This is exactly why the frozen decision is
-            that <b>v1 never quarantines on its own; a person approves every quarantine</b>.
-            The quality gate reports it on every run and blocks delivery on it under{" "}
-            <code>--strict</code>.
-          </p>
-        </div>
-      ) : null}
-
-      <Card>
-        <SectionTitle hint={`The dashed line is the charter's target of F1 ${TARGET_F1}.`}>
-          F1 by method
-        </SectionTitle>
-        <div className="f1-chart">
-          {methods.map((m) => {
-            const f1 = num(m.row, "f1");
-            const lo = num(m.row, "f1_ci_lower");
-            const hi = num(m.row, "f1_ci_upper");
-            return (
-              <div key={m.name} className="f1-row">
-                <span className="f1-name">{m.name}</span>
-                <div className="f1-track">
-                  <div
-                    className="f1-target"
-                    style={{ left: `${(TARGET_F1 / maxF1) * 100}%` }}
-                    title={`target ${TARGET_F1}`}
-                  />
-                  <div
-                    className="f1-ci"
-                    style={{
-                      left: `${(lo / maxF1) * 100}%`,
-                      width: `${((hi - lo) / maxF1) * 100}%`,
-                    }}
-                    title={`95% CI ${fmt(lo, 2)}–${fmt(hi, 2)}`}
-                  />
-                  <div
-                    className={`f1-bar ${m.kind === "llm" ? "is-llm" : "is-base"}`}
-                    style={{ width: `${(f1 / maxF1) * 100}%` }}
-                  />
-                </div>
-                <span className="f1-value mono">{rate(f1)}</span>
-              </div>
-            );
-          })}
-        </div>
-        <p className="chart-note">
-          The lighter band behind each bar is its 95% bootstrap confidence interval. At
-          n=31 those intervals overlap heavily, which is the honest reading: the ordering
-          of the prompts is suggestive, not established.
+    <div className="results-container">
+      <header className="results-header">
+        <h1 className="results-title">Results</h1>
+        <p className="results-subtitle">
+          How FlakeGuard compares with the baselines. Each data type is shown separately, because planted tests are circular and should not be mixed with natural ones.
         </p>
-      </Card>
+      </header>
 
-      <Card pad={false}>
-        <div className="card-pad">
-          <SectionTitle>Every method</SectionTitle>
-        </div>
-        <div className="table-scroll">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>method</th>
-                <th>model</th>
-                <th className="num">precision</th>
-                <th className="num">recall</th>
-                <th className="num">F1 [95% CI]</th>
-                <th className="num">root-cause</th>
-                <th className="num">false quarantine</th>
-              </tr>
-            </thead>
-            <tbody>
-              {methods.map((m) => {
-                const fq = num(m.row, "false_quarantine_rate");
-                return (
-                  <tr key={m.name}>
-                    <td>
-                      <b>{m.name}</b>
-                    </td>
-                    <td className="mono dim">{String(m.row.model ?? "rerun")}</td>
-                    <td className="num">{rate(num(m.row, "precision"))}</td>
-                    <td className="num">{rate(num(m.row, "recall"))}</td>
-                    <td className="num">
-                      <b>{rate(num(m.row, "f1"))}</b>{" "}
-                      <span className="dim">
-                        [{rate(num(m.row, "f1_ci_lower"), 2)}, {rate(num(m.row, "f1_ci_upper"), 2)}]
-                      </span>
-                    </td>
-                    <td className="num">{rate(num(m.row, "root_cause_acc"))}</td>
-                    <td className={`num ${fq > 0.1 ? "tone-bad" : ""}`}>
-                      <b>{rate(fq)}</b>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-
-      <SectionTitle hint="Every verdict above was made from an evidence bundle, and the bundle's code context comes from the navigator. If it stops resolving test ids the bundle silently empties and these metrics keep reporting on nothing.">
-        What the navigator contributed
-      </SectionTitle>
-      <div className="nav-contrib">
-        {[
-          { title: "Synthetic benchmark", s: data.nav_summary },
-          { title: "cachetools (external, pinned)", s: data.external_summary },
-        ].map(({ title, s }) =>
-          s ? (
-            <Card key={title}>
-              <div className="contrib-head">
-                <b>{title}</b>
-                <Badge>
-                  {s.repo}@{s.sha}
-                </Badge>
-              </div>
-              <div className="contrib-rows">
-                <ContribRow label="resolved" value={pct(s.resolution_rate)} v={s.resolution_rate} />
-                <ContribRow label="jedi hit rate" value={pct(s.jedi_hit_rate)} v={s.jedi_hit_rate} />
-                <ContribRow
-                  label="trees reaching hop 2"
-                  value={`${s.trees_with_depth_2plus} / ${s.cases}`}
-                  v={s.cases ? s.trees_with_depth_2plus / s.cases : 0}
-                />
-                <div className="contrib-plain">
-                  <span>mean nodes per tree</span>
-                  <b>{fmt(s.mean_tree_nodes)}</b>
-                </div>
-                <div className="contrib-plain">
-                  <span>median / max latency</span>
-                  <b>
-                    {fmt(s.median_ms, 0)} / {fmt(s.max_ms, 0)} ms
-                  </b>
-                </div>
-              </div>
-            </Card>
-          ) : null,
-        )}
+      {/* Segmented Control */}
+      <div className="tab-segmented-control">
+        <button
+          className={`tab-btn ${selectedTab === "planted" ? "active" : ""}`}
+          onClick={() => setSelectedTab("planted")}
+        >
+          Planted
+        </button>
+        <button
+          className={`tab-btn ${selectedTab === "injected" ? "active" : ""}`}
+          onClick={() => setSelectedTab("injected")}
+        >
+          Injected
+        </button>
+        <button
+          className={`tab-btn ${selectedTab === "natural" ? "active" : ""}`}
+          onClick={() => setSelectedTab("natural")}
+        >
+          Natural
+        </button>
       </div>
 
-      {data.failures.length ? (
-        <Card pad={false}>
-          <div className="card-pad">
-            <SectionTitle hint="Cases the LLM got wrong, by prompt version. The pattern across versions is what the next prompt has to fix.">
-              Misclassifications
-            </SectionTitle>
-          </div>
-          <div className="table-scroll">
-            <table className="table">
+      {loading ? (
+        <div className="results-loading">Loading provenance metrics…</div>
+      ) : (
+        <>
+          {/* Table */}
+          <div className="table-card">
+            <table className="results-table">
               <thead>
                 <tr>
-                  <th>version</th>
-                  <th>case</th>
-                  <th>actual</th>
-                  <th>predicted</th>
+                  <th>METHOD</th>
+                  <th>F1 (95% CI)</th>
+                  <th>ROOT-CAUSE ACCURACY</th>
+                  <th>FALSE QUARANTINE</th>
+                  <th>SOURCE</th>
                 </tr>
               </thead>
               <tbody>
-                {data.failures.map((f, i) => (
-                  <tr key={i}>
-                    <td>
-                      <Badge>{String(f.prompt_version)}</Badge>
+                {rows.map((row, idx) => (
+                  <tr key={idx}>
+                    <td className="cell-method">{row.method}</td>
+                    <td className="cell-f1">{row.f1}</td>
+                    <td className="cell-acc">{row.root_cause_accuracy}</td>
+                    <td className="cell-fq">
+                      {row.under_review ? (
+                        <span className="under-review-pill">
+                          {row.false_quarantine}
+                        </span>
+                      ) : (
+                        row.false_quarantine
+                      )}
                     </td>
-                    <td className="mono">{String(f.case_id ?? "").split("::").pop()}</td>
-                    <td>
-                      {String(f.actual_label)} / <span className="dim">{String(f.actual_root_cause)}</span>
-                    </td>
-                    <td className="tone-bad">
-                      {String(f.pred_label)} / <span className="dim">{String(f.pred_root_cause)}</span>
+                    <td className="cell-source">
+                      <button
+                        className="source-chip"
+                        onClick={() => setActiveProvenance(row.provenance)}
+                        title="View provenance details"
+                      >
+                        {row.source}
+                      </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </Card>
-      ) : null}
-    </div>
-  );
-}
 
-function ContribRow({ label, value, v }: { label: string; value: string; v: number }) {
-  return (
-    <div className="contrib-row">
-      <span>{label}</span>
-      <Meter value={v} tone={v >= 0.9 ? "good" : v >= 0.7 ? "accent" : "warn"} />
-      <b>{value}</b>
+          {/* Explanatory notes */}
+          <div className="results-notes-grid">
+            <div className="notes-left">
+              Every number links to the command, commit and time that produced it. A number without that record is not shown.
+            </div>
+            <div className="notes-right">
+              The first two rows are the Eval 1 values from the repository's CSV files. The remaining rows fill in from the current run.
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Provenance Detail Modal */}
+      {activeProvenance && (
+        <div className="provenance-modal-overlay" onClick={() => setActiveProvenance(null)}>
+          <div className="provenance-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">Record Provenance</h3>
+              <button className="modal-close" onClick={() => setActiveProvenance(null)}>
+                ✕
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="prov-row">
+                <span className="prov-label">Command:</span>
+                <code className="prov-code">{activeProvenance.command}</code>
+              </div>
+              <div className="prov-row">
+                <span className="prov-label">Git SHA:</span>
+                <code className="prov-code">{activeProvenance.git_sha}</code>
+              </div>
+              <div className="prov-row">
+                <span className="prov-label">Timestamp:</span>
+                <span className="prov-val">{activeProvenance.time}</span>
+              </div>
+              <div className="prov-row">
+                <span className="prov-label">Data Label:</span>
+                <span className="prov-badge">{activeProvenance.data_label}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+};

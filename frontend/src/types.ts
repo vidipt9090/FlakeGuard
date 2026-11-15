@@ -215,3 +215,98 @@ export interface Discovery {
   truncated: boolean;
   cache_mb: number;
 }
+
+/* -------------------------------------------------- Triage & Pipeline contracts ---- */
+
+export interface Finding {
+  id?: string;
+  test_id: string;
+  verdict: "flaky" | "real" | "stable" | "abstain";
+  root_cause: string;
+  plain_sentence: string;
+  observed?: string;
+  reproduced?: string;
+  confirmed_by_intervention?: string;
+  evidence_tier?: "observed" | "reproduced" | "confirmed_by_intervention" | string;
+  evidence_summary?: string[];
+  polluter_test_id?: string;
+  polluter_file?: string;
+  polluter_line?: number;
+  polluter_snippet?: string;
+  tags?: string[];
+  metrics_summary?: string[];
+  where_it_lives?: string;
+  code_read?: Array<{ citation: string; name: string; content: string }>;
+  can_quarantine?: boolean;
+  has_fix?: boolean;
+  fail_rate?: number;
+}
+
+export interface StageItem {
+  name: string;
+  status: "done" | "running" | "waiting" | "error";
+  duration_s?: number;
+  duration?: string;
+}
+
+export interface HumanStep {
+  step: string;
+  completed: boolean;
+}
+
+export interface RunItem {
+  id: string;
+  run_id?: string;
+  target: string;
+  git_sha?: string;
+  status: "Running" | "Done" | "Could not build" | "error" | string;
+  trigger: string;
+  created_at?: string;
+  stages?: StageItem[];
+  human_steps?: HumanStep[];
+  latest_events?: string[];
+  findings?: Finding[];
+  github_url?: string;
+  total_tests?: number;
+  use_docker?: boolean;
+  mode?: string;
+}
+
+export interface Eval3Provenance {
+  command: string;
+  git_sha: string;
+  time: string;
+  data_label: "planted" | "injected" | "natural";
+}
+
+export interface Eval3Row {
+  method: string;
+  f1: string;
+  root_cause_accuracy: string;
+  false_quarantine: string;
+  under_review?: boolean;
+  source: string;
+  provenance: Eval3Provenance;
+}
+
+export interface Eval3Payload {
+  planted: Eval3Row[];
+  injected: Eval3Row[];
+  natural: Eval3Row[];
+  git_sha: string;
+}
+
+export interface AskResponse {
+  answer: string;
+  citations: string[];
+  refusal?: boolean;
+  provenance?: Record<string, string>;
+}
+
+export interface FixResponse {
+  patch?: string;
+  polluter_test_id?: string;
+  fixed?: boolean;
+  message?: string;
+}
+

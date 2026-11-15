@@ -203,16 +203,16 @@
         "smell": 1
       },
       "ms_by_phase": {
-        "locate": 0.181,
+        "locate": 0.232,
         "ast_walk": 0.0,
-        "jedi_goto": 69.332,
-        "jedi_infer": 0.986,
-        "expand": 1.219,
+        "jedi_goto": 25.862,
+        "jedi_infer": 1.061,
+        "expand": 2.647,
         "fixture": 0.002,
         "shared_state": 0.0,
         "smell": 0.0
       },
-      "total_ms": 77.066
+      "total_ms": 108.116
     },
     "by_depth": {
       "0": 11,
@@ -234,7 +234,7 @@
         "weight": 0.0,
         "results": 15,
         "kept": 0,
-        "duration_ms": 0.181,
+        "duration_ms": 0.232,
         "ok": true,
         "produced": []
       },
@@ -432,7 +432,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 61.084,
+        "duration_ms": 18.939,
         "ok": true,
         "produced": []
       },
@@ -450,7 +450,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 1,
-        "duration_ms": 3.646,
+        "duration_ms": 4.058,
         "ok": true,
         "produced": [
           "synthetic/src/shop.py:133"
@@ -470,7 +470,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 3.066,
+        "duration_ms": 1.604,
         "ok": true,
         "produced": []
       },
@@ -488,7 +488,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 0.929,
+        "duration_ms": 0.67,
         "ok": true,
         "produced": []
       },
@@ -506,7 +506,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 0.607,
+        "duration_ms": 0.591,
         "ok": true,
         "produced": []
       },
@@ -524,7 +524,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 0.523,
+        "duration_ms": 0.547,
         "ok": true,
         "produced": []
       },
@@ -542,7 +542,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 0.463,
+        "duration_ms": 0.514,
         "ok": true,
         "produced": []
       },
@@ -578,7 +578,7 @@
         "weight": 0.0,
         "results": 0,
         "kept": 0,
-        "duration_ms": 1.219,
+        "duration_ms": 2.647,
         "ok": true,
         "produced": []
       },

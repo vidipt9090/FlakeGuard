@@ -13,6 +13,6 @@
   "mean_ast_names": 7.16,
   "total_jedi_calls": 176,
   "jedi_hit_rate": 1.0,
-  "median_ms": 21.73,
-  "max_ms": 1024.2
+  "median_ms": 21.46,
+  "max_ms": 945.66
 }

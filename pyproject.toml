@@ -9,7 +9,14 @@ description = "Detect and triage flaky tests using LLM-assisted analysis"
 dependencies = [
     "pydantic",
     "ollama",
+    "langchain-core",
+    "starlette",
+    "uvicorn",
+    "httpx",
 ]
+
+[project.scripts]
+flakeguard = "flakeguard.cli:main"
 
 [project.optional-dependencies]
 dev = [
@@ -19,6 +26,10 @@ dev = [
     "ruff",
     "pydantic",
     "ollama",
+    "langchain-core",
+    "starlette",
+    "uvicorn",
+    "httpx",
     "freezegun",
     "pandas",
     "pyarrow",

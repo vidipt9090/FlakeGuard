@@ -220,16 +220,16 @@
         "smell": 2
       },
       "ms_by_phase": {
-        "locate": 0.203,
+        "locate": 0.19,
         "ast_walk": 0.0,
-        "jedi_goto": 4.123,
-        "jedi_infer": 0.504,
-        "expand": 8.965,
+        "jedi_goto": 4.856,
+        "jedi_infer": 0.599,
+        "expand": 6.726,
         "fixture": 0.002,
         "shared_state": 0.0,
         "smell": 0.0
       },
-      "total_ms": 15.389
+      "total_ms": 15.441
     },
     "by_depth": {
       "0": 6,
@@ -251,7 +251,7 @@
         "weight": 0.0,
         "results": 15,
         "kept": 0,
-        "duration_ms": 0.203,
+        "duration_ms": 0.19,
         "ok": true,
         "produced": []
       },
@@ -359,7 +359,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 1,
-        "duration_ms": 3.518,
+        "duration_ms": 4.177,
         "ok": true,
         "produced": [
           "synthetic/src/shop.py:69"
@@ -379,7 +379,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 0.605,
+        "duration_ms": 0.679,
         "ok": true,
         "produced": []
       },
@@ -397,7 +397,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 0.504,
+        "duration_ms": 0.599,
         "ok": true,
         "produced": []
       },
@@ -433,7 +433,7 @@
         "weight": 0.45,
         "results": 1,
         "kept": 0,
-        "duration_ms": 3.648,
+        "duration_ms": 2.757,
         "ok": true,
         "produced": []
       },
@@ -451,7 +451,7 @@
         "weight": 0.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 5.317,
+        "duration_ms": 3.969,
         "ok": true,
         "produced": []
       },

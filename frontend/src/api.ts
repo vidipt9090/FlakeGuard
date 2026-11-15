@@ -1,8 +1,12 @@
 import type {
+  AskResponse,
   Discovery,
+  Eval3Payload,
   Explain,
+  FixResponse,
   PipelineStatus,
   ResultsPayload,
+  RunItem,
   Suggestion,
   TreeSet,
 } from "./types";
@@ -83,9 +87,35 @@ export const api = {
     ),
   results: () => get<ResultsPayload>("/api/results"),
   runs: () =>
-    get<{ tests: { test_id: string; passes: number; fails: number; total: number; flip_rate: number }[] }>(
+    get<{ tests: { test_id: string; passes: number; fails: number; total: number; flip_rate: number }[]; runs: RunItem[] }>(
       "/api/runs",
     ),
+  getRuns: () =>
+    get<{ runs: RunItem[]; tests: unknown[] }>("/api/runs"),
+  getRun: (id: string) =>
+    get<RunItem>(`/api/runs/${encodeURIComponent(id)}`),
+  scan: (body: { repo: string; shuffled_n?: number; use_docker?: boolean; remote?: boolean; confirmed?: boolean }) =>
+    post<{ status: string; run_id?: string; target?: string; fallback_banner?: string; mode?: string }>("/api/scan", body),
+  status: () =>
+    get<{
+      running: boolean;
+      run_id: string | null;
+      target: string | null;
+      outcome: string | null;
+      flaky_tests: string[];
+      total_tests: number;
+      summaries: Record<string, unknown>;
+    }>("/api/status"),
+  quarantine: (body: { test_id: string; approver?: string; reason?: string }) =>
+    post<{ status: string; message: string; data: unknown }>("/api/quarantine", body),
+  proposeFix: (body: { test_id: string }) =>
+    post<FixResponse>("/api/fix", body),
+  ask: (body: { question: string; test_id?: string; repo?: string }) =>
+    post<AskResponse>("/api/ask", body),
+  askQuestion: (question: string, testId?: string, repo?: string) =>
+    post<AskResponse>("/api/ask", { question, test_id: testId, repo }),
+  eval3Data: () =>
+    get<Eval3Payload>("/api/eval3/data"),
 };
 
 /** Fetch once on mount, with the three states a caller actually has to draw. */

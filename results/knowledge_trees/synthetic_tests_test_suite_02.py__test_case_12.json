@@ -219,16 +219,16 @@
         "smell": 1
       },
       "ms_by_phase": {
-        "locate": 0.233,
+        "locate": 0.167,
         "ast_walk": 0.0,
-        "jedi_goto": 8.932,
-        "jedi_infer": 2.277,
-        "expand": 6.497,
-        "fixture": 0.002,
+        "jedi_goto": 8.747,
+        "jedi_infer": 2.053,
+        "expand": 5.38,
+        "fixture": 0.001,
         "shared_state": 0.0,
         "smell": 0.0
       },
-      "total_ms": 21.782
+      "total_ms": 21.328
     },
     "by_depth": {
       "0": 8,
@@ -250,7 +250,7 @@
         "weight": 0.0,
         "results": 15,
         "kept": 0,
-        "duration_ms": 0.233,
+        "duration_ms": 0.167,
         "ok": true,
         "produced": []
       },
@@ -394,7 +394,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 1,
-        "duration_ms": 6.422,
+        "duration_ms": 6.591,
         "ok": true,
         "produced": [
           "synthetic/src/shop.py:22"
@@ -414,7 +414,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 1,
-        "duration_ms": 1.708,
+        "duration_ms": 1.402,
         "ok": true,
         "produced": [
           "synthetic/src/shop.py:18"
@@ -434,7 +434,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 0.802,
+        "duration_ms": 0.754,
         "ok": true,
         "produced": []
       },
@@ -452,7 +452,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 1,
-        "duration_ms": 1.774,
+        "duration_ms": 1.396,
         "ok": true,
         "produced": [
           "synthetic/src/shop.py:18"
@@ -472,7 +472,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 0.503,
+        "duration_ms": 0.657,
         "ok": true,
         "produced": []
       },
@@ -508,7 +508,7 @@
         "weight": 0.45,
         "results": 1,
         "kept": 0,
-        "duration_ms": 1.892,
+        "duration_ms": 1.366,
         "ok": true,
         "produced": []
       },
@@ -526,7 +526,7 @@
         "weight": 0.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 4.605,
+        "duration_ms": 4.014,
         "ok": true,
         "produced": []
       },
@@ -544,7 +544,7 @@
         "weight": 0.0,
         "results": 0,
         "kept": 0,
-        "duration_ms": 0.002,
+        "duration_ms": 0.001,
         "ok": true,
         "produced": []
       },

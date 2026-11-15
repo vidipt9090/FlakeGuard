@@ -26,11 +26,23 @@ calls hit a shared no-op and nothing changes.
 from __future__ import annotations
 
 import ast
+import tempfile
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import jedi
+import jedi.settings
+import parso.cache
+
+# Ensure jedi and parso caches do not fail in sandboxed or read-only AppData environments
+try:
+    _safe_cache = Path(tempfile.gettempdir()) / "flakeguard_cache"
+    _safe_cache.mkdir(parents=True, exist_ok=True)
+    jedi.settings.cache_directory = _safe_cache / "jedi"
+    parso.cache._default_cache_path = _safe_cache / "parso"
+except Exception:
+    pass
 
 from flakeguard.contracts import Chunk, NavResult
 from flakeguard.navigator.trace import (
