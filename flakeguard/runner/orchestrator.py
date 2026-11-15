@@ -48,12 +48,15 @@ def _resolve_target(
 ) -> tuple[Path, str, bool]:
     """Resolve target to a local path and extract/pin commit SHA.
 
+    Supports local paths, workspace sibling folders, owner/repo shorthand, and Git URLs.
     Returns: (repo_path, sha, is_cloned_temp)
     """
-    target_path = Path(target)
+    target_clean = target.strip()
+    target_path = Path(target_clean)
+
+    # 1. Existing local directory
     if target_path.is_dir():
         repo_path = target_path.resolve()
-        # Query local git SHA if git is present
         try:
             res = subprocess.run(
                 ["git", "rev-parse", "HEAD"],
@@ -67,12 +70,44 @@ def _resolve_target(
             sha = "unknown"
         return repo_path, sha, False
 
-    # Check if target looks like a git URL
-    if target.startswith("http://") or target.startswith("https://") or target.startswith("git@"):
+    # 2. Check sibling directories in workspace (e.g. 'flakeguard-demo' or '../flakeguard-demo')
+    repo_root = Path(__file__).resolve().parents[2]
+    repo_name_only = target_clean.split("/")[-1].split("\\")[-1]
+    candidates = [
+        Path.cwd() / target_clean,
+        Path.cwd().parent / target_clean,
+        repo_root.parent / target_clean,
+        repo_root.parent / repo_name_only,
+    ]
+    for candidate in candidates:
+        if candidate.is_dir():
+            repo_path = candidate.resolve()
+            try:
+                res = subprocess.run(
+                    ["git", "rev-parse", "HEAD"],
+                    cwd=str(repo_path),
+                    capture_output=True,
+                    text=True,
+                    timeout=5.0,
+                )
+                sha = res.stdout.strip() if res.returncode == 0 else "unknown"
+            except Exception:
+                sha = "unknown"
+            return repo_path, sha, False
+
+    # 3. Check if target is an owner/repo shorthand (e.g. vidipt9090/flakeguard-demo)
+    git_url = target_clean
+    if "/" in target_clean and not target_clean.startswith(("http://", "https://", "git@")):
+        parts = target_clean.split("/")
+        if len(parts) == 2 and not any(p in target_clean for p in ("\\", ":")):
+            git_url = f"https://github.com/{target_clean}.git"
+
+    # 4. Check if target looks like a git URL
+    if git_url.startswith("http://") or git_url.startswith("https://") or git_url.startswith("git@"):
         clone_dest = temp_dir / "repo"
         try:
             res = subprocess.run(
-                ["git", "clone", "--depth", "50", target, str(clone_dest)],
+                ["git", "clone", "--depth", "50", git_url, str(clone_dest)],
                 capture_output=True,
                 text=True,
                 timeout=120.0,
@@ -89,7 +124,7 @@ def _resolve_target(
             sha = res_sha.stdout.strip() if res_sha.returncode == 0 else "unknown"
             return clone_dest, sha, True
         except Exception as exc:
-            raise RuntimeError(f"Could not clone repository {target}: {exc}") from exc
+            raise RuntimeError(f"Could not clone repository {git_url}: {exc}") from exc
 
     raise ValueError(f"Target '{target}' is neither an existing directory nor a recognized Git URL.")
 
