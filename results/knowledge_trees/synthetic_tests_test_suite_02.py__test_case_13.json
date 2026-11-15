@@ -280,16 +280,16 @@
         "smell": 4
       },
       "ms_by_phase": {
-        "locate": 0.25,
+        "locate": 0.198,
         "ast_walk": 0.0,
-        "jedi_goto": 155.271,
-        "jedi_infer": 2.644,
-        "expand": 35.978,
-        "fixture": 0.003,
+        "jedi_goto": 79.943,
+        "jedi_infer": 3.618,
+        "expand": 32.496,
+        "fixture": 0.002,
         "shared_state": 0.0,
         "smell": 0.0
       },
-      "total_ms": 185.92
+      "total_ms": 109.661
     },
     "by_depth": {
       "0": 23,
@@ -311,7 +311,7 @@
         "weight": 0.0,
         "results": 15,
         "kept": 0,
-        "duration_ms": 0.25,
+        "duration_ms": 0.198,
         "ok": true,
         "produced": []
       },
@@ -725,11 +725,11 @@
         "weight": 1.0,
         "results": 2,
         "kept": 2,
-        "duration_ms": 5.751,
+        "duration_ms": 6.112,
         "ok": true,
         "produced": [
-          "synthetic/src/shop.py:97",
-          "synthetic/src/shop.py:13"
+          "synthetic/src/shop.py:13",
+          "synthetic/src/shop.py:97"
         ]
       },
       {
@@ -746,7 +746,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 73.407,
+        "duration_ms": 14.345,
         "ok": true,
         "produced": []
       },
@@ -764,7 +764,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 55.808,
+        "duration_ms": 46.893,
         "ok": true,
         "produced": []
       },
@@ -782,7 +782,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 4.618,
+        "duration_ms": 3.671,
         "ok": true,
         "produced": []
       },
@@ -800,11 +800,11 @@
         "weight": 1.0,
         "results": 2,
         "kept": 2,
-        "duration_ms": 10.658,
+        "duration_ms": 3.518,
         "ok": true,
         "produced": [
-          "synthetic/src/shop.py:97",
-          "synthetic/src/shop.py:13"
+          "synthetic/src/shop.py:13",
+          "synthetic/src/shop.py:97"
         ]
       },
       {
@@ -821,7 +821,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 0.664,
+        "duration_ms": 0.73,
         "ok": true,
         "produced": []
       },
@@ -839,7 +839,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 0.549,
+        "duration_ms": 0.626,
         "ok": true,
         "produced": []
       },
@@ -857,7 +857,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 0.39,
+        "duration_ms": 0.444,
         "ok": true,
         "produced": []
       },
@@ -875,7 +875,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 1,
-        "duration_ms": 1.307,
+        "duration_ms": 1.456,
         "ok": true,
         "produced": [
           "synthetic/src/shop.py:96"
@@ -895,7 +895,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 0.74,
+        "duration_ms": 0.728,
         "ok": true,
         "produced": []
       },
@@ -913,7 +913,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 0.838,
+        "duration_ms": 0.757,
         "ok": true,
         "produced": []
       },
@@ -931,7 +931,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 0.541,
+        "duration_ms": 0.663,
         "ok": true,
         "produced": []
       },
@@ -949,7 +949,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 0.48,
+        "duration_ms": 0.578,
         "ok": true,
         "produced": []
       },
@@ -967,7 +967,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 0.47,
+        "duration_ms": 0.582,
         "ok": true,
         "produced": []
       },
@@ -985,7 +985,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 0.295,
+        "duration_ms": 0.671,
         "ok": true,
         "produced": []
       },
@@ -1003,7 +1003,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 0.382,
+        "duration_ms": 0.553,
         "ok": true,
         "produced": []
       },
@@ -1021,7 +1021,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 0.56,
+        "duration_ms": 0.654,
         "ok": true,
         "produced": []
       },
@@ -1039,7 +1039,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 0.457,
+        "duration_ms": 0.58,
         "ok": true,
         "produced": []
       },
@@ -1075,7 +1075,7 @@
         "weight": 0.45,
         "results": 2,
         "kept": 0,
-        "duration_ms": 15.88,
+        "duration_ms": 14.121,
         "ok": true,
         "produced": []
       },
@@ -1093,7 +1093,7 @@
         "weight": 0.0,
         "results": 2,
         "kept": 0,
-        "duration_ms": 20.098,
+        "duration_ms": 18.375,
         "ok": true,
         "produced": []
       },
@@ -1111,7 +1111,7 @@
         "weight": 0.0,
         "results": 0,
         "kept": 0,
-        "duration_ms": 0.003,
+        "duration_ms": 0.002,
         "ok": true,
         "produced": []
       },
@@ -1383,15 +1383,15 @@
     "code_under_test": [
       {
         "path": "synthetic/src/shop.py",
-        "start_line": 97,
-        "end_line": 97,
+        "start_line": 13,
+        "end_line": 13,
         "kind": "function",
         "score": 2.0
       },
       {
         "path": "synthetic/src/shop.py",
-        "start_line": 13,
-        "end_line": 13,
+        "start_line": 97,
+        "end_line": 97,
         "kind": "function",
         "score": 2.0
       },

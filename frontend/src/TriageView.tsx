@@ -78,12 +78,15 @@ export const TriageView: React.FC<TriageViewProps> = ({
     setScanning(true);
     setActionNotice(null);
     try {
-      await api.scan({
+      const res = await api.scan({
         repo: repoInput,
         shuffled_n: shuffledN,
         use_docker: useDocker,
         remote: runOnActions,
       });
+      if (res.fallback_banner) {
+        setActionNotice(res.fallback_banner);
+      }
       fetchCurrentState();
     } catch (err) {
       setActionNotice(err instanceof Error ? err.message : "Failed to start scan");

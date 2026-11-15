@@ -176,3 +176,4 @@ export const NoTestsView: React.FC<NoTestsViewProps> = ({
     </div>
   );
 };
+
