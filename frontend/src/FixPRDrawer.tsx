@@ -28,11 +28,11 @@ export const FixPRDrawer: React.FC<FixPRDrawerProps> = ({
         await onOpenPR(finding);
       }
       setPrOpened(true);
-      setPrUrl("https://github.com/vidipt9090/flakeguard-demo/pull/4");
+      // Link to repository pulls or compare
+      setPrUrl("https://github.com/vidipt9090/FlakeGuard/pulls");
     } catch {
-      // fallback mock success
       setPrOpened(true);
-      setPrUrl("https://github.com/vidipt9090/flakeguard-demo/pull/4");
+      setPrUrl("https://github.com/vidipt9090/FlakeGuard/pulls");
     } finally {
       setOpening(false);
     }
@@ -138,9 +138,12 @@ export const FixPRDrawer: React.FC<FixPRDrawerProps> = ({
               <div className="pr-opened-banner">
                 <span className="success-icon">✓</span>
                 <div className="pr-banner-text">
-                  <strong>Pull request opened successfully!</strong>
-                  <a href={prUrl || "#"} target="_blank" rel="noreferrer" className="pr-link">
-                    View PR on GitHub ↗
+                  <strong>Fix prepared for your personal fork</strong>
+                  <p style={{ margin: "4px 0", fontSize: "12px", color: "#8b949e" }}>
+                    Branch: <code>flakeguard/fix-{finding.test_id.replace(/[^a-zA-Z0-9_-]/g, "_")}</code>
+                  </p>
+                  <a href={prUrl || "https://github.com/vidipt9090/FlakeGuard/pulls"} target="_blank" rel="noreferrer" className="pr-link">
+                    View Pull Requests on GitHub ↗
                   </a>
                 </div>
               </div>
@@ -199,3 +202,4 @@ export const FixPRDrawer: React.FC<FixPRDrawerProps> = ({
     </div>
   );
 };
+

@@ -95,7 +95,7 @@ export const api = {
   getRun: (id: string) =>
     get<RunItem>(`/api/runs/${encodeURIComponent(id)}`),
   scan: (body: { repo: string; shuffled_n?: number; use_docker?: boolean; remote?: boolean; confirmed?: boolean }) =>
-    post<{ status: string; run_id?: string; target?: string }>("/api/scan", body),
+    post<{ status: string; run_id?: string; target?: string; fallback_banner?: string; mode?: string }>("/api/scan", body),
   status: () =>
     get<{
       running: boolean;

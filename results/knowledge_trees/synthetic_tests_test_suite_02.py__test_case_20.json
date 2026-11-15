@@ -220,16 +220,16 @@
         "smell": 2
       },
       "ms_by_phase": {
-        "locate": 0.205,
+        "locate": 0.328,
         "ast_walk": 0.0,
-        "jedi_goto": 26.7,
-        "jedi_infer": 0.823,
-        "expand": 532.735,
-        "fixture": 0.002,
+        "jedi_goto": 35.668,
+        "jedi_infer": 0.815,
+        "expand": 440.031,
+        "fixture": 0.001,
         "shared_state": 0.0,
         "smell": 0.0
       },
-      "total_ms": 301.186
+      "total_ms": 263.975
     },
     "by_depth": {
       "0": 12,
@@ -251,7 +251,7 @@
         "weight": 0.0,
         "results": 15,
         "kept": 0,
-        "duration_ms": 0.205,
+        "duration_ms": 0.328,
         "ok": true,
         "produced": []
       },
@@ -467,7 +467,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 4.571,
+        "duration_ms": 4.721,
         "ok": true,
         "produced": []
       },
@@ -485,7 +485,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 1,
-        "duration_ms": 3.827,
+        "duration_ms": 16.235,
         "ok": true,
         "produced": [
           "synthetic/src/shop.py:86"
@@ -505,7 +505,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 17.003,
+        "duration_ms": 13.678,
         "ok": true,
         "produced": []
       },
@@ -523,7 +523,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 1.011,
+        "duration_ms": 0.821,
         "ok": true,
         "produced": []
       },
@@ -541,7 +541,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 0.288,
+        "duration_ms": 0.213,
         "ok": true,
         "produced": []
       },
@@ -559,7 +559,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 0.521,
+        "duration_ms": 0.636,
         "ok": true,
         "produced": []
       },
@@ -577,7 +577,7 @@
         "weight": 1.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 0.302,
+        "duration_ms": 0.179,
         "ok": true,
         "produced": []
       },
@@ -613,7 +613,7 @@
         "weight": 0.45,
         "results": 1,
         "kept": 0,
-        "duration_ms": 265.05,
+        "duration_ms": 219.393,
         "ok": true,
         "produced": []
       },
@@ -631,7 +631,7 @@
         "weight": 0.0,
         "results": 1,
         "kept": 0,
-        "duration_ms": 267.685,
+        "duration_ms": 220.638,
         "ok": true,
         "produced": []
       },
@@ -649,7 +649,7 @@
         "weight": 0.0,
         "results": 0,
         "kept": 0,
-        "duration_ms": 0.002,
+        "duration_ms": 0.001,
         "ok": true,
         "produced": []
       },
