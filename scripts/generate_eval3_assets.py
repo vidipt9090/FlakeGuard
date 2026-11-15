@@ -88,7 +88,7 @@ def generate_baseline_comparison() -> list[dict[str, Any]]:
             "false_quarantine_rate": 0.0,
             "root_cause_acc": 0.742,
             "citation": "Supervised Feature RF",
-            "command": "python -m flakeguard.baselines.b3_classifier",
+            "command": "python -m flakeguard.baselines.b3_feature_classifier",
             "git_sha": GIT_SHA,
             "timestamp": NOW_ISO,
             "data_label": "planted",
@@ -216,7 +216,7 @@ def generate_calibration_data() -> list[dict[str, Any]]:
         {"bin": "0.9 - 1.0", "confidence": 0.96, "accuracy": 0.98, "count": 12, "bin_error": 0.02},
     ]
     for b in bins:
-        b["command"] = "python -m flakeguard.llm.calibrate"
+        b["command"] = "python -m flakeguard.llm.calibration"
         b["git_sha"] = GIT_SHA
         b["timestamp"] = NOW_ISO
         b["data_label"] = "planted"
