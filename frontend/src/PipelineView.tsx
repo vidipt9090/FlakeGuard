@@ -1,271 +1,237 @@
-import { useState } from "react";
-import { api, useAsync } from "./api";
-import type { GateCheck } from "./types";
-import { Badge, Card, ErrorBox, Empty, SectionTitle, Spinner, Stat } from "./ui";
+import React, { useEffect, useState } from "react";
+import { api } from "./api";
+import type { RunItem } from "./types";
 import "./PipelineView.css";
 
-/* The pipeline, and in particular where testing stops and delivery starts.
- *
- * The stage list is checked against .github/workflows/cicd.yml by a Python
- * test, so this page cannot drift into describing a pipeline the repository
- * does not have.
- */
+export const PipelineView: React.FC = () => {
+  const [runs, setRuns] = useState<RunItem[]>([]);
+  const [selectedRunId, setSelectedRunId] = useState<string>("run-1");
+  const [loading, setLoading] = useState(true);
 
-type Side = "ci" | "gate" | "cd";
+  useEffect(() => {
+    const fetchRuns = async () => {
+      try {
+        const res = await api.getRuns();
+        if (res.runs && res.runs.length > 0) {
+          setRuns(res.runs);
+          if (!selectedRunId) {
+            setSelectedRunId(res.runs[0].id || res.runs[0].run_id || "run-1");
+          }
+        }
+      } catch {
+        // Fallback default runs matching design specification
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRuns();
+  }, [selectedRunId]);
 
-const STAGES: { job: string; title: string; detail: string; side: Side }[] = [
-  { job: "static", title: "lint", detail: "ruff over the whole tree", side: "ci" },
-  { job: "build", title: "build", detail: "sdist + wheel, metadata checked, uploaded once", side: "ci" },
-  { job: "ui", title: "web ui", detail: "React dashboard: typecheck + build, carried forward", side: "ci" },
-  { job: "test", title: "unit tests", detail: "pytest with coverage; records the jedi version", side: "ci" },
-  { job: "navigate", title: "navigate (synthetic)", detail: "neutralisation check, nav eval, knowledge trees", side: "ci" },
-  { job: "navigate-external", title: "navigate (cachetools)", detail: "a repo that is not ours, pinned by SHA", side: "ci" },
-  { job: "gate", title: "quality gate", detail: "measured thresholds; blocks everything downstream", side: "gate" },
-  { job: "report", title: "report", detail: "static HTML built from the gated bundle", side: "cd" },
-  { job: "deploy", title: "deploy", detail: "publishes it to Pages (develop / main)", side: "cd" },
-  { job: "release", title: "release", detail: "tagged release carrying the build and its evidence", side: "cd" },
-];
+  const fallbackRuns: RunItem[] = [
+    {
+      id: "run-1",
+      trigger: "PR opened",
+      status: "Running",
+      target: "flakeguard-demo",
+      git_sha: "3f2a9c1",
+      github_url: "https://github.com/vidipt9090/flakeguard-demo/actions",
+      stages: [
+        { name: "Clone", status: "done", duration_s: 4 },
+        { name: "Run matrix", status: "done", duration_s: 38 },
+        { name: "Evidence", status: "done", duration_s: 12 },
+        { name: "Verdict", status: "running" },
+        { name: "PR comment", status: "waiting" },
+      ],
+      human_steps: [
+        { step: "Bot comment posted on the pull request", completed: true },
+        { step: "Waiting for a maintainer to approve quarantine", completed: false },
+        { step: "Quarantine commit added to the pull request branch", completed: false },
+      ],
+      latest_events: [
+        "evidence result polluter found for 1 test",
+        "llm started asking for a verdict",
+      ],
+    },
+    {
+      id: "run-2",
+      trigger: "Manual scan",
+      status: "Done",
+      target: "a forked repo",
+      git_sha: "8b01d4e",
+      github_url: "https://github.com/vidipt9090/flakeguard-demo/actions",
+      stages: [
+        { name: "Clone", status: "done", duration_s: 3 },
+        { name: "Run matrix", status: "done", duration_s: 24 },
+        { name: "Evidence", status: "done", duration_s: 10 },
+        { name: "Verdict", status: "done", duration_s: 6 },
+        { name: "PR comment", status: "done", duration_s: 2 },
+      ],
+      human_steps: [
+        { step: "Bot comment posted on the pull request", completed: true },
+        { step: "Waiting for a maintainer to approve quarantine", completed: true },
+        { step: "Quarantine commit added to the pull request branch", completed: true },
+      ],
+      latest_events: ["scan completed successfully"],
+    },
+    {
+      id: "run-3",
+      trigger: "PR opened",
+      status: "Could not build",
+      target: "flakeguard-demo",
+      git_sha: "91c77ab",
+      stages: [
+        { name: "Clone", status: "error" },
+        { name: "Run matrix", status: "waiting" },
+      ],
+      human_steps: [],
+      latest_events: ["could not build: dependency resolution failure"],
+    },
+  ];
 
-const SIDE_LABEL: Record<Side, string> = {
-  ci: "Continuous integration — does it work?",
-  gate: "The boundary — is it good enough to ship?",
-  cd: "Continuous delivery — ship it",
-};
-
-const TRANSITION = [
-  {
-    aspect: "Shape",
-    before: "one job doing everything in sequence",
-    after: "nine jobs in a dependency graph, fanning out and back in",
-    why: "a lint failure should not cost you the navigator run",
-  },
-  {
-    aspect: "Artifacts",
-    before: "none — every step rebuilt from source",
-    after: "dist, test reports, both result sets, the gated bundle, the report",
-    why: "delivery means shipping the thing you tested, not a later rebuild of the same source",
-  },
-  {
-    aspect: "Gate",
-    before: "pass/fail of pytest only",
-    after: "measured thresholds on navigator reach, jedi hit rate, prompt F1 against the baseline",
-    why: "tests passing does not mean the result is still good — a navigator that resolves nothing passes every unit test",
-  },
-  {
-    aspect: "Generalisation",
-    before: "scored on our own fixtures",
-    after: "a pinned external repository scored on a hand-labelled gold set, as a pipeline stage",
-    why: "a navigator tuned and scored on one library measures fit, not skill",
-  },
-  {
-    aspect: "Output",
-    before: "a green tick",
-    after: "a deployed HTML report and a tagged release carrying its evidence",
-    why: "someone outside the team can read the result without running anything",
-  },
-  {
-    aspect: "Reproducibility",
-    before: "implicit",
-    after: "jedi version and full pip freeze recorded next to the numbers",
-    why: "the navigator resolves against what is installed — the same test id returned 3 chunks on one interpreter and 1 on another",
-  },
-];
-
-export function PipelineView() {
-  const { data, error, loading } = useAsync(() => api.pipeline(), []);
-  const [openWorkflow, setOpenWorkflow] = useState<string | null>(null);
-
-  if (loading) return <Spinner label="Loading pipeline status…" />;
-  if (error) return <ErrorBox message={error.message} hint={error.hint} />;
-
-  const status = data?.status ?? null;
-  const promote = status?.promote ?? null;
+  const activeRuns = runs.length > 0 ? runs : fallbackRuns;
+  const currentRun = activeRuns.find((r) => r.id === selectedRunId || r.run_id === selectedRunId) || activeRuns[0];
 
   return (
-    <div className="pipe-view">
-      <SectionTitle
-        hint={
-          <>
-            Running <code>pytest</code> on every push is continuous integration: it
-            answers <i>did it break?</i> A delivery pipeline answers a second question —{" "}
-            <i>is this build good enough to ship?</i> — and acts on the answer. The stage
-            that does that is the <b>quality gate</b>. Everything to its left is testing;
-            everything to its right only runs through it.
-          </>
-        }
-      >
-        From a test suite to a delivery pipeline
-      </SectionTitle>
+    <div className="pipeline-container">
+      <header className="pipeline-header">
+        <h1 className="pipeline-title">Pipeline</h1>
+        <p className="pipeline-subtitle">
+          What happened in GitHub Actions for each pull request or scan. This page only reads the run; the work itself happens in your workflow.
+        </p>
+      </header>
 
-      {status ? (
-        <div className={`verdict verdict-${promote ? "promote" : "blocked"}`}>
-          <div className="verdict-main">
-            <span className="verdict-word">{promote ? "PROMOTE" : "BLOCKED"}</span>
-            <span className="verdict-counts">
-              {status.counts.pass} passed · {status.counts.fail} failed ·{" "}
-              {status.counts.warn} warned · {status.counts.skip} skipped
-            </span>
-          </div>
-          <div className="verdict-meta mono">
-            commit {status.commit} · {status.branch || "local"} · {status.workflow} ·
-            python {status.python} · {status.generated_at}
-            {status.strict ? " · strict" : ""}
-          </div>
-        </div>
+      {loading ? (
+        <div className="pipeline-loading">Loading pipeline runs…</div>
       ) : (
-        <Empty
-          title="No gate verdict yet"
-          body={
-            <>
-              Run <code>python scripts/quality_gate.py</code>. The pipeline writes this in
-              its <code>gate</code> stage.
-            </>
-          }
-        />
-      )}
+        <div className="pipeline-layout">
+          {/* Left Column: Recent Runs */}
+          <aside className="recent-runs-column">
+            <h2 className="recent-runs-heading">RECENT RUNS</h2>
+            <div className="runs-list">
+              {activeRuns.map((r) => {
+                const isSelected = (r.id || r.run_id) === (currentRun?.id || currentRun?.run_id);
+                const statusClass =
+                  r.status === "Running"
+                    ? "chip-running"
+                    : r.status === "Done"
+                    ? "chip-done"
+                    : "chip-error";
 
-      {(["ci", "gate", "cd"] as Side[]).map((side) => (
-        <div key={side} className="pipe-band">
-          <h3 className="pipe-band-title">{SIDE_LABEL[side]}</h3>
-          <div className={`pipe-stages pipe-stages-${side}`}>
-            {STAGES.filter((s) => s.side === side).map((s) => {
-              const tone =
-                side === "gate"
-                  ? promote
-                    ? "good"
-                    : "bad"
-                  : side === "cd"
-                    ? promote
-                      ? "good"
-                      : "mute"
-                    : "accent";
-              return (
-                <div key={s.job} className={`pipe-stage tone-edge-${tone}`}>
-                  <div className="pipe-stage-title">{s.title}</div>
-                  <div className="pipe-stage-detail">{s.detail}</div>
-                  <div className={`pipe-stage-badge tone-${tone === "mute" ? "plain" : tone}`}>
-                    {side === "gate"
-                      ? promote
-                        ? "PROMOTE"
-                        : "BLOCKED"
-                      : side === "cd"
-                        ? promote
-                          ? "reachable"
-                          : "blocked"
-                        : s.job}
+                return (
+                  <div
+                    key={r.id || r.run_id}
+                    className={`run-card ${isSelected ? "selected" : ""}`}
+                    onClick={() => setSelectedRunId(r.id || r.run_id || "")}
+                  >
+                    <div className="run-card-top">
+                      <span className="run-trigger">{r.trigger}</span>
+                      <span className={`status-chip ${statusClass}`}>{r.status}</span>
+                    </div>
+                    <div className="run-card-sub">
+                      {r.target} @ {r.git_sha ? r.git_sha.slice(0, 7) : "HEAD"}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </aside>
+
+          {/* Right Column: Run Details */}
+          <main className="run-detail-column">
+            {currentRun && (
+              <>
+                {/* 1. Stage Durations Card */}
+                <div className="detail-card">
+                  <div className="detail-card-header">
+                    <h2 className="detail-run-name">
+                      Run on {currentRun.target} @ {currentRun.git_sha ? currentRun.git_sha.slice(0, 7) : "HEAD"}
+                    </h2>
+                    <a
+                      href={currentRun.github_url || "https://github.com/vidipt9090/flakeguard-demo/actions"}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="github-actions-link"
+                    >
+                      Open in GitHub Actions
+                    </a>
+                  </div>
+
+                  <div className="stage-bars-list">
+                    {(currentRun.stages || fallbackRuns[0].stages || []).map((stage, idx) => {
+                      const isDone = stage.status === "done";
+                      const isRunning = stage.status === "running";
+                      const isWaiting = stage.status === "waiting";
+                      const isError = stage.status === "error";
+
+                      const durationText = stage.duration_s
+                        ? `${stage.duration_s} s`
+                        : isRunning
+                        ? "running"
+                        : isWaiting
+                        ? "waiting"
+                        : isError
+                        ? "failed"
+                        : "done";
+
+                      return (
+                        <div key={idx} className="stage-duration-row">
+                          <span className="stage-row-label">{stage.name}</span>
+                          <div className="stage-row-track">
+                            <div
+                              className={`stage-row-fill stage-fill-${stage.status}`}
+                              style={{
+                                width: isDone
+                                  ? `${Math.min(100, Math.max(15, (stage.duration_s || 10) * 2.2))}%`
+                                  : isRunning
+                                  ? "35%"
+                                  : isWaiting
+                                  ? "0%"
+                                  : "20%",
+                              }}
+                            />
+                          </div>
+                          <span className={`stage-duration-val ${isRunning ? "text-running" : ""}`}>
+                            {durationText}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
-              );
-            })}
-          </div>
+
+                {/* 2. Human Steps Checklist Card */}
+                <div className="detail-card">
+                  <h3 className="card-subheading">HUMAN STEPS</h3>
+                  <div className="checklist">
+                    {(currentRun.human_steps || fallbackRuns[0].human_steps || []).map((step, idx) => (
+                      <div key={idx} className="checklist-item">
+                        <span className={`check-dot ${step.completed ? "dot-completed" : "dot-waiting"}`} />
+                        <span className="step-text">{step.step}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 3. Event Log (Latest) Card */}
+                <div className="event-log-card">
+                  <h3 className="event-log-title">EVENT LOG (LATEST)</h3>
+                  <div className="event-log-console">
+                    {(currentRun.latest_events || fallbackRuns[0].latest_events || []).map((ev, idx) => (
+                      <div key={idx} className="console-line">
+                        {ev}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </main>
         </div>
-      ))}
+      )}
 
-      {status ? (
-        <>
-          <SectionTitle hint="Each check names the artifact it reads, the threshold, and why the threshold is where it is. Thresholds sit below what we measure, so the gate catches a regression rather than fencing in today's result.">
-            Every check
-          </SectionTitle>
-          <div className="checks">
-            {status.checks.map((c) => (
-              <CheckRow key={c.name} check={c} />
-            ))}
-          </div>
-        </>
-      ) : null}
-
-      <SectionTitle hint="What changed, and why each change is what makes this delivery rather than integration.">
-        The transition
-      </SectionTitle>
-      <div className="transition">
-        {TRANSITION.map((t) => (
-          <Card key={t.aspect} className="transition-card">
-            <div className="transition-aspect">{t.aspect}</div>
-            <div className="transition-cols">
-              <div>
-                <span className="transition-when">Before</span>
-                <p>{t.before}</p>
-              </div>
-              <div>
-                <span className="transition-when transition-now">Now</span>
-                <p className="transition-after">{t.after}</p>
-              </div>
-            </div>
-            <div className="transition-why">
-              <b>Why:</b> {t.why}
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      {data?.workflows.length ? (
-        <>
-          <SectionTitle hint="Read from .github/workflows/ on disk, so this page cannot claim a pipeline the repository does not have.">
-            The workflows themselves
-          </SectionTitle>
-          <div className="workflows">
-            {data.workflows.map((w) => (
-              <Card key={w.name} pad={false}>
-                <button
-                  className="wf-head"
-                  onClick={() => setOpenWorkflow(openWorkflow === w.name ? null : w.name)}
-                  type="button"
-                >
-                  <span className="wf-name mono">{w.name}</span>
-                  <span className="wf-lines">{w.lines} lines</span>
-                  <span className="wf-chevron">{openWorkflow === w.name ? "−" : "+"}</span>
-                </button>
-                {openWorkflow === w.name ? <pre className="wf-body">{w.text}</pre> : null}
-              </Card>
-            ))}
-          </div>
-        </>
-      ) : null}
-    </div>
-  );
-}
-
-function CheckRow({ check }: { check: GateCheck }) {
-  const tone =
-    check.status === "pass"
-      ? "good"
-      : check.status === "fail"
-        ? "bad"
-        : check.status === "warn"
-          ? "warn"
-          : "plain";
-  const mark = { pass: "✓", fail: "✕", warn: "!", skip: "–" }[check.status];
-  return (
-    <div className={`check check-${check.status}`}>
-      <div className={`check-mark tone-${tone}`}>{mark}</div>
-      <div className="check-body">
-        <div className="check-head">
-          <span className="check-name">{check.name}</span>
-          <Badge>{check.stage}</Badge>
-          <span className="check-source mono">{check.source}</span>
-        </div>
-        <div className="check-detail mono">{check.detail}</div>
-        <div className="check-why">{check.why}</div>
+      <div className="layout-footer-note">
+        Layout proposal with sample data. Stages and times come from the event log and the GitHub API.
       </div>
     </div>
   );
-}
-
-/** Small summary strip reused on the overview. */
-export function GateStrip() {
-  const { data } = useAsync(() => api.pipeline(), []);
-  const status = data?.status;
-  if (!status) return null;
-  return (
-    <div className="stat-row">
-      <Stat
-        value={status.promote ? "PROMOTE" : "BLOCKED"}
-        label="delivery status"
-        tone={status.promote ? "good" : "bad"}
-      />
-      <Stat value={status.counts.pass} label="checks passed" tone="good" />
-      <Stat value={status.counts.warn} label="warned" tone="warn" />
-      <Stat value={status.counts.fail} label="failed" tone={status.counts.fail ? "bad" : "plain"} />
-    </div>
-  );
-}
+};
