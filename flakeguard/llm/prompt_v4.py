@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from flakeguard.contracts import EvidenceReport
 from flakeguard.stats.bayesian import BayesianFailureRate
@@ -48,6 +49,18 @@ def format_navigator_context(
     return "\n".join(lines)
 
 
+def format_retrieved_code_chunks(chunks: list[dict[str, Any]] | None = None) -> str:
+    """Format AST chunks supplied by LangChain retrieval ('Code the model read')."""
+    if not chunks:
+        return "No additional AST chunks retrieved."
+    lines = ["Retrieved Code Chunks:"]
+    for c in chunks:
+        citation = c.get("citation") or f"{c.get('file', 'unknown')}:{c.get('line_start', '?')}"
+        lines.append(f"### [{citation}] {c.get('name', 'symbol')} ({c.get('kind', 'code')})")
+        lines.append(f"```python\n{c.get('content', '').strip()}\n```")
+    return "\n".join(lines)
+
+
 def format_evidence_tier_context(report: EvidenceReport | None = None) -> str:
     """Format empirical evidence tier and causal diagnostics."""
     if report is None:
@@ -79,6 +92,7 @@ def build_prompt_v4(
     code_under_test: list[str] | None = None,
     shared_state: list[str] | None = None,
     smells: list[str] | None = None,
+    retrieved_chunks: list[dict[str, Any]] | None = None,
 ) -> str:
     """Construct full Prompt v4 string."""
     template = PROMPT_V4_PATH.read_text(encoding="utf-8")
@@ -86,12 +100,14 @@ def build_prompt_v4(
     stats_str = format_bayesian_stats(b_rate)
     nav_str = format_navigator_context(code_under_test, shared_state, smells)
     evidence_str = format_evidence_tier_context(evidence_report)
+    retrieved_str = format_retrieved_code_chunks(retrieved_chunks)
 
     prompt = (
         template.replace("{bayesian_stats}", stats_str)
         .replace("{log_excerpt}", log_excerpt.strip() or "(None - test passed)")
         .replace("{test_body}", test_body.strip() or f"# Test {test_id}")
         .replace("{navigator_context}", nav_str)
+        .replace("{retrieved_chunks}", retrieved_str)
         .replace("{evidence_tier_context}", evidence_str)
     )
     return prompt

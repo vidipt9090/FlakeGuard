@@ -80,6 +80,9 @@ Output:
 --- AST NAVIGATOR CONTEXT ---
 {navigator_context}
 
+--- CODE THE MODEL READ (AST RETRIEVAL) ---
+{retrieved_chunks}
+
 --- CAUSAL EVIDENCE & TIER ---
 {evidence_tier_context}
 
