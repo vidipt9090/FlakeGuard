@@ -146,15 +146,29 @@ def resolve(spec: str, refresh: bool = False) -> Resolved:
         raise RepoError("No repository given.")
 
     if not looks_like_url(spec):
-        path = Path(spec)
-        if not path.is_absolute():
-            path = (REPO_ROOT / path).resolve()
-        if not path.is_dir():
+        # Check if shorthand owner/repo e.g. vidipt9090/flakeguard-demo
+        parts = spec.split("/")
+        repo_name_only = parts[-1]
+
+        # Check local paths
+        candidates = [
+            Path(spec) if Path(spec).is_absolute() else (REPO_ROOT / spec).resolve(),
+            (REPO_ROOT.parent / spec).resolve(),
+            (REPO_ROOT.parent / repo_name_only).resolve(),
+            (Path.cwd() / spec).resolve(),
+        ]
+        for cand in candidates:
+            if cand.is_dir():
+                return Resolved(path=cand, kind="local", name=cand.name)
+
+        if len(parts) == 2 and not any(p in spec for p in ("\\", ":")):
+            spec = f"https://github.com/{spec}.git"
+        else:
+            path = candidates[0]
             raise RepoError(
                 f"{path} is not a directory on this machine.",
                 "Give a local path, or paste a repository URL to clone it.",
             )
-        return Resolved(path=path, kind="local", name=path.name)
 
     subdir, name = slug_for(spec)
     target = CACHE / subdir
