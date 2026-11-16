@@ -227,6 +227,10 @@ def _parse_run_events(event_path: Path) -> dict[str, Any]:
         findings = real_findings
         is_demo_run = False
         data_source = "live scan"
+        for f in findings:
+            if not f.get("where_it_lives") and not f.get("polluter_file") and not f.get("polluter_test_id"):
+                tid = f.get("test_id", "")
+                f["where_it_lives"] = f"{tid.split('::')[0]}:1" if "::" in tid else f"{tid}.py:1"
     else:
         # Fallback to seeded demo findings when no real scan artifacts exist
         is_demo_run = True
@@ -429,6 +433,7 @@ async def list_runs(request: Request) -> Response:
                         "evidence_tier": "confirmed by intervention",
                         "has_fix": True,
                         "can_quarantine": True,
+                        "where_it_lives": "orders.py:12",
                     },
                     {
                         "test_id": "test_background_job_finishes",
@@ -442,6 +447,7 @@ async def list_runs(request: Request) -> Response:
                         "evidence_tier": "reproduced",
                         "has_fix": False,
                         "can_quarantine": True,
+                        "where_it_lives": "reports.py:45",
                     },
                     {
                         "test_id": "test_total_rounds_correctly",

@@ -202,6 +202,8 @@ def _export_scan_artifacts(
             else f"Consistently fails across all {stats.get('total', 0)} perturbation runs. Real defect."
         )
 
+        where_it_lives = stats.get("where_it_lives") or (f"{tid.split('::')[0]}:1" if "::" in tid else f"{tid}.py:1")
+
         findings.append({
             "id": f"finding-{len(findings) + 1}",
             "test_id": tid,
@@ -211,6 +213,7 @@ def _export_scan_artifacts(
             "evidence_tier": tier,
             "can_quarantine": is_flaky,
             "has_fix": is_flaky and ("Order" in root_cause or "State" in root_cause),
+            "where_it_lives": where_it_lives,
             "fail_rate": stats.get("failure_rate", 0.0),
             "total_runs": stats.get("total", 0),
             "pass_runs": stats.get("pass", 0),
