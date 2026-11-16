@@ -270,6 +270,7 @@ def _parse_run_events(event_path: Path) -> dict[str, Any]:
             "observed": "Fails intermittently under high system load.",
             "reproduced": "Adding delay (+50ms) to worker barrier flipped outcome to pass.",
             "confirmed_by_intervention": "Confirmed timing race via controlled thread sleep intervention.",
+            "where_it_lives": "reports.py:45",
             "how_we_know": [
                 {"step": 1, "label": "Observed", "detail": "Fails intermittently under high system load."},
                 {"step": 2, "label": "Reproduced", "detail": "Adding delay (+50ms) to worker barrier flipped outcome to pass."},

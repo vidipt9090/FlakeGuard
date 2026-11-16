@@ -57,9 +57,9 @@ The caller repo workflow must have permissions to post PR triage comments and up
            default: 3
            type: number
          flakeguard_ref:
-           description: "FlakeGuard branch or tag to invoke (default: main)"
-           required: false
-           default: "main"
+           description: "FlakeGuard branch or ref to invoke (use 'develop' until develop->main is merged)"
+           required: true
+           default: "develop"
            type: string
 
    concurrency:
@@ -69,11 +69,11 @@ The caller repo workflow must have permissions to post PR triage comments and up
    jobs:
      call-flakeguard-scan:
        name: Run FlakeGuard Reusable Scan
-       uses: vidipt9090/FlakeGuard/.github/workflows/scan.yml@main
+       uses: vidipt9090/FlakeGuard/.github/workflows/scan.yml@develop
        with:
          repo_url: ${{ github.repository }}
          n_runs: ${{ inputs.n_runs || 3 }}
-         flakeguard_ref: ${{ inputs.flakeguard_ref || 'main' }}
+         flakeguard_ref: ${{ inputs.flakeguard_ref || 'develop' }}
        secrets: inherit
    ```
 3. Commit and push.

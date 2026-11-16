@@ -58,10 +58,23 @@ jobs:
               except Exception:
                   pass
 
+          n_runs = 3
+          events_path = 'out/events.jsonl'
+          if os.path.exists(events_path):
+              try:
+                  with open(events_path, 'r', encoding='utf-8') as ef:
+                      for line in ef:
+                          if '\"total_slices\"' in line:
+                              d = json.loads(line)
+                              n_runs = d.get('data', {}).get('total_slices', n_runs)
+                              break
+              except Exception:
+                  pass
+
           if not flaky_found:
-              msg = '### 🛡️ FlakeGuard Post-Merge Verification\n\n✅ **No evidence of flakiness in 3 runs after this change**'
+              msg = f'### 🛡️ FlakeGuard Post-Merge Verification\n\n✅ **No evidence of flakiness in {n_runs} runs after this change**'
           else:
-              msg = '### 🛡️ FlakeGuard Post-Merge Verification\n\n⚠️ Flakiness detected after merge in 3 runs.'
+              msg = f'### 🛡️ FlakeGuard Post-Merge Verification\n\n⚠️ Flakiness detected after merge in {n_runs} runs.'
 
           print(msg)
           event_path = os.environ.get('GITHUB_EVENT_PATH')

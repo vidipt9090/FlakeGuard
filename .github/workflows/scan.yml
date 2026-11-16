@@ -81,6 +81,7 @@ jobs:
           repository: ${{ steps.target-meta.outputs.slug }}
           path: target_repo
           fetch-depth: 50
+          persist-credentials: false
 
       - name: Checkout FlakeGuard framework
         uses: actions/checkout@v4
