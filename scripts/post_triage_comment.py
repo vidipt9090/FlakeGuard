@@ -69,7 +69,7 @@ def build_comment_body(
     ])
 
     if not failures:
-        lines.append("- _No test failures detected._")
+        lines.append("✅ **No evidence of flakiness in N runs after this change**")
         return "\n".join(lines)
 
     lines.append("| Test ID | Verdict | Root Cause | Tier | Confidence | Action |")

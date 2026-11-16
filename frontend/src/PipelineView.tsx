@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { api } from "./api";
 import type { RunItem } from "./types";
+import { getActionsUrl } from "./utils";
 import "./PipelineView.css";
 
 export const PipelineView: React.FC = () => {
@@ -13,9 +14,13 @@ export const PipelineView: React.FC = () => {
       try {
         const res = await api.getRuns();
         if (res.runs && res.runs.length > 0) {
-          setRuns(res.runs);
-          if (!selectedRunId) {
-            setSelectedRunId(res.runs[0].id || res.runs[0].run_id || "run-1");
+          const mappedRuns = res.runs.map((r: RunItem) => ({
+            ...r,
+            github_url: getActionsUrl(r.target || (r as any).repo),
+          }));
+          setRuns(mappedRuns);
+          if (mappedRuns[0]) {
+            setSelectedRunId(mappedRuns[0].id || mappedRuns[0].run_id || "run-1");
           }
         }
       } catch {
@@ -25,16 +30,16 @@ export const PipelineView: React.FC = () => {
       }
     };
     fetchRuns();
-  }, [selectedRunId]);
+  }, []);
 
   const fallbackRuns: RunItem[] = [
     {
       id: "run-1",
       trigger: "PR opened",
       status: "Running",
-      target: "vidipt9090/flakeguard-demo",
+      target: "vidipt9090/FlakeGuard",
       git_sha: "ca79ba6",
-      github_url: "https://github.com/vidipt9090/flakeguard-demo/actions",
+      github_url: "https://github.com/vidipt9090/FlakeGuard/actions",
       stages: [
         { name: "Clone", status: "done", duration_s: 4 },
         { name: "Run matrix", status: "done", duration_s: 38 },
@@ -59,7 +64,7 @@ export const PipelineView: React.FC = () => {
       status: "Done",
       target: "cachetools",
       git_sha: "8b01d4e",
-      github_url: "https://github.com/vidipt9090/flakeguard-demo/actions",
+      github_url: "https://github.com/tkem/cachetools/actions",
       stages: [
         { name: "Clone", status: "done", duration_s: 3 },
         { name: "Run matrix", status: "done", duration_s: 14 },
@@ -160,7 +165,7 @@ export const PipelineView: React.FC = () => {
                       </div>
                     </div>
                     <a
-                      href={currentRun.github_url || "https://github.com/vidipt9090/flakeguard-demo/actions"}
+                      href={getActionsUrl(currentRun.target || currentRun.github_url)}
                       target="_blank"
                       rel="noreferrer"
                       className="github-actions-link"
