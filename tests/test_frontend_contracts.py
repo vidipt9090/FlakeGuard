@@ -123,3 +123,11 @@ def test_tree_view_contract_post_scan():
             f"Flaky finding {ff['test_id']} missing polluter/where_it_lives link for tree drawer"
         )
 
+
+def test_tree_view_contract_with_empty_events_dir(tmp_path, monkeypatch):
+    """Verify tree contract holds in clean CI when no prior event logs exist."""
+    from flakeguard.app import api
+    monkeypatch.setattr(api, "DATA_EVENTS_DIR", tmp_path / "empty_events")
+    test_tree_view_contract_post_scan()
+
+
