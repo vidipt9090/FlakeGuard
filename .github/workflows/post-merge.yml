@@ -38,60 +38,14 @@ jobs:
 
       - name: Run verification scan
         id: scan
+        continue-on-error: true
         run: |
           mkdir -p out
-          flakeguard scan . --shuffled-n 3 --output-artifacts out || true
+          flakeguard scan . --shuffled-n 3 --output-artifacts out
 
       - name: Report post-merge honest verdict
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SCAN_OUTCOME: ${{ steps.scan.outcome }}
         run: |
-          python -c "
-          import json, os, urllib.request
-
-          artifacts_path = 'out/findings.json'
-          flaky_found = False
-          if os.path.exists(artifacts_path):
-              try:
-                  findings = json.load(open(artifacts_path))
-                  flaky_found = any(f.get('verdict') == 'flaky' for f in findings)
-              except Exception:
-                  pass
-
-          n_runs = 3
-          events_path = 'out/events.jsonl'
-          if os.path.exists(events_path):
-              try:
-                  with open(events_path, 'r', encoding='utf-8') as ef:
-                      for line in ef:
-                          if '\"total_slices\"' in line:
-                              d = json.loads(line)
-                              n_runs = d.get('data', {}).get('total_slices', n_runs)
-                              break
-              except Exception:
-                  pass
-
-          if not flaky_found:
-              msg = f'### 🛡️ FlakeGuard Post-Merge Verification\n\n✅ **No evidence of flakiness in {n_runs} runs after this change**'
-          else:
-              msg = f'### 🛡️ FlakeGuard Post-Merge Verification\n\n⚠️ Flakiness detected after merge in {n_runs} runs.'
-
-          print(msg)
-          event_path = os.environ.get('GITHUB_EVENT_PATH')
-          if event_path and os.path.exists(event_path):
-              event = json.load(open(event_path))
-              pr = event.get('pull_request')
-              if pr and pr.get('comments_url'):
-                  token = os.environ.get('GITHUB_TOKEN')
-                  req = urllib.request.Request(
-                      pr['comments_url'],
-                      data=json.dumps({'body': msg}).encode('utf-8'),
-                      headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json', 'User-Agent': 'flakeguard-bot'},
-                      method='POST'
-                  )
-                  try:
-                      urllib.request.urlopen(req)
-                      print('Posted honest verdict to merged PR.')
-                  except Exception as e:
-                      print('Could not post comment:', e)
-          "
+          python scripts/report_post_merge.py out
