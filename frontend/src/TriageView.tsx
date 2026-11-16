@@ -342,6 +342,11 @@ export const TriageView: React.FC<TriageViewProps> = ({
             <span className="commit-tag">
               HEAD: <code>{currentRun?.git_sha?.substring(0, 7) || "ca79ba6"}</code>
             </span>
+            {((currentRun as any)?.is_demo || (currentRun as any)?.data_source === "demo data") && (
+              <span className="badge-demo-run" style={{ background: "rgba(245, 158, 11, 0.15)", color: "#f59e0b", border: "1px solid rgba(245, 158, 11, 0.3)", borderRadius: "4px", padding: "2px 8px", fontSize: "11px", fontWeight: 600, marginLeft: "8px" }}>
+                Demo data
+              </span>
+            )}
           </div>
           <div className="repo-header-actions">
             <a
@@ -464,6 +469,9 @@ export const TriageView: React.FC<TriageViewProps> = ({
                         {isFlaky ? "Flaky" : "Real bug"}
                       </span>
                       <span className="root-cause-tag">{finding.root_cause}</span>
+                      {((finding as any).is_demo || (finding as any).data_source === "demo data" || (finding.tags && finding.tags.includes("Demo data"))) && (
+                        <span className="badge-demo-chip" style={{ background: "rgba(245, 158, 11, 0.15)", color: "#f59e0b", border: "1px solid rgba(245, 158, 11, 0.3)", borderRadius: "4px", padding: "1px 6px", fontSize: "10px", fontWeight: 600 }}>Demo data</span>
+                      )}
                     </header>
 
                     <h3 className="card-test-id">{finding.test_id}</h3>
