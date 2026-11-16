@@ -1,0 +1,423 @@
+/* Knowledge Tree View styles for FlakeGuard AST+Jedi hierarchy */
+
+.knowledge-tree-view {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-1, #101017);
+  border: 1px solid var(--line, #24242f);
+  border-radius: 8px;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--text, #f0eee8);
+}
+
+.knowledge-tree-view.is-standalone {
+  min-height: 540px;
+  height: 100%;
+}
+
+.knowledge-tree-view.is-embedded {
+  margin-top: 12px;
+  border-color: var(--line-strong, #32323f);
+}
+
+/* Control bar */
+.tree-controls-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--surface-2, #16161f);
+  border-bottom: 1px solid var(--line, #24242f);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.controls-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+}
+
+.set-selector-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.control-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-3, #6e6a62);
+  font-weight: 600;
+}
+
+.set-select {
+  background: var(--surface-3, #1d1d28);
+  border: 1px solid var(--line, #24242f);
+  border-radius: 5px;
+  color: var(--text, #f0eee8);
+  font-size: 12px;
+  padding: 4px 8px;
+  outline: none;
+  cursor: pointer;
+}
+
+.set-select:focus {
+  border-color: var(--accent, #e0b64d);
+}
+
+/* Search input */
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 240px;
+  max-width: 380px;
+  flex: 1;
+}
+
+.search-icon {
+  position: absolute;
+  left: 9px;
+  font-size: 12px;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.tree-search-input {
+  width: 100%;
+  background: var(--surface-3, #1d1d28);
+  border: 1px solid var(--line, #24242f);
+  border-radius: 5px;
+  color: var(--text, #f0eee8);
+  font-size: 12px;
+  padding: 6px 26px 6px 28px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.tree-search-input:focus {
+  border-color: var(--accent, #e0b64d);
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 6px;
+  background: none;
+  border: none;
+  color: var(--text-3, #6e6a62);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.clear-search-btn:hover {
+  color: var(--text, #f0eee8);
+}
+
+/* Faults only toggle */
+.faults-only-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 12px;
+  color: var(--text-2, #a8a49a);
+}
+
+.faults-only-toggle input {
+  accent-color: var(--accent, #e0b64d);
+  cursor: pointer;
+}
+
+/* Next fault button */
+.btn-next-fault {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f59e0b;
+  border: 1px solid #d97706;
+  color: #111827;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(245, 158, 11, 0.3);
+}
+
+.btn-next-fault:hover:not(:disabled) {
+  background: #fbbf24;
+  border-color: #f59e0b;
+  color: #000000;
+  transform: translateY(-1px);
+}
+
+.btn-next-fault:disabled {
+  background: #262933;
+  border-color: #374151;
+  color: #6b7280;
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.7;
+}
+
+/* Tree Canvas */
+.tree-hierarchy-canvas {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 520px;
+  padding: 8px 0;
+  background: var(--surface-1, #101017);
+}
+
+.tree-node-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.tree-node-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 12.5px;
+  transition: background-color 0.12s ease;
+  border-left: 2px solid transparent;
+}
+
+.tree-node-row:hover {
+  background: var(--surface-hover, #22222e);
+}
+
+.tree-node-row.is-selected {
+  background: rgba(224, 182, 77, 0.14);
+  border-left-color: var(--accent, #e0b64d);
+}
+
+/* Highlight pulse for Next fault / Where it lives */
+.tree-node-wrapper.highlight-pulse > .tree-node-row,
+.tree-node-row.highlight-pulse {
+  animation: pulse-glow 1.5s ease infinite alternate;
+  background: rgba(224, 182, 77, 0.25) !important;
+  border-left-color: var(--accent, #e0b64d) !important;
+}
+
+@keyframes pulse-glow {
+  0% {
+    box-shadow: inset 0 0 4px rgba(224, 182, 77, 0.2);
+  }
+  100% {
+    box-shadow: inset 0 0 12px rgba(224, 182, 77, 0.6);
+  }
+}
+
+.tree-caret {
+  display: inline-block;
+  width: 14px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-3, #6e6a62);
+  transition: transform 0.15s ease;
+}
+
+.tree-caret.has-children {
+  cursor: pointer;
+}
+
+.tree-caret.leaf {
+  visibility: hidden;
+}
+
+.tree-node-icon {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.tree-node-label {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  color: var(--text, #f0eee8);
+  font-weight: 500;
+}
+
+.kind-test .tree-node-label {
+  font-weight: 600;
+}
+
+.status-flaky .tree-node-label {
+  color: #fbbf24;
+}
+
+.status-real .tree-node-label {
+  color: #f87171;
+}
+
+/* Edge tags */
+.edge-tag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: ui-monospace, monospace;
+}
+
+.edge-calls {
+  background: rgba(57, 135, 229, 0.18);
+  color: #60a5fa;
+  border: 1px solid rgba(57, 135, 229, 0.35);
+}
+
+.edge-touches {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.edge-smells {
+  background: rgba(239, 68, 68, 0.18);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.edge-fixture {
+  background: rgba(168, 85, 247, 0.15);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.35);
+}
+
+.edge-infer {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.via-tag {
+  font-size: 10px;
+  color: var(--text-3, #6e6a62);
+  background: var(--surface-3, #1d1d28);
+  padding: 0 4px;
+  border-radius: 2px;
+}
+
+.tree-node-loc {
+  font-size: 11px;
+  color: var(--text-3, #6e6a62);
+  margin-left: auto;
+}
+
+/* Roll-up fault badge */
+.fault-rollup-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+  margin-left: 8px;
+  letter-spacing: 0.02em;
+}
+
+.fault-rollup-badge.status-flaky {
+  background: rgba(245, 158, 11, 0.16);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.fault-rollup-badge.status-real {
+  background: rgba(239, 68, 68, 0.16);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+/* Test status pill */
+.test-status-pill {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+  margin-left: 6px;
+}
+
+.test-status-pill.status-flaky {
+  background: #f59e0b;
+  color: #111;
+}
+
+.test-status-pill.status-real {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* Loading & Empty states */
+.tree-loading-state,
+.tree-empty-state,
+.tree-error-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  font-size: 13px;
+  color: var(--text-2, #a8a49a);
+  gap: 10px;
+}
+
+.tree-error-state {
+  color: #f87171;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(224, 182, 77, 0.2);
+  border-top-color: var(--accent, #e0b64d);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Footer */
+.tree-stats-footer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 14px;
+  background: var(--surface-2, #16161f);
+  border-top: 1px solid var(--line, #24242f);
+  font-size: 11.5px;
+  color: var(--text-2, #a8a49a);
+}
+
+.footer-stat strong {
+  color: var(--text, #f0eee8);
+}
+
+.footer-stat.status-flaky strong {
+  color: #fbbf24;
+}
+
+.footer-stat.status-real strong {
+  color: #f87171;
+}
+
+.footer-hint {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-3, #6e6a62);
+  font-style: italic;
+}
+

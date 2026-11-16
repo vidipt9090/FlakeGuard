@@ -170,3 +170,33 @@ def test_server_api_tree(client: LocalClient) -> None:
         data = json.loads(resp.read().decode("utf-8"))
         assert "tree" in data
         assert "root" in data["tree"]
+
+
+def test_server_knowledge_tree_view_contract_post_scan(client: LocalClient) -> None:
+    """Fail if the AST+Jedi knowledge tree data is absent or empty after a scan."""
+    # 1. Fetch test cases with knowledge tree metadata
+    with client.get("/api/tests") as resp:
+        assert resp.status == 200
+        data = json.loads(resp.read().decode("utf-8"))
+        assert "tests" in data
+        tests = data["tests"]
+        assert len(tests) > 0, "No tests recorded; knowledge tree contract requires test cases"
+
+        # Flaky tests must have polluter / intervention information and tree references
+        flaky_tests = [t for t in tests if t.get("ground_truth") == "flaky"]
+        assert len(flaky_tests) > 0, "Knowledge tree contract requires flaky test cases"
+
+        tree_tests = [t for t in tests if t.get("has_knowledge_tree") and t.get("tree_filename")]
+        assert len(tree_tests) > 0, "Knowledge tree view contract failed: no tests have knowledge trees"
+
+    # 2. Check that at least one test's AST knowledge tree is non-empty
+    first_tree_file = tree_tests[0]["tree_filename"]
+    with client.get(f"/api/tree/{first_tree_file}") as tree_resp:
+        assert tree_resp.status == 200
+        tree_data = json.loads(tree_resp.read().decode("utf-8"))
+        assert "tree" in tree_data, f"Tree response missing 'tree' object in {first_tree_file}"
+        assert "root" in tree_data["tree"], f"Tree missing 'root' object in {first_tree_file}"
+        root = tree_data["tree"]["root"]
+        assert len(root.get("children", [])) > 0, f"Tree root has 0 AST children in {first_tree_file}"
+
+

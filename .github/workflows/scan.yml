@@ -3,16 +3,25 @@ name: FlakeGuard Scan (Reusable Workflow)
 on:
   workflow_call:
     inputs:
-      repo_path:
-        description: "Path to repository target"
-        required: false
-        default: "."
+      repo_url:
+        description: "Target repository to scan (owner/repo shorthand or full Git URL)"
+        required: true
         type: string
       n_runs:
         description: "Number of shuffled runs in perturbation matrix"
         required: false
         default: 3
         type: number
+      fork_owner:
+        description: "Optional fork owner username if running against a fork"
+        required: false
+        default: ""
+        type: string
+      flakeguard_ref:
+        description: "Branch or ref of FlakeGuard to checkout and execute"
+        required: false
+        default: "main"
+        type: string
     secrets:
       LLM_API_KEY:
         required: false
@@ -21,49 +30,105 @@ on:
       OPENAI_API_KEY:
         required: false
 
+  workflow_dispatch:
+    inputs:
+      repo_url:
+        description: "Target repository to scan (owner/repo shorthand or full Git URL)"
+        required: true
+        default: "tkem/cachetools"
+        type: string
+      n_runs:
+        description: "Number of shuffled runs in perturbation matrix"
+        required: false
+        default: 3
+        type: number
+      fork_owner:
+        description: "Optional fork owner username if running against a fork"
+        required: false
+        default: ""
+        type: string
+      flakeguard_ref:
+        description: "Branch or ref of FlakeGuard to checkout and execute"
+        required: false
+        default: "main"
+        type: string
+
+concurrency:
+  group: scan-${{ github.workflow }}-${{ inputs.repo_url }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
   pull-requests: write
+  issues: write
 
 jobs:
   flakeguard-scan:
     name: FlakeGuard Perturbation Scan & Triage
     runs-on: ubuntu-latest
     steps:
+      - name: Parse and resolve target repository
+        id: target-meta
+        run: |
+          RAW="${{ inputs.repo_url }}"
+          SLUG=$(echo "$RAW" | sed -E 's|https?://github.com/||' | sed 's|\.git$||')
+          echo "slug=$SLUG" >> "$GITHUB_OUTPUT"
+          echo "Target repo resolved to: $SLUG"
+
       - name: Checkout target repository
         uses: actions/checkout@v4
         with:
+          repository: ${{ steps.target-meta.outputs.slug }}
+          path: target_repo
           fetch-depth: 50
+
+      - name: Checkout FlakeGuard framework
+        uses: actions/checkout@v4
+        with:
+          repository: vidipt9090/FlakeGuard
+          ref: ${{ inputs.flakeguard_ref || 'main' }}
+          path: flakeguard_repo
+          fetch-depth: 1
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: "pip"
+          cache-dependency-path: flakeguard_repo/pyproject.toml
 
       - name: Install dependencies & FlakeGuard
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+          pip install -e "./flakeguard_repo[dev]"
+          cd target_repo
+          if [ -f requirements.txt ]; then pip install -r requirements.txt || true; fi
+          if [ -f pyproject.toml ]; then pip install -e . || pip install . || true; fi
+          if [ -f setup.py ]; then pip install -e . || pip install . || true; fi
+          pip install pytest pytest-json-report || true
 
       - name: Execute FlakeGuard Matrix Scan
+        id: run-scan
         run: |
-          flakeguard scan "${{ inputs.repo_path }}" --shuffled-n ${{ inputs.n_runs }}
+          mkdir -p scan_artifacts
+          flakeguard scan target_repo --shuffled-n ${{ inputs.n_runs }} --output-artifacts scan_artifacts
 
-      - name: Upload Single-Source-of-Truth Event Log Artifact
+      - name: Upload Single-Source-of-Truth Scan Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: flakeguard-event-log
-          path: data/events/*.jsonl
+          name: flakeguard-scan-results
+          path: |
+            scan_artifacts/
+            data/events/*.jsonl
           if-no-files-found: warn
+          retention-days: 14
 
       - name: Post or Update Sticky CI Triage Comment
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' || github.event.pull_request != null
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || secrets.LLM_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || secrets.LLM_API_KEY }}
         run: |
-          python scripts/post_triage_comment.py
-
+          python flakeguard_repo/scripts/post_triage_comment.py scan_artifacts/junit.xml

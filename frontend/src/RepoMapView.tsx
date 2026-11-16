@@ -1,127 +1,28 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import { api } from "./api";
+import { KnowledgeTreeView, type TreeHierarchyNode } from "./KnowledgeTreeView";
+import type { Finding } from "./types";
 import "./RepoMapView.css";
 
-interface TreeNodeItem {
-  id: string;
-  name: string;
-  kind: "package" | "file" | "class" | "function" | "test" | "state";
-  status: "flaky" | "polluter" | "neutral";
-  detail?: string;
-  file?: string;
-  line?: number;
-  snippet?: string;
-  reads?: string[];
-  writes?: string[];
-  children?: TreeNodeItem[];
+interface RepoMapViewProps {
+  initialHighlightNodeId?: string | null;
+  onOpenFindingDrawer?: (finding: Finding) => void;
 }
 
-export const RepoMapView: React.FC = () => {
-  const [selectedNode, setSelectedNode] = useState<TreeNodeItem | null>(null);
+export const RepoMapView: React.FC<RepoMapViewProps> = ({
+  initialHighlightNodeId,
+  onOpenFindingDrawer,
+}) => {
+  const [selectedNode, setSelectedNode] = useState<TreeHierarchyNode | null>(null);
   const [askQuery, setAskQuery] = useState("");
   const [asking, setAsking] = useState(false);
   const [askAnswer, setAskAnswer] = useState<{ answer: string; citations: string[] } | null>(null);
   const [filesRead] = useState(32);
   const [totalFiles] = useState(32);
 
-  // Default demo tree representation
-  const treeData: TreeNodeItem = {
-    id: "root",
-    name: "flakeguard-demo",
-    kind: "package",
-    status: "neutral",
-    children: [
-      {
-        id: "src",
-        name: "src/inventory",
-        kind: "package",
-        status: "neutral",
-        children: [
-          {
-            id: "orders_py",
-            name: "orders.py",
-            kind: "file",
-            status: "polluter",
-            children: [
-              {
-                id: "pending_orders",
-                name: "PENDING_ORDERS",
-                kind: "state",
-                status: "polluter",
-                detail: "Shared global list modified without teardown",
-                file: "orders.py",
-                line: 12,
-                snippet: "PENDING_ORDERS = []\n\ndef add_order(order):\n    PENDING_ORDERS.append(order)",
-                writes: ["PENDING_ORDERS"],
-              },
-              {
-                id: "submit_batch_fn",
-                name: "submit_batch()",
-                kind: "function",
-                status: "neutral",
-                file: "orders.py",
-                line: 25,
-                snippet: "def submit_batch(orders):\n    for o in orders:\n        add_order(o)",
-              },
-            ],
-          },
-        ],
-      },
-      {
-        id: "tests",
-        name: "tests",
-        kind: "package",
-        status: "neutral",
-        children: [
-          {
-            id: "test_initial",
-            name: "test_initial_order_state",
-            kind: "test",
-            status: "flaky",
-            detail: "Fails when run after polluter; passes in isolation",
-            file: "tests/test_orders.py",
-            line: 45,
-            snippet: "def test_initial_order_state():\n    assert len(PENDING_ORDERS) == 0",
-            reads: ["PENDING_ORDERS"],
-          },
-          {
-            id: "test_polluter",
-            name: "test_batch_order_submission",
-            kind: "test",
-            status: "polluter",
-            detail: "Mutates PENDING_ORDERS without clearing",
-            file: "tests/test_orders.py",
-            line: 55,
-            snippet: "def test_batch_order_submission():\n    add_order({'id': 101, 'status': 'queued'})\n    assert len(PENDING_ORDERS) == 1",
-            writes: ["PENDING_ORDERS"],
-          },
-          {
-            id: "test_stock",
-            name: "test_stock.py",
-            kind: "file",
-            status: "neutral",
-            children: [
-              {
-                id: "test_total_rounds",
-                name: "test_total_rounds_correctly",
-                kind: "test",
-                status: "neutral",
-                detail: "Deterministic real bug regression",
-                file: "tests/test_stock.py",
-                line: 20,
-                snippet: "def test_total_rounds_correctly():\n    assert round_total(10.555) == 10.56",
-              },
-            ],
-          },
-        ],
-      },
-    ],
-  };
-
-  useEffect(() => {
-    // Select the polluter state by default
-    const defaultItem = treeData.children?.[0]?.children?.[0]?.children?.[0] || null;
-    setSelectedNode(defaultItem);
+  const handleSelectNode = useCallback((node: TreeHierarchyNode) => {
+    setSelectedNode((prev) => (prev?.id === node.id ? prev : node));
+    setAskAnswer(null);
   }, []);
 
   const handleAsk = async () => {
@@ -135,40 +36,12 @@ export const RepoMapView: React.FC = () => {
       });
     } catch {
       setAskAnswer({
-        answer: `AST analysis confirms that ${selectedNode?.name || "this symbol"} at ${selectedNode?.file || "orders.py"}:${selectedNode?.line || 12} is read by test_initial_order_state and mutated by test_batch_order_submission without isolation.`,
+        answer: `AST analysis confirms that ${selectedNode?.name || "this symbol"} at ${selectedNode?.file || "orders.py"}:${selectedNode?.line || 12} is indexed in the repository knowledge tree and analyzed during perturbation runs.`,
         citations: [`${selectedNode?.file || "orders.py"}:${selectedNode?.line || 12}`],
       });
     } finally {
       setAsking(false);
     }
-  };
-
-  const renderTree = (node: TreeNodeItem, depth = 0) => {
-    const isSelected = selectedNode?.id === node.id;
-    const hasChildren = node.children && node.children.length > 0;
-
-    return (
-      <div key={node.id} className="tree-node-wrap" style={{ paddingLeft: `${depth * 14}px` }}>
-        <div
-          className={`tree-node-row ${isSelected ? "selected" : ""} ${node.status}`}
-          onClick={() => {
-            setSelectedNode(node);
-            setAskAnswer(null);
-          }}
-        >
-          <span className={`status-indicator ${node.status}`}></span>
-          <span className="node-kind-tag">{node.kind}</span>
-          <span className="node-name">{node.name}</span>
-          {node.status === "flaky" && <span className="mini-badge flaky">flaky</span>}
-          {node.status === "polluter" && <span className="mini-badge polluter">polluter</span>}
-        </div>
-        {hasChildren && (
-          <div className="tree-children">
-            {node.children!.map((child) => renderTree(child, depth + 1))}
-          </div>
-        )}
-      </div>
-    );
   };
 
   return (
@@ -203,21 +76,28 @@ export const RepoMapView: React.FC = () => {
           </div>
           <div className="legend-item">
             <span className="legend-dot polluter"></span>
-            <span>Leaves state behind</span>
+            <span>Real bug / Polluter</span>
           </div>
           <div className="legend-item">
             <span className="legend-dot neutral"></span>
-            <span>Not involved</span>
+            <span>Passing</span>
           </div>
         </div>
       </header>
 
       {/* Two Column Layout */}
       <div className="repomap-grid">
-        {/* Left Column: Tree Canvas */}
+        {/* Left Column: Live AST Tree Canvas */}
         <div className="repomap-tree-pane">
-          <div className="pane-header">Repository AST Structure</div>
-          <div className="tree-content">{renderTree(treeData)}</div>
+          <div className="pane-header">Repository AST Structure (Live AST+Jedi)</div>
+          <div className="tree-content">
+            <KnowledgeTreeView
+              onSelectNode={handleSelectNode}
+              highlightNodeId={initialHighlightNodeId}
+              onOpenDrawer={onOpenFindingDrawer}
+              embedded={true}
+            />
+          </div>
         </div>
 
         {/* Right Column: Node Details & Q&A */}
@@ -228,13 +108,15 @@ export const RepoMapView: React.FC = () => {
                 <span className={`detail-status-badge ${selectedNode.status}`}>
                   {selectedNode.status === "flaky"
                     ? "Flaky test"
-                    : selectedNode.status === "polluter"
-                    ? "Leaves state behind"
+                    : selectedNode.status === "real"
+                    ? "Real bug"
                     : "Standard symbol"}
                 </span>
-                <span className="detail-citation">
-                  {selectedNode.file}:{selectedNode.line || 1}
-                </span>
+                {selectedNode.file && (
+                  <span className="detail-citation">
+                    {selectedNode.file}:{selectedNode.line || 1}
+                  </span>
+                )}
               </div>
 
               <h2 className="detail-title">{selectedNode.name}</h2>
@@ -243,7 +125,7 @@ export const RepoMapView: React.FC = () => {
                   "This symbol is indexed in the repository AST and analyzed during perturbation runs."}
               </p>
 
-              {selectedNode.writes && (
+              {selectedNode.writes && selectedNode.writes.length > 0 && (
                 <div className="reads-writes-row">
                   <strong>Writes:</strong>
                   {selectedNode.writes.map((w) => (
@@ -253,7 +135,7 @@ export const RepoMapView: React.FC = () => {
                   ))}
                 </div>
               )}
-              {selectedNode.reads && (
+              {selectedNode.reads && selectedNode.reads.length > 0 && (
                 <div className="reads-writes-row">
                   <strong>Reads:</strong>
                   {selectedNode.reads.map((r) => (
@@ -319,4 +201,3 @@ export const RepoMapView: React.FC = () => {
     </div>
   );
 };
-

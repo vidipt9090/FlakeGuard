@@ -9,6 +9,7 @@ interface FindingDrawerProps {
   onProposeFix: (testId: string) => void;
   onQuarantine: (testId: string) => void;
   onNavigateToRepoMap?: (nodeId?: string) => void;
+  onSelectTreeNode?: (nodeId: string) => void;
 }
 
 export const FindingDrawer: React.FC<FindingDrawerProps> = ({
@@ -17,6 +18,7 @@ export const FindingDrawer: React.FC<FindingDrawerProps> = ({
   onProposeFix,
   onQuarantine,
   onNavigateToRepoMap,
+  onSelectTreeNode,
 }) => {
   const [question, setQuestion] = useState("Why does this fail only sometimes?");
   const [asking, setAsking] = useState(false);
@@ -118,6 +120,38 @@ export const FindingDrawer: React.FC<FindingDrawerProps> = ({
               {finding.where_it_lives ||
                 `${finding.test_id} reads shared state written by another test in ${finding.polluter_file || "orders.py"}:${finding.polluter_line || 12}.`}
             </p>
+            {/* Interactive chips that select & highlight in knowledge tree */}
+            <div className="where-lives-chips">
+              <span className="chips-label">Tree nodes:</span>
+              <button
+                type="button"
+                className="tree-node-chip chip-test"
+                onClick={() => onSelectTreeNode?.(finding.test_id)}
+                title="Highlight this test in the Knowledge tree"
+              >
+                🧪 {finding.test_id}
+              </button>
+              {finding.polluter_file && (
+                <button
+                  type="button"
+                  className="tree-node-chip chip-module"
+                  onClick={() => onSelectTreeNode?.(finding.polluter_file!)}
+                  title="Highlight module in Knowledge tree"
+                >
+                  📄 {finding.polluter_file}
+                </button>
+              )}
+              {finding.polluter_test_id && (
+                <button
+                  type="button"
+                  className="tree-node-chip chip-polluter"
+                  onClick={() => onSelectTreeNode?.(finding.polluter_test_id!)}
+                  title="Highlight polluter in Knowledge tree"
+                >
+                  ⚠️ {finding.polluter_test_id}
+                </button>
+              )}
+            </div>
           </div>
         </section>
 
