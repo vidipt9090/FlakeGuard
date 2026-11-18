@@ -62,6 +62,8 @@ include = ["flakeguard*"]
 
 [tool.ruff]
 line-length = 100
+# Sample project recorded by scripts/record_run.py; its layout is part of the recording.
+extend-exclude = ["tests/data/demo_inventory"]
 target-version = "py312"
 
 [tool.ruff.lint]

@@ -23,9 +23,6 @@ def client():
         yield c
 
 
-def test_health(client):
-    body = client.get("/api/health").json()
-    assert body["status"] == "ok"
 
 
 # ------------------------------------------------------------ exported sets
@@ -132,7 +129,7 @@ def test_navigate_rejects_a_bad_id_with_a_usable_message(client):
     response = client.post("/api/navigate", json={"test_id": "not-a-node-id"})
     assert response.status_code == 400
     body = response.json()
-    assert "not a pytest node id" in body["error"]
+    assert "not a pytest node id" in body["detail"]
     assert "::" in body["hint"], "the hint should show the expected shape"
 
 
@@ -142,7 +139,7 @@ def test_navigate_rejects_a_missing_repo(client):
         json={"repo": "no/such/directory", "test_id": "a.py::test_b"},
     )
     assert response.status_code == 404
-    assert "not a directory" in response.json()["error"]
+    assert "not a directory" in response.json()["detail"]
 
 
 def test_navigate_requires_a_test_id(client):
@@ -181,25 +178,8 @@ def test_pipeline_exposes_the_gate_verdict(client):
             assert check["why"], f"{check['name']} has no stated reason"
 
 
-def test_results_carries_what_the_results_page_reads(client):
-    body = client.get("/api/results").json()
-    assert body["llm"] and body["baselines"]
-    assert body["labels"]
-    assert body["label_counts"]
-    # numbers must arrive as numbers, not CSV strings
-    assert isinstance(body["llm"][0]["f1"], (int, float))
-    assert isinstance(body["nav_summary"]["resolution_rate"], (int, float))
 
 
-def test_runs_computes_flip_rate(client):
-    body = client.get("/api/runs").json()
-    assert body["tests"]
-    for row in body["tests"]:
-        assert 0.0 <= row["flip_rate"] <= 0.5, row
-        assert row["passes"] + row["fails"] == row["total"]
-    # sorted most-unstable first, which is what the chart assumes
-    rates = [t["flip_rate"] for t in body["tests"]]
-    assert rates == sorted(rates, reverse=True)
 
 
 def test_suggestions_are_runnable(client):

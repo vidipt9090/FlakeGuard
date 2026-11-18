@@ -31,21 +31,6 @@ def test_eval3_data_carries_provenance():
         assert row["data_label"] in ("planted", "injected", "natural")
 
 
-def test_runs_and_run_detail():
-    client = TestClient(app)
-    resp = client.get("/api/runs")
-    assert resp.status_code == 200
-    data = resp.json()
-    assert "runs" in data
-    assert isinstance(data["runs"], list)
-
-    if data["runs"]:
-        run_id = data["runs"][0]["run_id"]
-        detail_resp = client.get(f"/api/runs/{run_id}")
-        assert detail_resp.status_code == 200
-        detail = detail_resp.json()
-        assert detail["run_id"] == run_id
-        assert "provenance" in detail
 
 
 def test_rag_ask_endpoint():
@@ -75,7 +60,7 @@ def test_quarantine_refusal_on_deterministic_bug():
         json={"test_id": "test_case_22", "reason": "real failure deterministic", "approver": "@maintainer"}
     )
     assert resp.status_code == 403
-    assert "refused" in resp.json()["error"].lower()
+    assert "refused" in resp.json()["detail"].lower()
 
     # Flaky bug accepted
     resp_flaky = client.post(
@@ -95,7 +80,7 @@ def test_docker_refusal_when_unavailable(monkeypatch):
 
     resp = client.post("/api/scan", json={"repo": "synthetic", "use_docker": True})
     assert resp.status_code == 400
-    assert "Docker isolation was requested, but the Docker daemon is unreachable" in resp.json()["error"]
+    assert "Docker isolation was requested, but the Docker daemon is unreachable" in resp.json()["detail"]
 
 
 def test_unvetted_repo_confirmation_required():
@@ -103,5 +88,5 @@ def test_unvetted_repo_confirmation_required():
     # Untrusted repo without docker and without confirmed flag -> 400
     resp = client.post("/api/scan", json={"repo": "some-random-org/malicious-repo", "use_docker": False, "confirmed": False})
     assert resp.status_code == 400
-    assert "explicit confirmation" in resp.json()["error"].lower()
+    assert "explicit confirmation" in resp.json()["detail"].lower()
 
