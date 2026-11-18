@@ -17,7 +17,7 @@ Status words used: **works** (a command I ran proves it), **exists, untested** (
 | `develop` (local) | `6e7eca2` | 16 commits behind `origin/develop` |
 | `c/eval3-actions` (= `origin/c/eval3-actions`) | `146d4d3` | 4 commits ahead of `origin/develop`; only branch with `post-merge.yml`. 26 commits not in `origin/main`, 12 commits on `origin/main` not in it |
 | `origin/c/eval3-integration` | `feca478` | Has `scan.yml` |
-| `c/eval3-console` (new) | `146d4d3` | Branched from `c/eval3-actions`. This base is my choice, see report |
+| `c/eval3-console` (new) | `146d4d3` | Branched from `c/eval3-actions`, then rebased onto `origin/main` (`a8f8308`) at the owner's request (DECISIONS M0-2). Hashes in this table are pre-rebase |
 
 ## 2. Inventory (step 0.2)
 
