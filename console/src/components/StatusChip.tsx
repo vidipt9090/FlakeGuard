@@ -5,8 +5,8 @@ export function VerdictChip({ verdict, subtype }: { verdict: Verdict; subtype?: 
   return <span className={`chip ${verdict}`}>{subtype ? `${word} · ${subtype}` : word}</span>;
 }
 
-export function SeverityChip({ severity }: { severity: Severity }) {
+export function SeverityChip({ severity, fixReady = false }: { severity: Severity; fixReady?: boolean }) {
   if (severity === 'blocking') return <span className="chip real">Blocking</span>;
-  if (severity === 'suggestion') return <span className="chip flaky">Suggestion · fix ready</span>;
+  if (severity === 'suggestion') return <span className="chip flaky">{fixReady ? 'Suggestion · fix ready' : 'Suggestion'}</span>;
   return <span className="chip unknown">Unknown</span>;
 }

@@ -52,7 +52,7 @@ export default function Findings() {
                   <div className="eyebrow list-h">{g.title} · {items.length}</div>
                   {items.map((f) => (
                     <button key={f.id} type="button" className={`item ${f.id === selId ? 'sel' : ''}`} onClick={() => { setSelId(f.id); setAnswer(null); setNote(null); }}>
-                      <SeverityChip severity={f.severity} />
+                      <SeverityChip severity={f.severity} fixReady={f.fix !== null} />
                       <div className="nm">{f.test}</div>
                       <div className="sm">{f.summaryLine}</div>
                     </button>

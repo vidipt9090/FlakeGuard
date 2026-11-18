@@ -1,0 +1,23 @@
+{"ts":"2026-11-18T11:12:55.286670+00:00","run_id":"scan_20261118_111255_4c777c","stage":"ingest","type":"started","test_id":null,"data":{"target":"tests/data/demo_inventory","requested_sha":null}}
+{"ts":"2026-11-18T11:12:55.326680+00:00","run_id":"scan_20261118_111255_4c777c","stage":"ingest","type":"result","test_id":null,"data":{"repo_path":"C:\\Users\\khull\\Desktop\\4th Year\\IDT Final\\FlakeGuard\\tests\\data\\demo_inventory","pinned_sha":"86d3a4600becb9c6bffce12d68bd71dc8855ba6a"}}
+{"ts":"2026-11-18T11:12:55.326680+00:00","run_id":"scan_20261118_111255_4c777c","stage":"discover","type":"started","test_id":null,"data":{}}
+{"ts":"2026-11-18T11:12:55.336903+00:00","run_id":"scan_20261118_111255_4c777c","stage":"discover","type":"result","test_id":null,"data":{"framework":"pytest","test_dir":"tests","test_files_count":4}}
+{"ts":"2026-11-18T11:12:55.339626+00:00","run_id":"scan_20261118_111255_4c777c","stage":"run","type":"started","test_id":null,"data":{"slices":["baseline","shuffled","reversed","isolated","repeated","parallel"],"shuffled_n":10}}
+{"ts":"2026-11-18T11:12:55.339626+00:00","run_id":"scan_20261118_111255_4c777c","stage":"run","type":"progress","test_id":null,"data":{"mode":"baseline","iteration":1}}
+{"ts":"2026-11-18T11:12:58.271571+00:00","run_id":"scan_20261118_111255_4c777c","stage":"run","type":"progress","test_id":null,"data":{"mode":"shuffled","iteration":1}}
+{"ts":"2026-11-18T11:13:00.546983+00:00","run_id":"scan_20261118_111255_4c777c","stage":"run","type":"progress","test_id":null,"data":{"mode":"shuffled","iteration":2}}
+{"ts":"2026-11-18T11:13:04.770535+00:00","run_id":"scan_20261118_111255_4c777c","stage":"run","type":"progress","test_id":null,"data":{"mode":"shuffled","iteration":3}}
+{"ts":"2026-11-18T11:13:09.963789+00:00","run_id":"scan_20261118_111255_4c777c","stage":"run","type":"progress","test_id":null,"data":{"mode":"shuffled","iteration":4}}
+{"ts":"2026-11-18T11:13:14.853155+00:00","run_id":"scan_20261118_111255_4c777c","stage":"run","type":"progress","test_id":null,"data":{"mode":"shuffled","iteration":5}}
+{"ts":"2026-11-18T11:13:19.906606+00:00","run_id":"scan_20261118_111255_4c777c","stage":"run","type":"progress","test_id":null,"data":{"mode":"shuffled","iteration":6}}
+{"ts":"2026-11-18T11:13:24.216506+00:00","run_id":"scan_20261118_111255_4c777c","stage":"run","type":"progress","test_id":null,"data":{"mode":"shuffled","iteration":7}}
+{"ts":"2026-11-18T11:13:28.339988+00:00","run_id":"scan_20261118_111255_4c777c","stage":"run","type":"progress","test_id":null,"data":{"mode":"shuffled","iteration":8}}
+{"ts":"2026-11-18T11:13:33.049754+00:00","run_id":"scan_20261118_111255_4c777c","stage":"run","type":"progress","test_id":null,"data":{"mode":"shuffled","iteration":9}}
+{"ts":"2026-11-18T11:13:37.286569+00:00","run_id":"scan_20261118_111255_4c777c","stage":"run","type":"progress","test_id":null,"data":{"mode":"shuffled","iteration":10}}
+{"ts":"2026-11-18T11:13:41.861988+00:00","run_id":"scan_20261118_111255_4c777c","stage":"run","type":"progress","test_id":null,"data":{"mode":"reversed","iteration":1}}
+{"ts":"2026-11-18T11:13:46.886858+00:00","run_id":"scan_20261118_111255_4c777c","stage":"run","type":"progress","test_id":"tests.test_stock::test_reserve_negative","data":{"mode":"isolated","iteration":1}}
+{"ts":"2026-11-18T11:13:49.009458+00:00","run_id":"scan_20261118_111255_4c777c","stage":"run","type":"progress","test_id":"tests.test_sync::test_sync_timeout","data":{"mode":"isolated","iteration":2}}
+{"ts":"2026-11-18T11:13:52.020536+00:00","run_id":"scan_20261118_111255_4c777c","stage":"run","type":"progress","test_id":"tests.test_report::test_report_total","data":{"mode":"isolated","iteration":3}}
+{"ts":"2026-11-18T11:13:54.261626+00:00","run_id":"scan_20261118_111255_4c777c","stage":"run","type":"progress","test_id":null,"data":{"mode":"repeated","iteration":1}}
+{"ts":"2026-11-18T11:13:57.286603+00:00","run_id":"scan_20261118_111255_4c777c","stage":"run","type":"progress","test_id":null,"data":{"mode":"parallel","iteration":1}}
+{"ts":"2026-11-18T11:14:02.897838+00:00","run_id":"scan_20261118_111255_4c777c","stage":"run","type":"result","test_id":null,"data":{"total_slices":17,"total_tests":28,"flaky_tests_count":2,"flaky_tests":["tests.test_report::test_report_total","tests.test_sync::test_sync_timeout"]}}

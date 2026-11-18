@@ -150,6 +150,12 @@ Files:
   tree.json            TreeData
   Every count in these files is computed from raw/artifacts/junit_*.xml by flakeguard/console/builder.py.
 
+Do not read these as results:
+  raw/artifacts/findings.json and raw/artifacts/tree.json are written by the older scan
+  orchestrator. Its findings.json states "confirmed_by_intervention" for every flaky test
+  without running any intervention, and its tree has one node. The console does not use them.
+  Only the JUnit XML and events.jsonl in raw/ feed run.json, findings.json and tree.json.
+
 What is not in this run (shown as dashes, pending, or absent in the console):
   - Fix preview: null. No fix was proposed or validated.
   - Pull request and PR comment: none. Install and PR comment stages are shown as pending ("not run").

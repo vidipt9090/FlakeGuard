@@ -1,0 +1,153 @@
+{
+  "root": {
+    "id": "repo",
+    "kind": "repo",
+    "name": "demo_inventory",
+    "path": null,
+    "status": "clean",
+    "label": "7 tests · 3 faults",
+    "faults": 3,
+    "findingId": null,
+    "children": [
+      {
+        "id": "f1",
+        "kind": "file",
+        "name": "test_report.py",
+        "path": "tests/test_report.py",
+        "status": "flaky",
+        "label": "1 flaky",
+        "faults": 1,
+        "findingId": null,
+        "children": [
+          {
+            "id": "t2",
+            "kind": "test",
+            "name": "test_report_total",
+            "path": "tests/test_report.py:4",
+            "status": "flaky",
+            "label": "Flaky · order-dependent",
+            "faults": 0,
+            "findingId": "run-2026-11-18-001_finding-1",
+            "children": []
+          },
+          {
+            "id": "t1",
+            "kind": "test",
+            "name": "test_report_empty",
+            "path": "tests/test_report.py:10",
+            "status": "clean",
+            "label": "Passes in every run",
+            "faults": 0,
+            "findingId": null,
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": "f2",
+        "kind": "file",
+        "name": "test_stock.py",
+        "path": "tests/test_stock.py",
+        "status": "real",
+        "label": "1 real failure",
+        "faults": 1,
+        "findingId": null,
+        "children": [
+          {
+            "id": "t3",
+            "kind": "test",
+            "name": "test_reserve_negative",
+            "path": "tests/test_stock.py:6",
+            "status": "real",
+            "label": "Real failure · 17 of 17",
+            "faults": 0,
+            "findingId": "run-2026-11-18-001_finding-2",
+            "children": []
+          },
+          {
+            "id": "t4",
+            "kind": "test",
+            "name": "test_reserve_ok",
+            "path": "tests/test_stock.py:12",
+            "status": "clean",
+            "label": "Passes in every run",
+            "faults": 0,
+            "findingId": null,
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": "f3",
+        "kind": "file",
+        "name": "test_sync.py",
+        "path": "tests/test_sync.py",
+        "status": "unknown",
+        "label": "1 unknown",
+        "faults": 1,
+        "findingId": null,
+        "children": [
+          {
+            "id": "t6",
+            "kind": "test",
+            "name": "test_sync_timeout",
+            "path": "tests/test_sync.py:4",
+            "status": "unknown",
+            "label": "Unknown · 1 of 17 failed",
+            "faults": 0,
+            "findingId": "run-2026-11-18-001_finding-3",
+            "children": []
+          },
+          {
+            "id": "t5",
+            "kind": "test",
+            "name": "test_sync_ok",
+            "path": "tests/test_sync.py:8",
+            "status": "clean",
+            "label": "Passes in every run",
+            "faults": 0,
+            "findingId": null,
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": "f4",
+        "kind": "file",
+        "name": "test_warmup.py",
+        "path": "tests/test_warmup.py",
+        "status": "polluter",
+        "label": "1 polluter",
+        "faults": 1,
+        "findingId": null,
+        "children": [
+          {
+            "id": "t7",
+            "kind": "test",
+            "name": "test_cache_warm",
+            "path": "tests/test_warmup.py:4",
+            "status": "polluter",
+            "label": "Polluter · writes CACHE",
+            "faults": 0,
+            "findingId": "run-2026-11-18-001_finding-1",
+            "children": []
+          }
+        ]
+      }
+    ]
+  },
+  "sharedState": [
+    {
+      "id": "s1",
+      "name": "CACHE",
+      "path": "src/inventory/cache.py:3",
+      "note": "A module-level value written by 1 and read by 1 test(s)",
+      "writers": [
+        "t7"
+      ],
+      "readers": [
+        "t2"
+      ]
+    }
+  ]
+}

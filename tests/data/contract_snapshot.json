@@ -1,0 +1,191 @@
+{
+  "AskAnswer": [
+    "chunks",
+    "citations",
+    "text"
+  ],
+  "AskCitation": [
+    "file",
+    "label",
+    "line"
+  ],
+  "CodeLine": [
+    "hot",
+    "n",
+    "note",
+    "t"
+  ],
+  "CodeSnippet": [
+    "file",
+    "lines",
+    "role"
+  ],
+  "Counters": [
+    "failures",
+    "flagged",
+    "runsDone",
+    "runsTotal"
+  ],
+  "Current": [
+    "condition",
+    "test"
+  ],
+  "Finding": [
+    "did",
+    "evidence",
+    "evidenceTier",
+    "file",
+    "fix",
+    "id",
+    "limits",
+    "line",
+    "lives",
+    "quarantine",
+    "reader",
+    "repro",
+    "severity",
+    "subtype",
+    "summaryLine",
+    "test",
+    "verdict",
+    "why",
+    "writer"
+  ],
+  "FixPreview": [
+    "checked",
+    "diff",
+    "doesNotProve",
+    "file",
+    "summary"
+  ],
+  "LivesChip": [
+    "text",
+    "tone"
+  ],
+  "MatrixRow": [
+    "cells",
+    "label",
+    "summary"
+  ],
+  "NoTestsCheck": [
+    "label",
+    "ok"
+  ],
+  "NoTestsExample": [
+    "risky",
+    "test"
+  ],
+  "NoTestsPlan": [
+    "checks",
+    "example",
+    "repo",
+    "spots",
+    "steps"
+  ],
+  "NoTestsStep": [
+    "name",
+    "state"
+  ],
+  "Notice": [
+    "detail",
+    "kind"
+  ],
+  "PrInfo": [
+    "checkState",
+    "number",
+    "postMergeState",
+    "prUrl",
+    "runUrl",
+    "state",
+    "title"
+  ],
+  "Provenance": [
+    "command",
+    "commit",
+    "dataset",
+    "date",
+    "labelType",
+    "n"
+  ],
+  "Quarantine": [
+    "allowed",
+    "reason"
+  ],
+  "ResultsData": [
+    "ablation",
+    "baselines",
+    "runsToDecision",
+    "triage"
+  ],
+  "ResultsTable": [
+    "columns",
+    "rows"
+  ],
+  "RiskySpot": [
+    "test",
+    "what",
+    "where",
+    "why"
+  ],
+  "RunStatus": [
+    "counters",
+    "current",
+    "id",
+    "matrix",
+    "mode",
+    "notice",
+    "pr",
+    "stages",
+    "status",
+    "target"
+  ],
+  "RunsToDecision": [
+    "adaptive",
+    "fixed"
+  ],
+  "SharedState": [
+    "id",
+    "name",
+    "note",
+    "path",
+    "readers",
+    "writers"
+  ],
+  "Stage": [
+    "detail",
+    "id",
+    "name",
+    "state",
+    "time",
+    "tool"
+  ],
+  "StartRunRequest": [
+    "docker",
+    "runs",
+    "source",
+    "target"
+  ],
+  "TableWithProvenance": [
+    "provenance",
+    "table"
+  ],
+  "TreeData": [
+    "root",
+    "sharedState"
+  ],
+  "TreeNode": [
+    "children",
+    "faults",
+    "findingId",
+    "id",
+    "kind",
+    "label",
+    "name",
+    "path",
+    "status"
+  ],
+  "TriageNumbers": [
+    "realQuarantined",
+    "redPrsCleared"
+  ]
+}

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="21" time="0.360" timestamp="2026-11-18T16:43:56.556772+05:30" hostname="Priyal"><testcase classname="tests.test_report" name="test_report_total[1-3]" time="0.002" /><testcase classname="tests.test_report" name="test_report_total[2-3]" time="0.001" /><testcase classname="tests.test_report" name="test_report_total[3-3]" time="0.001" /><testcase classname="tests.test_report" name="test_report_empty[1-3]" time="0.001" /><testcase classname="tests.test_report" name="test_report_empty[2-3]" time="0.001" /><testcase classname="tests.test_report" name="test_report_empty[3-3]" time="0.003" /><testcase classname="tests.test_stock" name="test_reserve_negative[1-3]" time="0.001"><failure message="Failed: DID NOT RAISE ValueError">def test_reserve_negative():
+        stock = StockService()
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_stock.py:8: Failed</failure></testcase><testcase classname="tests.test_stock" name="test_reserve_negative[2-3]" time="0.001"><failure message="Failed: DID NOT RAISE ValueError">def test_reserve_negative():
+        stock = StockService()
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_stock.py:8: Failed</failure></testcase><testcase classname="tests.test_stock" name="test_reserve_negative[3-3]" time="0.001"><failure message="Failed: DID NOT RAISE ValueError">def test_reserve_negative():
+        stock = StockService()
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_stock.py:8: Failed</failure></testcase><testcase classname="tests.test_stock" name="test_reserve_ok[1-3]" time="0.001" /><testcase classname="tests.test_stock" name="test_reserve_ok[2-3]" time="0.001" /><testcase classname="tests.test_stock" name="test_reserve_ok[3-3]" time="0.001" /><testcase classname="tests.test_sync" name="test_sync_timeout[1-3]" time="0.001" /><testcase classname="tests.test_sync" name="test_sync_timeout[2-3]" time="0.001" /><testcase classname="tests.test_sync" name="test_sync_timeout[3-3]" time="0.001" /><testcase classname="tests.test_sync" name="test_sync_ok[1-3]" time="0.001" /><testcase classname="tests.test_sync" name="test_sync_ok[2-3]" time="0.001" /><testcase classname="tests.test_sync" name="test_sync_ok[3-3]" time="0.001" /><testcase classname="tests.test_warmup" name="test_cache_warm[1-3]" time="0.001" /><testcase classname="tests.test_warmup" name="test_cache_warm[2-3]" time="0.001" /><testcase classname="tests.test_warmup" name="test_cache_warm[3-3]" time="0.001" /></testsuite></testsuites>
