@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
 import { Header } from '../components/Header';
@@ -19,6 +19,11 @@ export default function RepoMap() {
 
   const layout = useTreeLayout(data ?? EMPTY, faultsOnly, collapsed);
   const faults = useMemo(() => faultOrder(layout), [layout]);
+
+  // Select the first fault on load so the blue ring and the Selected panel are never empty.
+  useEffect(() => {
+    if (selectedId === null && faults.length > 0) setSelectedId(faults[0]);
+  }, [faults, selectedId]);
 
   const selected = useMemo(() => {
     const find = (n: TreeNode): TreeNode | null => (n.id === selectedId ? n : n.children.map(find).find(Boolean) ?? null);
