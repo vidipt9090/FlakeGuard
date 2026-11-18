@@ -20,6 +20,22 @@ from flakeguard.runner.events import EventLogger
 from flakeguard.runner.sandbox import Sandbox
 
 
+def to_node_id(repo_path: Path, test_id: str) -> str:
+    """Turn a JUnit-style id (``tests.test_a::test_x``) into a pytest node id.
+
+    JUnit gives a dotted module name, but pytest only accepts a path, so passing
+    the dotted form selects no tests. Ids that are already paths, and modules
+    that cannot be found on disk, are returned unchanged.
+    """
+    module, sep, name = test_id.partition("::")
+    if not sep or "/" in module or module.endswith(".py"):
+        return test_id
+    candidate = module.replace(".", "/") + ".py"
+    if (repo_path / candidate).is_file():
+        return f"{candidate}::{name}"
+    return test_id
+
+
 @dataclass
 class TestRunOutcome:
     test_id: str
@@ -294,7 +310,7 @@ class PerturbationMatrix:
                 "-q",
                 "-p",
                 "no:randomly",
-                tid,
+                to_node_id(self.repo_path, tid),
                 f"--junitxml={str(iso_junit.resolve())}",
             ]
             res = self.sandbox.run(cmd, cwd=self.repo_path, env=env, timeout=self.timeout)

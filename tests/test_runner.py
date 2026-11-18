@@ -213,3 +213,36 @@ def test_orchestrator_scan_could_not_build(tmp_path):
     logger = EventLogger(result.run_id, output_path=result.event_log_path)
     events = list(logger.read_events())
     assert any(e.type == "error" and e.data.get("outcome") == "could not build" for e in events)
+
+
+# ---------------------------------------------------------------------------
+# Isolated runs must select real tests
+# ---------------------------------------------------------------------------
+
+
+def test_to_node_id_converts_dotted_module_to_path(tmp_path: Path):
+    from flakeguard.runner.matrix import to_node_id
+
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests" / "test_a.py").write_text("def test_x():\n    pass\n")
+    assert to_node_id(tmp_path, "tests.test_a::test_x") == "tests/test_a.py::test_x"
+    # Already a path, or a module that is not on disk: unchanged.
+    assert to_node_id(tmp_path, "tests/test_a.py::test_x") == "tests/test_a.py::test_x"
+    assert to_node_id(tmp_path, "tests.test_missing::test_x") == "tests.test_missing::test_x"
+
+
+def test_isolated_slice_runs_the_selected_test(tmp_path: Path):
+    """Regression: the isolated slice used to run 0 tests because it passed a dotted id."""
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests" / "__init__.py").write_text("")
+    (tmp_path / "tests" / "test_a.py").write_text("def test_fails():\n    assert False\n")
+    config = ScanConfig(
+        target=str(tmp_path),
+        shuffled_n=1,
+        output_events=str(tmp_path / "events.jsonl"),
+        output_artifacts=str(tmp_path / "art"),
+    )
+    result = scan(config)
+    assert result.success
+    isolated = parse_junit_xml(tmp_path / "art" / "junit_isolated_1.xml")
+    assert [o.outcome for o in isolated] == ["FAIL"]
