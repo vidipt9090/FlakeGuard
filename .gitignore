@@ -38,3 +38,8 @@ pip-freeze.txt
 /frontend/dist/
 /.cache/
 /frontend/*.tsbuildinfo
+
+# Console (M1)
+/console/node_modules/
+/console/dist/
+/console/*.tsbuildinfo
