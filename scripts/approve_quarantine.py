@@ -155,16 +155,26 @@ def main():
     with open(event_path, "r", encoding="utf-8") as f:
         event = json.load(f)
 
-    # Check label
+    # Check trigger: either label 'approve-quarantine' OR comment containing '/quarantine'
     label_info = event.get("label", {})
     label_name = label_info.get("name")
-    if label_name != "approve-quarantine":
-        print(f"Label '{label_name}' is not 'approve-quarantine'. Nothing to do.")
+    comment_info = event.get("comment", {})
+    comment_body = comment_info.get("body", "").strip()
+
+    is_label_trigger = label_name == "approve-quarantine"
+    is_comment_trigger = (
+        bool(comment_body)
+        and (comment_body.startswith("/quarantine") or comment_body.startswith("/approve-quarantine"))
+        and "pull_request" in event.get("issue", {})
+    )
+
+    if not is_label_trigger and not is_comment_trigger:
+        print("Neither an approve-quarantine label nor a /quarantine comment. Nothing to do.")
         return
 
-    label_author = event.get("sender", {}).get("login", "unknown")
+    author = event.get("sender", {}).get("login", "unknown")
     repo = os.environ.get("GITHUB_REPOSITORY", "")
-    pr = event.get("pull_request", {})
+    pr = event.get("pull_request") or event.get("issue", {})
     pr_number = pr.get("number")
     comments_url = pr.get("comments_url")
 
@@ -172,11 +182,11 @@ def main():
         print("Not a valid pull_request event payload.")
         return
 
-    # 1. Permission check: verify label author has write access
-    has_write = check_user_permission(repo, label_author)
+    # 1. Permission check: verify author has write access
+    has_write = check_user_permission(repo, author)
     if not has_write:
         msg = (
-            f"⚠️ **Quarantine Authorization Failed:** User @{label_author} does not have write "
+            f"⚠️ **Quarantine Authorization Failed:** User @{author} does not have write "
             "permissions on this repository. Quarantine request ignored."
         )
         print(msg)
@@ -205,11 +215,21 @@ def main():
     added_count, added_tests = append_to_quarantine(
         db=db,
         test_ids=test_ids,
-        label_author=label_author,
+        label_author=author,
         pr_number=pr_number,
         timestamp=timestamp,
         allowed_flaky_ids=allowed_flaky_ids,
     )
+
+    if added_count == 0:
+        refusal_msg = (
+            "❌ **Quarantine Refusal:** None of the requested tests could be quarantined because they "
+            "are classified as deterministic defects (real bugs). FlakeGuard refuses to quarantine "
+            "deterministic regressions to prevent masking real code failures."
+        )
+        print(refusal_msg)
+        post_pr_comment(comments_url, refusal_msg)
+        return
 
     save_quarantine_db(db, quarantine_path)
     print(f"Added {added_count} test(s) to {quarantine_path}: {added_tests}")

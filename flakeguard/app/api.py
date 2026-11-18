@@ -206,110 +206,152 @@ def _parse_run_events(event_path: Path) -> dict[str, Any]:
         "llm started asking for a verdict",
     ]
 
-    # Findings construction
-    findings = [
-        {
-            "id": "finding-1",
-            "test_id": "test_initial_order_state",
-            "full_test_id": "tests.test_orders::test_initial_order_state",
-            "type": "flaky",
-            "verdict": "flaky",
-            "badge_label": "Flaky",
-            "root_cause": "Order dependence",
-            "plain_sentence": "Another test leaves state behind. test_batch_order_submission changes a shared value in orders.py:12, and this test fails when it runs afterwards.",
-            "metrics_summary": [
-                "Fails in 60% of shuffled runs",
-                "Passes every time on its own",
-                "Evidence: confirmed by intervention",
-            ],
-            "tags": [
-                "Fails in 60% of shuffled runs",
-                "Passes every time on its own",
-                "Evidence: confirmed by intervention",
-            ],
-            "evidence_tier": "confirmed by intervention",
-            "has_polluter": True,
-            "has_fix": True,
-            "polluter_test_id": "test_batch_order_submission",
-            "polluter_name": "test_batch_order_submission",
-            "polluter_file": "orders.py",
-            "polluter_line": 12,
-            "polluter_file_line": "orders.py:12",
-            "polluter_snippet": "PENDING_ORDERS.append(order)\n# never cleared between tests",
-            "observed": "Failed in 60% of shuffled runs.",
-            "reproduced": "Fails again whenever the polluter runs first. Passes in 100% of isolated runs.",
-            "confirmed_by_intervention": "Running it alone flipped the result to pass. Pinning the random seed changed nothing, which rules out randomness.",
-            "how_we_know": [
-                {"step": 1, "label": "Observed", "detail": "Failed in 60% of shuffled runs."},
-                {"step": 2, "label": "Reproduced", "detail": "Fails again whenever the polluter runs first. Passes in 100% of isolated runs."},
-                {"step": 3, "label": "Confirmed by intervention", "detail": "Running it alone flipped the result to pass. Pinning the random seed changed nothing, which rules out randomness."},
-            ],
-            "can_quarantine": True,
-            "quarantine_available": True,
-        },
-        {
-            "id": "finding-2",
-            "test_id": "test_background_job_finishes",
-            "full_test_id": "tests.test_reports::test_background_job_finishes",
-            "type": "flaky",
-            "verdict": "flaky",
-            "badge_label": "Flaky",
-            "root_cause": "Timing",
-            "plain_sentence": "The test waits a fixed time for a background thread, so it fails when the machine is busy.",
-            "metrics_summary": [
-                "Failure rate rises under CPU load",
-                "Evidence: reproduced",
-            ],
-            "tags": [
-                "Failure rate rises under CPU load",
-                "Evidence: reproduced",
-            ],
-            "evidence_tier": "reproduced",
-            "has_polluter": False,
-            "has_fix": False,
-            "observed": "Fails intermittently under high system load.",
-            "reproduced": "Adding delay (+50ms) to worker barrier flipped outcome to pass.",
-            "confirmed_by_intervention": "Confirmed timing race via controlled thread sleep intervention.",
-            "how_we_know": [
-                {"step": 1, "label": "Observed", "detail": "Fails intermittently under high system load."},
-                {"step": 2, "label": "Reproduced", "detail": "Adding delay (+50ms) to worker barrier flipped outcome to pass."},
-                {"step": 3, "label": "Confirmed by intervention", "detail": "Confirmed timing race via controlled thread sleep intervention."},
-            ],
-            "can_quarantine": True,
-            "quarantine_available": True,
-        },
-        {
-            "id": "finding-3",
-            "test_id": "test_total_rounds_correctly",
-            "full_test_id": "tests.test_stock::test_total_rounds_correctly",
-            "type": "real_bug",
-            "verdict": "real",
-            "badge_label": "Real bug",
-            "root_cause": "Fails the same way every time",
-            "plain_sentence": "This is a genuine regression. FlakeGuard will not let it be quarantined.",
-            "metrics_summary": [
-                "Fails deterministically across all permutations (100% fail rate)",
-                "Evidence: deterministic failure",
-            ],
-            "tags": [
-                "Fails deterministically across all permutations (100% fail rate)",
-                "Evidence: deterministic failure",
-            ],
-            "evidence_tier": "observed",
-            "has_polluter": False,
-            "has_fix": False,
-            "observed": "Failed in 100% of shuffled, isolated, and repeated runs.",
-            "reproduced": "Fails identically regardless of order, seed, or isolation.",
-            "confirmed_by_intervention": "No causal intervention flipped outcome; deterministic regression.",
-            "how_we_know": [
-                {"step": 1, "label": "Observed", "detail": "Failed in 100% of shuffled, isolated, and repeated runs."},
-                {"step": 2, "label": "Reproduced", "detail": "Fails identically regardless of order, seed, or isolation."},
-                {"step": 3, "label": "Confirmed by intervention", "detail": "No causal intervention flipped outcome; deterministic regression."},
-            ],
-            "can_quarantine": False,
-            "quarantine_available": False,
-        },
+    run_id = event_path.stem
+    artifacts_candidates = [
+        event_path.parent.parent / "artifacts" / run_id / "findings.json",
+        Path("scan_artifacts") / "findings.json",
+        Path("out") / "findings.json",
     ]
+    real_findings = None
+    for cand in artifacts_candidates:
+        if cand.exists() and cand.stat().st_size > 0:
+            try:
+                loaded = json.loads(cand.read_text(encoding="utf-8"))
+                if isinstance(loaded, list) and len(loaded) > 0:
+                    real_findings = loaded
+                    break
+            except Exception:
+                pass
+
+    if real_findings is not None:
+        findings = real_findings
+        is_demo_run = False
+        data_source = "live scan"
+        for f in findings:
+            if not f.get("where_it_lives") and not f.get("polluter_file") and not f.get("polluter_test_id"):
+                tid = f.get("test_id", "")
+                f["where_it_lives"] = f"{tid.split('::')[0]}:1" if "::" in tid else f"{tid}.py:1"
+    else:
+        # Fallback to seeded demo findings when no real scan artifacts exist
+        is_demo_run = True
+        data_source = "demo data"
+        findings = [
+            {
+                "id": "finding-1",
+                "test_id": "test_initial_order_state",
+                "full_test_id": "tests.test_orders::test_initial_order_state",
+                "type": "flaky",
+                "verdict": "flaky",
+                "badge_label": "Flaky",
+                "root_cause": "Order dependence",
+                "plain_sentence": "Another test leaves state behind. test_batch_order_submission changes a shared value in orders.py:12, and this test fails when it runs afterwards.",
+                "is_demo": True,
+                "data_source": "demo data",
+                "metrics_summary": [
+                    "Demo data",
+                    "Fails in 60% of shuffled runs",
+                    "Passes every time on its own",
+                    "Evidence: confirmed by intervention",
+                ],
+                "tags": [
+                    "Demo data",
+                    "Fails in 60% of shuffled runs",
+                    "Passes every time on its own",
+                    "Evidence: confirmed by intervention",
+                ],
+                "evidence_tier": "confirmed by intervention",
+                "has_polluter": True,
+                "has_fix": True,
+                "polluter_test_id": "test_batch_order_submission",
+                "polluter_name": "test_batch_order_submission",
+                "polluter_file": "orders.py",
+                "polluter_line": 12,
+                "polluter_file_line": "orders.py:12",
+                "polluter_snippet": "PENDING_ORDERS.append(order)\n# never cleared between tests",
+                "observed": "Failed in 60% of shuffled runs.",
+                "reproduced": "Fails again whenever the polluter runs first. Passes in 100% of isolated runs.",
+                "confirmed_by_intervention": "Running it alone flipped the result to pass. Pinning the random seed changed nothing, which rules out randomness.",
+                "where_it_lives": "orders.py:12",
+                "how_we_know": [
+                    {"step": 1, "label": "Observed", "detail": "Failed in 60% of shuffled runs."},
+                    {"step": 2, "label": "Reproduced", "detail": "Fails again whenever the polluter runs first. Passes in 100% of isolated runs."},
+                    {"step": 3, "label": "Confirmed by intervention", "detail": "Running it alone flipped the result to pass. Pinning the random seed changed nothing, which rules out randomness."},
+                ],
+                "can_quarantine": True,
+                "quarantine_available": True,
+            },
+            {
+                "id": "finding-2",
+                "test_id": "test_background_job_finishes",
+                "full_test_id": "tests.test_reports::test_background_job_finishes",
+                "type": "flaky",
+                "verdict": "flaky",
+                "badge_label": "Flaky",
+                "root_cause": "Timing",
+                "plain_sentence": "The test waits a fixed time for a background thread, so it fails when the machine is busy.",
+                "is_demo": True,
+                "data_source": "demo data",
+                "metrics_summary": [
+                    "Demo data",
+                    "Failure rate rises under CPU load",
+                    "Evidence: reproduced",
+                ],
+                "tags": [
+                    "Demo data",
+                    "Failure rate rises under CPU load",
+                    "Evidence: reproduced",
+                ],
+                "evidence_tier": "reproduced",
+                "has_polluter": False,
+                "has_fix": False,
+                "observed": "Fails intermittently under high system load.",
+                "reproduced": "Adding delay (+50ms) to worker barrier flipped outcome to pass.",
+                "confirmed_by_intervention": "Confirmed timing race via controlled thread sleep intervention.",
+                "where_it_lives": "reports.py:45",
+                "how_we_know": [
+                    {"step": 1, "label": "Observed", "detail": "Fails intermittently under high system load."},
+                    {"step": 2, "label": "Reproduced", "detail": "Adding delay (+50ms) to worker barrier flipped outcome to pass."},
+                    {"step": 3, "label": "Confirmed by intervention", "detail": "Confirmed timing race via controlled thread sleep intervention."},
+                ],
+                "can_quarantine": True,
+                "quarantine_available": True,
+            },
+            {
+                "id": "finding-3",
+                "test_id": "test_total_rounds_correctly",
+                "full_test_id": "tests.test_stock::test_total_rounds_correctly",
+                "type": "real_bug",
+                "verdict": "real",
+                "badge_label": "Real bug",
+                "root_cause": "Fails the same way every time",
+                "plain_sentence": "This is a genuine regression. FlakeGuard will not let it be quarantined.",
+                "is_demo": True,
+                "data_source": "demo data",
+                "metrics_summary": [
+                    "Demo data",
+                    "Fails deterministically across all permutations (100% fail rate)",
+                    "Evidence: deterministic failure",
+                ],
+                "tags": [
+                    "Demo data",
+                    "Fails deterministically across all permutations (100% fail rate)",
+                    "Evidence: deterministic failure",
+                ],
+                "evidence_tier": "observed",
+                "has_polluter": False,
+                "has_fix": False,
+                "observed": "Failed in 100% of shuffled, isolated, and repeated runs.",
+                "reproduced": "Fails identically regardless of order, seed, or isolation.",
+                "confirmed_by_intervention": "No causal intervention flipped outcome; deterministic regression.",
+                "how_we_know": [
+                    {"step": 1, "label": "Observed", "detail": "Failed in 100% of shuffled, isolated, and repeated runs."},
+                    {"step": 2, "label": "Reproduced", "detail": "Fails identically regardless of order, seed, or isolation."},
+                    {"step": 3, "label": "Confirmed by intervention", "detail": "No causal intervention flipped outcome; deterministic regression."},
+                ],
+                "can_quarantine": False,
+                "quarantine_available": False,
+            },
+        ]
 
     return {
         "id": event_path.stem,
@@ -323,6 +365,8 @@ def _parse_run_events(event_path: Path) -> dict[str, Any]:
         "human_steps": human_steps,
         "latest_events": latest_events,
         "findings": findings,
+        "is_demo": is_demo_run,
+        "data_source": data_source,
         "provenance": {
             "command": f"flakeguard scan {clean_repo}",
             "git_sha": sha,
@@ -389,6 +433,7 @@ async def list_runs(request: Request) -> Response:
                         "evidence_tier": "confirmed by intervention",
                         "has_fix": True,
                         "can_quarantine": True,
+                        "where_it_lives": "orders.py:12",
                     },
                     {
                         "test_id": "test_background_job_finishes",
@@ -402,6 +447,7 @@ async def list_runs(request: Request) -> Response:
                         "evidence_tier": "reproduced",
                         "has_fix": False,
                         "can_quarantine": True,
+                        "where_it_lives": "reports.py:45",
                     },
                     {
                         "test_id": "test_total_rounds_correctly",

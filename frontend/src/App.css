@@ -1,4 +1,23 @@
-/* App.css - Clean 3-tab layout matching Proposal Canvas */
+/* App.css - Unified Dark Theme layout matching Proposal Canvas */
+
+:root {
+  --color-bg-base: #0b0c10;
+  --color-bg-panel: #12141a;
+  --color-bg-subtle: #181b22;
+  --color-border: #262933;
+  --color-text-primary: #f0f2f5;
+  --color-text-muted: #8b949e;
+  --surface-1: #101017;
+  --surface-2: #16161f;
+  --surface-3: #1d1d28;
+  --line: #24242f;
+  --line-strong: #32323f;
+  --text: #f0eee8;
+  --text-2: #a8a49c;
+  --text-3: #6e6a62;
+  --accent: #38bdf8;
+  --primary: #2563eb;
+}
 
 * {
   box-sizing: border-box;
@@ -8,8 +27,8 @@ body {
   margin: 0;
   padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background-color: #fafafa;
-  color: #111827;
+  background-color: #0b0c10;
+  color: #f0f2f5;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -17,19 +36,20 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background-color: #0b0c10;
 }
 
 /* Top Navigation Bar */
 .app-topbar {
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
+  background: #12141a;
+  border-bottom: 1px solid #262933;
   position: sticky;
   top: 0;
   z-index: 100;
 }
 
 .topbar-inner {
-  max-width: 960px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 24px;
   height: 64px;
@@ -45,21 +65,22 @@ body {
 }
 
 .brand-name {
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 700;
-  color: #111827;
+  color: #f0f2f5;
   letter-spacing: -0.02em;
 }
 
 .brand-tagline {
   font-size: 13px;
-  color: #6b7280;
+  color: #8b949e;
 }
 
 /* Tab Navigation */
 .tab-nav {
   display: flex;
-  background: #f3f4f6;
+  background: #181b22;
+  border: 1px solid #262933;
   padding: 3px;
   border-radius: 9999px;
   gap: 2px;
@@ -70,26 +91,27 @@ body {
   border: none;
   font-size: 13.5px;
   font-weight: 500;
-  color: #4b5563;
+  color: #8b949e;
   padding: 6px 18px;
   border-radius: 9999px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.15s ease;
 }
 
 .nav-tab-btn:hover {
-  color: #111827;
+  color: #f0f2f5;
 }
 
 .nav-tab-btn.active {
-  background: #ffffff;
-  color: #111827;
+  background: #2563eb;
+  color: #ffffff;
   font-weight: 600;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 /* Main Content Area */
 .app-main {
   flex: 1;
   width: 100%;
+  background-color: #0b0c10;
 }

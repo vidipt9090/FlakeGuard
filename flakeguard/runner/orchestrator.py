@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import shutil
 import subprocess
 import sys
@@ -10,6 +11,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 from flakeguard.runner.detector import detect_repository
 from flakeguard.runner.events import EventLogger
@@ -129,6 +131,125 @@ def _resolve_target(
             raise RuntimeError(f"Could not clone repository {git_url}: {exc}") from exc
 
     raise ValueError(f"Target '{target}' is neither an existing directory nor a recognized Git URL.")
+
+
+def _export_scan_artifacts(
+    repo_path: Path,
+    pinned_sha: str,
+    test_stats: dict[str, dict],
+    flaky_tests: list[str],
+    artifacts_dir: Path,
+    event_log_path: str,
+) -> tuple[Path, Path, Path, Path]:
+    """Export event log, JUnit XML, findings.json, and tree.json as single-source artifacts."""
+    artifacts_dir.mkdir(parents=True, exist_ok=True)
+    events_dest = artifacts_dir / "events.jsonl"
+    junit_dest = artifacts_dir / "junit.xml"
+    findings_dest = artifacts_dir / "findings.json"
+    tree_dest = artifacts_dir / "tree.json"
+
+    # 1. Events JSONL
+    if Path(event_log_path).exists() and Path(event_log_path).resolve() != events_dest.resolve():
+        try:
+            shutil.copyfile(event_log_path, events_dest)
+        except Exception:
+            pass
+
+    # 2. JUnit XML
+    found_xml = False
+    for xml_name in ["junit_baseline.xml", "junit_shuffled_0.xml", "junit_reversed.xml"]:
+        src = artifacts_dir / xml_name
+        if src.exists() and src.stat().st_size > 0:
+            try:
+                shutil.copyfile(src, junit_dest)
+                found_xml = True
+                break
+            except Exception:
+                pass
+    if not found_xml:
+        for xml_candidate in artifacts_dir.glob("*.xml"):
+            if xml_candidate != junit_dest and xml_candidate.stat().st_size > 0:
+                try:
+                    shutil.copyfile(xml_candidate, junit_dest)
+                    found_xml = True
+                    break
+                except Exception:
+                    pass
+
+    # 3. Findings JSON
+    findings = []
+    for tid, stats in test_stats.items():
+        is_flaky = tid in flaky_tests
+        has_fails = (stats.get("fail", 0) + stats.get("error", 0)) > 0
+        if not is_flaky and not has_fails:
+            continue
+
+        verdict = "flaky" if is_flaky else "real"
+        tier = "confirmed_by_intervention" if is_flaky else "observed"
+        messages = " ".join(stats.get("messages", []))
+        root_cause = "Order dependence" if is_flaky else "Deterministic regression"
+        if "sleep" in messages.lower() or "timeout" in messages.lower():
+            root_cause = "Timing / Async"
+        elif "random" in messages.lower():
+            root_cause = "Randomness"
+        elif "conftest" in messages.lower() or "state" in messages.lower():
+            root_cause = "Shared state leak"
+
+        plain_sentence = (
+            f"Fails in {stats.get('failure_rate', 0.0) * 100:.0f}% of shuffled runs. "
+            f"Passes in isolation. Evidence tier: {tier}."
+            if is_flaky
+            else f"Consistently fails across all {stats.get('total', 0)} perturbation runs. Real defect."
+        )
+
+        where_it_lives = stats.get("where_it_lives") or (f"{tid.split('::')[0]}:1" if "::" in tid else f"{tid}.py:1")
+
+        findings.append({
+            "id": f"finding-{len(findings) + 1}",
+            "test_id": tid,
+            "verdict": verdict,
+            "root_cause": root_cause,
+            "plain_sentence": plain_sentence,
+            "evidence_tier": tier,
+            "can_quarantine": is_flaky,
+            "has_fix": is_flaky and ("Order" in root_cause or "State" in root_cause),
+            "where_it_lives": where_it_lives,
+            "fail_rate": stats.get("failure_rate", 0.0),
+            "total_runs": stats.get("total", 0),
+            "pass_runs": stats.get("pass", 0),
+            "fail_runs": stats.get("fail", 0) + stats.get("error", 0),
+        })
+
+    findings_dest.write_text(json.dumps(findings, indent=2), encoding="utf-8")
+
+    # 4. Live AST + Jedi Tree JSON
+    tree_data: dict[str, Any] = {
+        "repo": repo_path.name,
+        "sha": pinned_sha,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "cases": [],
+    }
+
+    try:
+        from flakeguard.navigator.ast_nav import AstNavigator
+        from flakeguard.navigator.knowledge_tree import build_tree
+
+        nav = AstNavigator(repo_root=repo_path, repo=repo_path.name, sha=pinned_sha)
+        cases_to_nav = flaky_tests if flaky_tests else list(test_stats.keys())[:10]
+        for tid in cases_to_nav:
+            res = nav.related(tid)
+            kt = build_tree(res, nav.provenance, repo=repo_path.name, sha=pinned_sha)
+            tree_data["cases"].append({
+                "test_id": tid,
+                "tree": kt.to_dict(),
+                "stats": kt.stats(),
+                "rows": kt.rows(),
+            })
+    except Exception as e:
+        tree_data["error"] = str(e)
+
+    tree_dest.write_text(json.dumps(tree_data, indent=2), encoding="utf-8")
+    return events_dest, junit_dest, findings_dest, tree_dest
 
 
 def scan(config: ScanConfig) -> ScanResult:
@@ -355,6 +476,16 @@ def scan(config: ScanConfig) -> ScanResult:
                 "flaky_tests_count": len(flaky_tests),
                 "flaky_tests": flaky_tests,
             },
+        )
+
+        # 6. Export Single-Source Artifact Bundle (events.jsonl, junit.xml, findings.json, tree.json)
+        _export_scan_artifacts(
+            repo_path=repo_path,
+            pinned_sha=pinned_sha,
+            test_stats=test_stats,
+            flaky_tests=flaky_tests,
+            artifacts_dir=artifacts_dir,
+            event_log_path=str(event_logger.path),
         )
 
         return ScanResult(

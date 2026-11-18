@@ -1,0 +1,32 @@
+name: FlakeGuard CI Scan
+
+on:
+  pull_request:
+    branches: [main, master, develop]
+  workflow_dispatch:
+    inputs:
+      n_runs:
+        description: "Number of shuffled perturbation runs"
+        required: false
+        default: 3
+        type: number
+      flakeguard_ref:
+        description: "FlakeGuard branch or ref to invoke (use 'develop' until develop->main is merged)"
+        required: true
+        default: "develop"
+        type: string
+
+concurrency:
+  group: flakeguard-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  call-flakeguard-scan:
+    name: Run FlakeGuard Reusable Scan
+    # Explicitly call @develop until develop -> main is merged
+    uses: vidipt9090/FlakeGuard/.github/workflows/scan.yml@develop
+    with:
+      repo_url: ${{ github.repository }}
+      n_runs: ${{ inputs.n_runs || 3 }}
+      flakeguard_ref: ${{ inputs.flakeguard_ref || 'develop' }}
+    secrets: inherit

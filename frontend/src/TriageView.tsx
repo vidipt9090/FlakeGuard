@@ -4,6 +4,8 @@ import type { Finding, RunItem, StageItem } from "./types";
 import { FindingDrawer } from "./FindingDrawer";
 import { FixPRDrawer } from "./FixPRDrawer";
 import { NoTestsView } from "./NoTestsView";
+import { KnowledgeTreeView } from "./KnowledgeTreeView";
+import { getActionsUrl } from "./utils";
 import "./TriageView.css";
 
 interface TriageViewProps {
@@ -15,13 +17,15 @@ export const TriageView: React.FC<TriageViewProps> = ({
   onNavigateToPipeline,
   onNavigateToRepoMap,
 }) => {
-  const [repoInput, setRepoInput] = useState("https://github.com/vidipt9090/flakeguard-demo");
+  const [repoInput, setRepoInput] = useState("vidipt9090/FlakeGuard");
   const [sourceType, setSourceType] = useState<"github" | "demo" | "cachetools" | "synthetic" | "notest">("demo");
   const [useDocker, setUseDocker] = useState(false);
   const [runOnActions, setRunOnActions] = useState(true);
   const [shuffledN, setShuffledN] = useState(3);
 
   const [activeFilter, setActiveFilter] = useState<"all" | "flaky" | "real">("all");
+  const [viewMode, setViewMode] = useState<"list" | "tree">("list");
+  const [highlightTreeTestId, setHighlightTreeTestId] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
   const [scanStatus, setScanStatus] = useState<string | null>(null);
   const [currentRun, setCurrentRun] = useState<RunItem | null>(null);
@@ -87,6 +91,7 @@ export const TriageView: React.FC<TriageViewProps> = ({
       if (res.fallback_banner) {
         setActionNotice(res.fallback_banner);
       }
+      setViewMode("tree");
       fetchCurrentState();
     } catch (err) {
       setActionNotice(err instanceof Error ? err.message : "Failed to start scan");
@@ -115,7 +120,7 @@ export const TriageView: React.FC<TriageViewProps> = ({
         <NoTestsView
           repoName={repoInput}
           onRunScanWithKept={() => {
-            handleSelectSource("demo", "vidipt9090/flakeguard-demo");
+            handleSelectSource("demo", "vidipt9090/FlakeGuard");
           }}
         />
       </div>
@@ -205,11 +210,11 @@ export const TriageView: React.FC<TriageViewProps> = ({
               <button
                 type="button"
                 className={`source-card ${sourceType === "demo" ? "selected" : ""}`}
-                onClick={() => handleSelectSource("demo", "vidipt9090/flakeguard-demo")}
+                onClick={() => handleSelectSource("demo", "vidipt9090/FlakeGuard")}
               >
                 <strong className="source-title">Demo repo</strong>
                 <p className="source-desc">
-                  A small order-app with three flaky tests built in and one real bug.
+                  FlakeGuard core repository with automated test matrix and AST knowledge trees.
                 </p>
               </button>
 
@@ -337,10 +342,15 @@ export const TriageView: React.FC<TriageViewProps> = ({
             <span className="commit-tag">
               HEAD: <code>{currentRun?.git_sha?.substring(0, 7) || "ca79ba6"}</code>
             </span>
+            {((currentRun as any)?.is_demo || (currentRun as any)?.data_source === "demo data") && (
+              <span className="badge-demo-run" style={{ background: "rgba(245, 158, 11, 0.15)", color: "#f59e0b", border: "1px solid rgba(245, 158, 11, 0.3)", borderRadius: "4px", padding: "2px 8px", fontSize: "11px", fontWeight: 600, marginLeft: "8px" }}>
+                Demo data
+              </span>
+            )}
           </div>
           <div className="repo-header-actions">
             <a
-              href="https://github.com/vidipt9090/flakeguard-demo/actions"
+              href={getActionsUrl(repoInput)}
               target="_blank"
               rel="noreferrer"
               className="btn-link-actions"
@@ -404,84 +414,119 @@ export const TriageView: React.FC<TriageViewProps> = ({
               Real bugs ({findings.filter((f) => f.verdict === "real").length})
             </button>
           </div>
+
+          {/* List | Tree View Mode Toggle */}
+          <div className="view-mode-toggle-group">
+            <button
+              type="button"
+              className={`view-toggle-btn ${viewMode === "list" ? "active" : ""}`}
+              onClick={() => setViewMode("list")}
+              data-testid="toggle-view-list"
+            >
+              📋 List
+            </button>
+            <button
+              type="button"
+              className={`view-toggle-btn ${viewMode === "tree" ? "active" : ""}`}
+              onClick={() => setViewMode("tree")}
+              data-testid="toggle-view-tree"
+            >
+              🌲 Tree
+            </button>
+          </div>
         </div>
 
-        {/* Findings feed */}
-        <div className="findings-feed">
-          {filteredFindings.length === 0 ? (
-            <div className="empty-findings-state">
-              <span className="empty-check-icon">✓</span>
-              <p className="empty-text">No flaky tests found in 20 runs.</p>
-              <span className="empty-provenance">
-                Verified across shuffled seeds, isolated runs, and causal interventions.
-              </span>
-            </div>
-          ) : (
-            filteredFindings.map((finding) => {
-              const isFlaky = finding.verdict === "flaky";
-              const canQuarantine = isFlaky && (finding.can_quarantine !== false);
+        {/* Findings presentation: Tree or Feed */}
+        {viewMode === "tree" ? (
+          <div className="triage-tree-wrapper">
+            <KnowledgeTreeView
+              repoName={repoInput}
+              findings={filteredFindings}
+              onOpenDrawer={(f) => setSelectedFinding(f)}
+              highlightNodeId={highlightTreeTestId}
+              embedded={true}
+            />
+          </div>
+        ) : (
+          <div className="findings-feed">
+            {filteredFindings.length === 0 ? (
+              <div className="empty-findings-state">
+                <span className="empty-check-icon">✓</span>
+                <p className="empty-text">No flaky tests found in 20 runs.</p>
+                <span className="empty-provenance">
+                  Verified across shuffled seeds, isolated runs, and causal interventions.
+                </span>
+              </div>
+            ) : (
+              filteredFindings.map((finding) => {
+                const isFlaky = finding.verdict === "flaky";
+                const canQuarantine = isFlaky && (finding.can_quarantine !== false);
 
-              return (
-                <article key={finding.id || finding.test_id} className="finding-card">
-                  <header className="card-header">
-                    <span className={`finding-badge ${isFlaky ? "badge-flaky" : "badge-real"}`}>
-                      {isFlaky ? "Flaky" : "Real bug"}
-                    </span>
-                    <span className="root-cause-tag">{finding.root_cause}</span>
-                  </header>
-
-                  <h3 className="card-test-id">{finding.test_id}</h3>
-                  <p className="card-plain-sentence">{finding.plain_sentence}</p>
-
-                  <div className="card-metrics-strip">
-                    {(finding.tags || finding.metrics_summary || []).map((tag: string, idx: number) => (
-                      <span key={idx} className="metric-chip">
-                        {tag}
+                return (
+                  <article key={finding.id || finding.test_id} className="finding-card">
+                    <header className="card-header">
+                      <span className={`finding-badge ${isFlaky ? "badge-flaky" : "badge-real"}`}>
+                        {isFlaky ? "Flaky" : "Real bug"}
                       </span>
-                    ))}
-                  </div>
-
-                  <footer className="card-actions">
-                    <div className="actions-left">
-                      {isFlaky && finding.has_fix && (
-                        <button
-                          className="btn-propose-fix"
-                          onClick={() => setFixFinding(finding)}
-                        >
-                          Propose fix PR
-                        </button>
+                      <span className="root-cause-tag">{finding.root_cause}</span>
+                      {((finding as any).is_demo || (finding as any).data_source === "demo data" || (finding.tags && finding.tags.includes("Demo data"))) && (
+                        <span className="badge-demo-chip" style={{ background: "rgba(245, 158, 11, 0.15)", color: "#f59e0b", border: "1px solid rgba(245, 158, 11, 0.3)", borderRadius: "4px", padding: "1px 6px", fontSize: "10px", fontWeight: 600 }}>Demo data</span>
                       )}
+                    </header>
 
-                      {canQuarantine ? (
-                        <button
-                          className="btn-quarantine"
-                          onClick={() => handleQuarantine(finding.test_id)}
-                        >
-                          Quarantine
-                        </button>
-                      ) : (
-                        <button
-                          className="btn-quarantine-disabled"
-                          disabled
-                          title="Real bugs cannot be quarantined to prevent hiding genuine software defects"
-                        >
-                          Quarantine unavailable
-                        </button>
-                      )}
+                    <h3 className="card-test-id">{finding.test_id}</h3>
+                    <p className="card-plain-sentence">{finding.plain_sentence}</p>
+
+                    <div className="card-metrics-strip">
+                      {(finding.tags || finding.metrics_summary || []).map((tag: string, idx: number) => (
+                        <span key={idx} className="metric-chip">
+                          {tag}
+                        </span>
+                      ))}
                     </div>
 
-                    <button
-                      className="btn-see-proof"
-                      onClick={() => setSelectedFinding(finding)}
-                    >
-                      See the proof →
-                    </button>
-                  </footer>
-                </article>
-              );
-            })
-          )}
-        </div>
+                    <footer className="card-actions">
+                      <div className="actions-left">
+                        {isFlaky && finding.has_fix && (
+                          <button
+                            className="btn-propose-fix"
+                            onClick={() => setFixFinding(finding)}
+                          >
+                            Propose fix PR
+                          </button>
+                        )}
+
+                        {canQuarantine ? (
+                          <button
+                            className="btn-quarantine"
+                            onClick={() => handleQuarantine(finding.test_id)}
+                          >
+                            Quarantine
+                          </button>
+                        ) : (
+                          <button
+                            className="btn-quarantine-disabled"
+                            disabled
+                            title="Real bugs cannot be quarantined to prevent hiding genuine software defects"
+                          >
+                            Quarantine unavailable
+                          </button>
+                        )}
+                      </div>
+
+                      <button
+                        className="btn-see-proof"
+                        onClick={() => setSelectedFinding(finding)}
+                      >
+                        See the proof →
+                      </button>
+                    </footer>
+                  </article>
+                );
+              })
+            )}
+          </div>
+        )}
       </section>
 
       {/* Slide-over Finding Drawer */}
@@ -493,6 +538,10 @@ export const TriageView: React.FC<TriageViewProps> = ({
         }}
         onQuarantine={handleQuarantine}
         onNavigateToRepoMap={onNavigateToRepoMap}
+        onSelectTreeNode={(nodeId) => {
+          setViewMode("tree");
+          setHighlightTreeTestId(nodeId);
+        }}
       />
 
       {/* Slide-over Fix PR Drawer */}

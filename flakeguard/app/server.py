@@ -253,8 +253,11 @@ def _load_test_cases() -> list[dict[str, Any]]:
                 display_label = "no evidence in N runs" if ground_truth == "stable" else ground_truth
 
                 # Check if knowledge tree exists
-                tree_filename = f"{rel_file.replace('/', '_').replace('.', '_')}__{case_name}.json"
+                tree_filename = f"{rel_file.replace('/', '_').replace(os.sep, '_')}__{case_name}.json"
                 tree_path = TREES_DIR / tree_filename
+                if not tree_path.exists():
+                    tree_filename = f"{rel_file.replace('/', '_').replace('.', '_')}__{case_name}.json"
+                    tree_path = TREES_DIR / tree_filename
                 has_tree = tree_path.exists()
 
                 # Generate mock / empirical causal evidence
@@ -448,6 +451,74 @@ def _load_results_data() -> dict[str, Any]:
     }
 
 
+def _tree_sets() -> dict[str, Path]:
+    found: dict[str, Path] = {}
+    primary = RESULTS_DIR / "knowledge_trees"
+    if primary.is_dir() and any(primary.glob("*.json")):
+        found["synthetic"] = primary
+    if RESULTS_DIR.is_dir():
+        for child in sorted(RESULTS_DIR.iterdir()):
+            if not child.is_dir() or child.name == "knowledge_trees":
+                continue
+            nested = child / "knowledge_trees"
+            if nested.is_dir() and any(nested.glob("*.json")):
+                found[child.name] = nested
+    return found
+
+
+def _load_tree_sets() -> list[dict[str, Any]]:
+    out = []
+    for name, directory in _tree_sets().items():
+        summary = {}
+        summary_path = directory.parent / "nav_trace_summary.json"
+        if summary_path.exists():
+            try:
+                summary = json.loads(summary_path.read_text(encoding="utf-8"))
+            except Exception:
+                pass
+        cases = []
+        for path in sorted(directory.glob("*.json")):
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            if not payload:
+                continue
+            stats = (payload.get("tree") or {}).get("stats") or {}
+            trace = (payload.get("trace") or {}).get("summary") or {}
+            cases.append({
+                "test_id": payload.get("test_id") or path.stem,
+                "file": path.name,
+                "label": payload.get("label") or "",
+                "root_cause": payload.get("root_cause") or "",
+                "nodes": stats.get("nodes", 0),
+                "max_depth": stats.get("max_depth", 0),
+                "jedi_calls": trace.get("jedi_calls", 0),
+                "steps": trace.get("events", 0),
+            })
+        out.append({
+            "name": name,
+            "summary": summary,
+            "cases": cases,
+        })
+    return out
+
+
+def _load_tree_for_set(set_name: str, wanted: str) -> dict[str, Any] | None:
+    directory = _tree_sets().get(set_name)
+    if directory is None:
+        return None
+    for path in sorted(directory.glob("*.json")):
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            if payload and payload.get("test_id") == wanted:
+                payload["source"] = "export"
+                return payload
+        except Exception:
+            continue
+    return None
+
+
 class FlakeGuardRequestHandler(BaseHTTPRequestHandler):
     """Handles HTTP and Server-Sent Events (SSE) requests."""
 
@@ -475,6 +546,19 @@ class FlakeGuardRequestHandler(BaseHTTPRequestHandler):
             self._handle_sse_stream()
         elif path == "/api/status":
             self._serve_json(_CURRENT_SCAN)
+        elif path == "/api/sets":
+            self._serve_json({"sets": _load_tree_sets()})
+        elif path.startswith("/api/sets/") and path.endswith("/tree"):
+            parts = path.split("/")
+            set_name = parts[3] if len(parts) > 3 else "synthetic"
+            from urllib.parse import parse_qs
+            query = parse_qs(parsed.query)
+            wanted = query.get("test_id", [""])[0]
+            data = _load_tree_for_set(set_name, wanted)
+            if data:
+                self._serve_json(data)
+            else:
+                self.send_error(HTTPStatus.NOT_FOUND, f"Tree not found for {wanted} in set {set_name}")
         elif path == "/api/runs":
             self._serve_json({"runs": _load_available_runs()})
         elif path.startswith("/api/run/"):

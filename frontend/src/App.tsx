@@ -17,10 +17,18 @@ export default function App() {
     }
     return "triage";
   });
+  const [highlightRepoMapNode, setHighlightRepoMapNode] = useState<string | null>(null);
 
   useEffect(() => {
     window.location.hash = activeTab;
   }, [activeTab]);
+
+  const handleNavigateToRepoMap = (nodeId?: string) => {
+    if (nodeId) {
+      setHighlightRepoMapNode(nodeId);
+    }
+    setActiveTab("repomap");
+  };
 
   return (
     <div className="app-shell">
@@ -66,10 +74,12 @@ export default function App() {
         {activeTab === "triage" && (
           <TriageView
             onNavigateToPipeline={() => setActiveTab("pipeline")}
-            onNavigateToRepoMap={() => setActiveTab("repomap")}
+            onNavigateToRepoMap={handleNavigateToRepoMap}
           />
         )}
-        {activeTab === "repomap" && <RepoMapView />}
+        {activeTab === "repomap" && (
+          <RepoMapView initialHighlightNodeId={highlightRepoMapNode} />
+        )}
         {activeTab === "pipeline" && <PipelineView />}
         {activeTab === "results" && <ResultsView />}
       </main>
