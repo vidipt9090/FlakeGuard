@@ -193,6 +193,15 @@ def test_fix_is_refused_when_there_is_no_fix(client, run_id):
     assert resp.status_code == 409 and "no validated fix" in resp.json()["detail"]
 
 
+def recorded_target(run_id: str) -> Path:
+    """The repository the run scanned, from the run's meta.json (a fixture path or a saved copy)."""
+    from flakeguard.console.store import RecordedStore
+
+    target = RecordedStore().target_path(run_id)
+    assert target is not None, f"{run_id} has no readable target in meta.json"
+    return target
+
+
 def test_ask_cites_real_lines_and_says_nothing_when_nothing_matches(client, run_id):
     finding = next(f for f in client.get(f"/api/runs/{run_id}/findings").json() if f["verdict"] == "flaky")
     answer = m.AskAnswer.model_validate(
@@ -200,7 +209,7 @@ def test_ask_cites_real_lines_and_says_nothing_when_nothing_matches(client, run_
     )
     assert answer.chunks > 0 and answer.citations
     for c in answer.citations:
-        lines = (REPO / "tests" / "data" / "demo_inventory" / c.file).read_text(encoding="utf-8").splitlines()
+        lines = (recorded_target(run_id) / c.file).read_text(encoding="utf-8").splitlines()
         assert 1 <= c.line <= len(lines)
     empty = m.AskAnswer.model_validate(
         client.post(f"/api/findings/{finding['id']}/ask", json={"question": "xyzzy plugh frobnicate"}).json()
@@ -213,7 +222,7 @@ def test_recorded_counts_match_the_raw_junit_files(run_id):
     from flakeguard.console.builder import collect_stats, load_runs
     from flakeguard.console.store import RecordedStore
 
-    target = REPO / "tests" / "data" / "demo_inventory"
+    target = recorded_target(run_id)
     stats = collect_stats(load_runs(target, RECORDED_DIR / run_id / "raw" / "artifacts"))
     findings = RecordedStore().findings(run_id)
     assert findings

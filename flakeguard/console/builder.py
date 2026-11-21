@@ -232,6 +232,7 @@ def build_run(
     live: bool = False,
     progress: Callable[[str, str], None] | None = None,
     stage_text: dict[str, str] | None = None,
+    notice_detail: str = "Replay of a saved scan of a local fixture, not a GitHub pull request.",
 ) -> Built:
     """``live=True`` builds a local scan (mode ``local``, no notice); otherwise a recorded replay.
 
@@ -367,7 +368,7 @@ def build_run(
     tree = _build_tree(repo, analysis, links, stats, findings, tests, polluters, finding_id_by_test, status_by_test)
     run = _build_status(
         repo, events_path, run_id, target_label, shuffled_n, runs, stats, findings, tests,
-        diagnoses, bisection_seconds, links, analysis, live, stage_text or {},
+        diagnoses, bisection_seconds, links, analysis, live, stage_text or {}, notice_detail,
     )
     note("verdict", "done")
     facts = {
@@ -462,7 +463,7 @@ def _build_status(
     repo: Path, events_path: Path, run_id: str, target_label: str, shuffled_n: int,
     runs: list[RunRecord], stats: dict[str, TestStats], findings: list[m.Finding],
     tests: dict[str, TestDef], diagnoses: dict[str, Diagnosis], bisection_seconds: float,
-    links: list[SharedLink], analysis: RepoAnalysis, live: bool, stage_text: dict[str, str],
+    links: list[SharedLink], analysis: RepoAnalysis, live: bool, stage_text: dict[str, str], notice_detail: str,
 ) -> m.RunStatus:
     events = _event_times(events_path)
 
@@ -543,7 +544,5 @@ def _build_status(
         current=None,
         counters=m.Counters(runsDone=sh_done, runsTotal=shuffled_n, failures=focus_failures, flagged=len(findings)),
         matrix=matrix,
-        notice=None if live else m.Notice(
-            kind="recorded-run", detail="Replay of a saved scan of a local fixture, not a GitHub pull request."
-        ),
+        notice=None if live else m.Notice(kind="recorded-run", detail=notice_detail),
     )

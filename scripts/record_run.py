@@ -17,10 +17,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import platform
 import shutil
 import subprocess
 import sys
+import tempfile
 from datetime import datetime, timezone
 from importlib import metadata
 from pathlib import Path
@@ -49,7 +51,9 @@ def version(pkg: str) -> str:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("target", help="Path to the repository to scan, relative to the FlakeGuard repo")
+    ap.add_argument("target", nargs="?", help="Path to the repository to scan, relative to the FlakeGuard repo")
+    ap.add_argument("--clone", metavar="OWNER/REPO", default=None,
+                    help="Scan an anonymous clone of this GitHub repository instead of a local path")
     ap.add_argument("--shuffled-n", type=int, default=10)
     ap.add_argument("--out", default="recorded")
     ap.add_argument("--want-single-failure", metavar="TEST_ID", default=None)
@@ -58,6 +62,18 @@ def main() -> int:
     ap.add_argument("--allow-dirty", action="store_true", help="Record even if tracked files are modified")
     args = ap.parse_args()
 
+    if bool(args.target) == bool(args.clone):
+        ap.error("give either a local target path or --clone OWNER/REPO")
+    clone_dir = None
+    target_sha = None
+    if args.clone:
+        clone_dir = Path(tempfile.mkdtemp(prefix="fg-record-")) / "target"
+        subprocess.run(
+            ["git", "-c", "credential.helper=", "clone", "--depth", "50", f"https://github.com/{args.clone}.git", str(clone_dir)],
+            check=True, capture_output=True, text=True, env={**os.environ, "GIT_TERMINAL_PROMPT": "0"},
+        )
+        target_sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=clone_dir, capture_output=True, text=True, check=True).stdout.strip()
+        args.target = str(clone_dir)
     target = (REPO_ROOT / args.target).resolve()
     out_root = (REPO_ROOT / args.out).resolve()
     dirty = git("status", "--porcelain", "--", ".", ":!recorded")
@@ -70,8 +86,9 @@ def main() -> int:
     run_id = next_run_id(out_root, now.strftime("%Y-%m-%d"))
     run_dir = out_root / run_id
     raw = run_dir / "raw"
+    shown_target = f"<clone of {args.clone} at {target_sha}>" if args.clone else args.target
     scan_cmd = [
-        "python", "-m", "flakeguard", "scan", args.target, "--shuffled-n", str(args.shuffled_n),
+        "python", "-m", "flakeguard", "scan", shown_target, "--shuffled-n", str(args.shuffled_n),
         "--output-events", f"{args.out}/{run_id}/raw/events.jsonl",
         "--output-artifacts", f"{args.out}/{run_id}/raw/artifacts",
     ]
@@ -85,7 +102,8 @@ def main() -> int:
             shutil.rmtree(run_dir)
         raw.mkdir(parents=True)
         proc = subprocess.run(
-            [sys.executable, *scan_cmd[1:]], cwd=REPO_ROOT, capture_output=True, text=True,
+            [sys.executable, "-m", "flakeguard", "scan", args.target, *scan_cmd[5:]],
+            cwd=REPO_ROOT, capture_output=True, text=True,
         )
         (raw / "scan_stdout.txt").write_text(proc.stdout + proc.stderr, encoding="utf-8")
         if proc.returncode != 0:
@@ -102,18 +120,38 @@ def main() -> int:
             print("Gave up: no scan matched.")
             return 1
 
-    built = build_run(
-        repo=target, artifacts=raw / "artifacts", events_path=raw / "events.jsonl", run_id=run_id,
-        target_label=f"{args.target} (local fixture)", shuffled_n=args.shuffled_n,
-    )
+    if args.clone:
+        label = f"{args.clone} @ {target_sha[:7]}"
+        built = build_run(
+            repo=target, artifacts=raw / "artifacts", events_path=raw / "events.jsonl", run_id=run_id,
+            target_label=label, shuffled_n=args.shuffled_n,
+            stage_text={
+                "checkout": f"Cloned {args.clone} at {target_sha[:7]} (anonymous, shallow).",
+                "install": "Not run. A local scan uses this machine's Python environment.",
+                "pr-comment": "Not run. This is a saved scan of a repository, not a pull request.",
+            },
+            notice_detail="Replay of a saved scan of a cloned GitHub repository, not a pull request and not a GitHub Actions run.",
+        )
+        shutil.copytree(target, run_dir / "target", ignore=shutil.ignore_patterns(".git", "__pycache__", ".pytest_cache"))
+        meta_target = f"{args.out}/{run_id}/target"
+    else:
+        built = build_run(
+            repo=target, artifacts=raw / "artifacts", events_path=raw / "events.jsonl", run_id=run_id,
+            target_label=f"{args.target} (local fixture)", shuffled_n=args.shuffled_n,
+        )
+        meta_target = args.target
     (run_dir / "run.json").write_text(built.run.model_dump_json(indent=2), encoding="utf-8")
     (run_dir / "findings.json").write_text(
         "[" + ",".join(f.model_dump_json(indent=2) for f in built.findings) + "]", encoding="utf-8"
     )
     (run_dir / "tree.json").write_text(built.tree.model_dump_json(indent=2), encoding="utf-8")
-    (run_dir / "meta.json").write_text(json.dumps({"target": args.target}, indent=2), encoding="utf-8")
+    (run_dir / "meta.json").write_text(
+        json.dumps({"target": meta_target, "source_repo": args.clone, "source_commit": target_sha}, indent=2),
+        encoding="utf-8",
+    )
 
-    record_cmd = ["python", "scripts/record_run.py", args.target, "--shuffled-n", str(args.shuffled_n)]
+    record_cmd = ["python", "scripts/record_run.py", *(["--clone", args.clone] if args.clone else [args.target]),
+                  "--shuffled-n", str(args.shuffled_n)]
     if args.seed_start is not None:
         record_cmd += ["--seed-start", str(args.seed_start)]
     seeds = shuffled_seeds(raw / "events.jsonl")
@@ -128,14 +166,31 @@ def main() -> int:
         f"  the {args.shuffled_n} shuffled runs.\n"
         f"  Attempts: {attempts}. This is a selection of the run, not an average. The test fails by an\n"
         "  unseeded random draw (os.urandom), so the count varies from scan to scan."
-        if args.want_single_failure else "No selection: the first scan was recorded."
+        if args.want_single_failure else (
+            f"None. One scan, one attempt (attempts: {attempts}), with fixed seeds {seed_line.split(' (')[0]}.\n"
+            "  The seeds make the outcome reproducible, so there was nothing to select: scanning the same commit with\n"
+            "  the same seeds gives the same shuffled-run results. (Bisection and the pair runs are also deterministic.)"
+        )
     )
+    if args.clone:
+        header = (
+            "TARGET IS A GITHUB REPOSITORY CLONED ON THIS MACHINE (anonymous clone), NOT A PULL REQUEST AND NOT A GITHUB ACTIONS RUN.\n"
+            f"  Repository: https://github.com/{args.clone}\n"
+            f"  Commit scanned: {target_sha}\n"
+            "  Nothing was posted to GitHub. The console shows no PR links and no PR comment for this run."
+        )
+        repro_dir = f"git clone https://github.com/{args.clone} && cd {args.clone.split('/')[-1]} && git checkout {target_sha}"
+    else:
+        header = (
+            "TARGET IS A LOCAL FIXTURE, NOT A GITHUB PULL REQUEST.\n"
+            f"  Path: {args.target}\n"
+            "  Nothing was posted to GitHub. The console shows no PR links and no PR comment for this run."
+        )
+        repro_dir = f"cd {args.target}"
     (run_dir / "PROVENANCE.txt").write_text(
         f"""Recorded run {run_id}
 
-TARGET IS A LOCAL FIXTURE, NOT A GITHUB PULL REQUEST.
-  Path: {args.target}
-  Nothing was posted to GitHub. The console shows no PR links and no PR comment for this run.
+{header}
 
 Recorded (UTC): {now.isoformat(timespec='seconds')}
 Commit: {commit}   (FlakeGuard repository HEAD when this was recorded; working tree clean: {not dirty})
@@ -172,7 +227,7 @@ What is not in this run (shown as dashes, pending, or absent in the console):
   - Evidence tier "intervention-confirmed": not used. No change was made that removed a failure.
 
 How to reproduce the order-dependence finding on a clean checkout of the commit above:
-  cd {args.target}
+  {repro_dir}
   pytest tests/test_warmup.py::test_cache_warm tests/test_report.py::test_report_total -p no:randomly
   (expected: test_report_total fails; run test_report_total alone and it passes)
 
