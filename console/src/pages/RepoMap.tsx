@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
 import { Header } from '../components/Header';
+import { RunNotice } from '../components/RunNotice';
 import { RepoTree, faultOrder, useTreeLayout } from '../components/RepoTree';
 import { VerdictChip } from '../components/StatusChip';
 import { usePolling } from '../hooks/usePolling';
@@ -44,6 +45,7 @@ export default function RepoMap() {
     <>
       <Header />
       <main className="main">
+        <RunNotice runId={runId} />
         <div>
           <h1>Repo map</h1>
           <p className="lead">The repository drawn as a tree, built from the code itself. Faults stand out, and the shared value that links two tests is drawn in.</p>

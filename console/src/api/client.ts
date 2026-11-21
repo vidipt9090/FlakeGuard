@@ -25,7 +25,12 @@ const post = <T,>(path: string, body?: unknown) =>
 
 const wait = <T,>(v: T) => new Promise<T>((r) => setTimeout(() => r(v), 150));
 
+export interface Health { ok: boolean; mode: string; docker: boolean; recorded: string | null }
+
 export const api = {
+  health: (): Promise<Health> =>
+    USE_MOCK ? wait({ ok: true, mode: 'local', docker: false, recorded: null }) : http('/api/health'),
+
   startRun: (req: StartRunRequest): Promise<{ id: string }> =>
     USE_MOCK ? wait(mockStart(req)) : post('/api/runs', req),
 

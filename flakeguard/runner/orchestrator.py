@@ -15,7 +15,12 @@ from typing import Any
 
 from flakeguard.runner.detector import detect_repository
 from flakeguard.runner.events import EventLogger
-from flakeguard.runner.matrix import DEFAULT_SEED_START, PerturbationMatrix, SliceResult
+from flakeguard.runner.matrix import (
+    DEFAULT_SEED_START,
+    PerturbationMatrix,
+    RunObserver,
+    SliceResult,
+)
 from flakeguard.runner.sandbox import DockerSandbox, LocalProcessSandbox, Sandbox
 
 
@@ -253,8 +258,11 @@ def _export_scan_artifacts(
     return events_dest, junit_dest, findings_dest, tree_dest
 
 
-def scan(config: ScanConfig) -> ScanResult:
-    """Execute end-to-end repository scan and perturbation matrix."""
+def scan(config: ScanConfig, observer: RunObserver | None = None) -> ScanResult:
+    """Execute end-to-end repository scan and perturbation matrix.
+
+    ``observer`` is told before and after every individual run (used for live progress).
+    """
     ts_slug = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     run_id = f"scan_{ts_slug}_{uuid.uuid4().hex[:6]}"
     event_logger = EventLogger(run_id, output_path=config.output_events)
@@ -434,6 +442,7 @@ def scan(config: ScanConfig) -> ScanResult:
         matrix_results: list[SliceResult] = matrix.run_matrix(
             artifacts_dir=artifacts_dir,
             event_logger=event_logger,
+            observer=observer,
         )
 
         # 5. Aggregate Results & Identify Flakes

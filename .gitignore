@@ -43,3 +43,6 @@ pip-freeze.txt
 /console/node_modules/
 /console/dist/
 /console/*.tsbuildinfo
+
+# Live scan runs (M3)
+/runs/

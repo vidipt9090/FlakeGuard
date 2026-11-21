@@ -23,6 +23,18 @@ _RUN_ID = re.compile(r"^run-\d{4}-\d{2}-\d{2}-\d{3}$")
 _FINDINGS = TypeAdapter(list[m.Finding])
 
 
+def empty_no_tests_plan(repo: str) -> m.NoTestsPlan:
+    """Nothing was run for the no-tests flow, so every step is pending and every list is empty."""
+    return m.NoTestsPlan(
+        repo=repo,
+        steps=[
+            m.NoTestsStep(name=n, state="pending")
+            for n in ("Find risky spots", "Write tests", "Check them", "Open PR on your fork")
+        ],
+        spots=[], example=None, checks=[],
+    )
+
+
 class NotFound(Exception):
     """Raised with a message meant to be shown to the person using the console."""
 
@@ -65,14 +77,7 @@ class RecordedStore:
         path = self._dir(run_id) / "no_tests.json"
         if path.is_file():
             return m.NoTestsPlan.model_validate_json(path.read_text(encoding="utf-8"))
-        return m.NoTestsPlan(
-            repo=self.run(run_id).target,
-            steps=[
-                m.NoTestsStep(name=n, state="pending")
-                for n in ("Find risky spots", "Write tests", "Check them", "Open PR on your fork")
-            ],
-            spots=[], example=None, checks=[],
-        )
+        return empty_no_tests_plan(self.run(run_id).target)
 
     def target_path(self, run_id: str) -> Path | None:
         """Repository the run scanned, if recorded in meta.json and still on disk."""

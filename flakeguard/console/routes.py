@@ -5,17 +5,20 @@ Errors are ``{"detail": "<readable sentence>"}``. The console shows ``detail`` v
 
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, TypeAdapter, ValidationError
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.routing import Route
 
 from flakeguard.console import models as m
-from flakeguard.console.store import NotFound, RecordedStore
+from flakeguard.console.runs import Refused, is_live_id, manager, seed_start_from_env
+from flakeguard.console.store import FINDING_SEPARATOR, NotFound, RecordedStore, empty_no_tests_plan
+from flakeguard.runner.matrix import DEFAULT_SEED_START
 
 STOPWORDS = {
     "the", "and", "why", "what", "how", "does", "did", "this", "that", "with", "from", "are", "was",
@@ -52,6 +55,35 @@ def respond(model: BaseModel | list[BaseModel]) -> Response:
     return Response(model.model_dump_json(), media_type="application/json")
 
 
+def _run(run_id: str) -> m.RunStatus:
+    return manager().status(run_id) if is_live_id(run_id) else store().run(run_id)
+
+
+def _findings(run_id: str) -> list[m.Finding]:
+    if is_live_id(run_id):
+        return TypeAdapter(list[m.Finding]).validate_json(manager().findings_json(run_id))
+    return store().findings(run_id)
+
+
+def _find_finding(finding_id: str) -> tuple[str, m.Finding]:
+    run_id, sep, _ = finding_id.partition(FINDING_SEPARATOR)
+    if sep:
+        for f in _findings(run_id):
+            if f.id == finding_id:
+                return run_id, f
+    raise NotFound(f"There is no finding called {finding_id}.")
+
+
+def _target_path(run_id: str) -> Path | None:
+    if not is_live_id(run_id):
+        return store().target_path(run_id)
+    meta = manager().dir(run_id) / "meta.json"
+    if not meta.is_file():
+        return None
+    path = Path(json.loads(meta.read_text(encoding="utf-8")).get("target", ""))
+    return path if path.is_dir() else None
+
+
 async def body_of(request: Request) -> dict[str, Any]:
     try:
         body = await request.json()
@@ -67,49 +99,68 @@ async def health(request: Request) -> Response:
     from flakeguard.runner.sandbox import DockerSandbox
 
     docker = DockerSandbox(repo_path=Path(".")).is_available()
-    return JSONResponse({"ok": True, "mode": "local", "docker": bool(docker)})
+    return JSONResponse({
+        "ok": True, "mode": "local", "docker": bool(docker),
+        "recorded": store().latest_id(),  # newest recorded run, if any, for the explicit replay link
+    })
 
 
 async def start_run(request: Request) -> Response:
-    """Until live scans exist (M3) this replays the newest recorded run.
-
-    The returned run has ``mode: "recorded"`` and a ``recorded-run`` notice, so the console
-    says on screen that it is a replay and not a live scan.
-    """
+    """Start a real scan on this machine. One at a time; Docker is never silently skipped."""
     try:
-        m.StartRunRequest.model_validate(await body_of(request))
+        req = m.StartRunRequest.model_validate(await body_of(request))
     except ValidationError:
         return detail("The scan request is missing a field. Check the repository, source, runs and Docker option.", 422)
-    latest = store().latest_id()
-    if latest is None:
-        return detail("There is no recorded run to replay and live scans are not available yet.", 409)
-    return JSONResponse({"id": latest})
+    if not 1 <= req.runs <= 50:
+        return detail("Shuffled runs must be between 1 and 50.", 422)
+    mgr = manager()
+    try:
+        target, label = mgr.resolve_target(req)
+        if req.docker:
+            from flakeguard.runner.sandbox import DockerSandbox
+
+            if not DockerSandbox(repo_path=Path(".")).is_available():
+                return JSONResponse({"id": mgr.refuse_docker(req, label)})
+        run_id = mgr.start(req, target, label, seed_start_from_env() or DEFAULT_SEED_START)
+    except Refused as e:
+        return detail(str(e), e.status)
+    return JSONResponse({"id": run_id})
 
 
 async def get_run(request: Request) -> Response:
     try:
-        return respond(store().run(request.path_params["run_id"]))
+        return respond(_run(request.path_params["run_id"]))
     except NotFound as e:
         return detail(str(e), 404)
 
 
 async def get_findings(request: Request) -> Response:
     try:
-        return respond(store().findings(request.path_params["run_id"]))
+        return respond(_findings(request.path_params["run_id"]))
     except NotFound as e:
         return detail(str(e), 404)
+    except Refused as e:
+        return detail(str(e), e.status)
 
 
 async def get_tree(request: Request) -> Response:
+    run_id = request.path_params["run_id"]
     try:
-        return respond(store().tree(request.path_params["run_id"]))
+        if is_live_id(run_id):
+            return Response(manager().tree_json(run_id), media_type="application/json")
+        return respond(store().tree(run_id))
     except NotFound as e:
         return detail(str(e), 404)
+    except Refused as e:
+        return detail(str(e), e.status)
 
 
 async def get_no_tests(request: Request) -> Response:
+    run_id = request.path_params["run_id"]
     try:
-        return respond(store().no_tests(request.path_params["run_id"]))
+        if is_live_id(run_id):
+            return respond(empty_no_tests_plan(manager().status(run_id).target))
+        return respond(store().no_tests(run_id))
     except NotFound as e:
         return detail(str(e), 404)
 
@@ -154,10 +205,10 @@ async def ask(request: Request) -> Response:
     if not question:
         return detail("Type a question first.", 422)
     try:
-        run_id, finding = store().find_finding(finding_id)
+        run_id, finding = _find_finding(finding_id)
     except NotFound as e:
         return detail(str(e), 404)
-    repo = store().target_path(run_id)
+    repo = _target_path(run_id)
     if repo is None:
         return detail("The scanned repository is not on this machine, so there is no code to search.", 409)
 
@@ -189,7 +240,7 @@ async def ask(request: Request) -> Response:
 
 async def fix(request: Request) -> Response:
     try:
-        _, finding = store().find_finding(request.path_params["finding_id"])
+        _, finding = _find_finding(request.path_params["finding_id"])
     except NotFound as e:
         return detail(str(e), 404)
     if finding.fix is None:
@@ -199,7 +250,7 @@ async def fix(request: Request) -> Response:
 
 async def reverify(request: Request) -> Response:
     try:
-        store().find_finding(request.path_params["finding_id"])
+        _find_finding(request.path_params["finding_id"])
     except NotFound as e:
         return detail(str(e), 404)
     return detail("Re-verify needs a live scan. This server is replaying a recorded run.", 409)
@@ -207,7 +258,7 @@ async def reverify(request: Request) -> Response:
 
 async def quarantine(request: Request) -> Response:
     try:
-        _, finding = store().find_finding(request.path_params["finding_id"])
+        _, finding = _find_finding(request.path_params["finding_id"])
     except NotFound as e:
         return detail(str(e), 404)
     if not finding.quarantine.allowed:

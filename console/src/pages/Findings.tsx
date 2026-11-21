@@ -4,6 +4,7 @@ import { api } from '../api/client';
 import { Banner } from '../components/Banner';
 import { CodePane } from '../components/CodePane';
 import { Header } from '../components/Header';
+import { RunNotice } from '../components/RunNotice';
 import { SeverityChip, VerdictChip } from '../components/StatusChip';
 import { usePolling } from '../hooks/usePolling';
 import { useRun } from '../RunContext';
@@ -19,6 +20,7 @@ export default function Findings() {
   const { runId } = useRun();
   const rid = runId ?? 'none';
   const { data: findings } = usePolling(() => api.getFindings(rid), 4000, true, [rid]);
+  const { data: scanRun } = usePolling(() => api.getRun(rid), 4000, true, [rid]);
   const [selId, setSelId] = useState<string | null>(null);
   const [question, setQuestion] = useState('Why is this test order-dependent?');
   const [answer, setAnswer] = useState<AskAnswer | null>(null);
@@ -41,7 +43,11 @@ export default function Findings() {
     <>
       <Header />
       <main className="main">
-        {findings && findings.length === 0 && <Banner kind="no-findings" />}
+        <RunNotice runId={runId} />
+        {findings && findings.length === 0 && scanRun?.status === 'complete' && (
+          <Banner kind="no-findings"
+            title={`No evidence of flakiness in ${scanRun.counters.runsDone} ${scanRun.counters.runsDone === 1 ? 'run' : 'runs'}`} />
+        )}
         <div className="findings-grid">
           <aside aria-label="Findings list">
             {GROUPS.map((g) => {

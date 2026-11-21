@@ -22,6 +22,7 @@ import re
 import subprocess
 import sys
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -203,12 +204,13 @@ def _evidence_by_condition(s: TestStats) -> list[str]:
         failed, total = s.count(mode)
         if total == 0:
             continue
+        unit = "run" if total == 1 else "runs"
         if failed == 0:
-            bullets.append(f"{label}: passed in {total} of {total} runs.")
+            bullets.append(f"{label}: passed in {total} of {total} {unit}.")
         elif failed == total:
-            bullets.append(f"{label}: failed in {failed} of {total} runs.")
+            bullets.append(f"{label}: failed in {failed} of {total} {unit}.")
         else:
-            bullets.append(f"{label}: failed in {failed} of {total} runs, passed in {total - failed}.")
+            bullets.append(f"{label}: failed in {failed} of {total} {unit}, passed in {total - failed}.")
     return bullets
 
 
@@ -227,20 +229,34 @@ def build_run(
     run_id: str,
     target_label: str,
     shuffled_n: int,
+    live: bool = False,
+    progress: Callable[[str, str], None] | None = None,
+    stage_text: dict[str, str] | None = None,
 ) -> Built:
+    """``live=True`` builds a local scan (mode ``local``, no notice); otherwise a recorded replay.
+
+    ``progress(stage_id, state)`` is called around retrieval, bisection and the verdict.
+    ``stage_text`` overrides the detail text of the checkout, install and pr-comment stages.
+    """
+    note = progress or (lambda stage, state: None)
     repo = repo.resolve()
     runs = load_runs(repo, artifacts)
     stats = collect_stats(runs)
+    note("retrieval", "running")
     analysis = analyse_repo(repo)
     links = shared_links(analysis)
     tests = {t.id: t for t in analysis.tests}
+    note("retrieval", "done")
 
+    note("bisection", "running")
     t0 = time.perf_counter()
     diagnoses: dict[str, Diagnosis] = {}
     for tid, s in stats.items():
         if s.failures and s.passes:
             diagnoses[tid] = diagnose_order_dependence(repo, tid, runs)
     bisection_seconds = time.perf_counter() - t0
+    note("bisection", "done")
+    note("verdict", "running")
 
     findings: list[m.Finding] = []
     status_by_test: dict[str, str] = {}
@@ -271,12 +287,12 @@ def build_run(
         if s.passes == 0:
             verdict, tier, severity = "real", "observed", "blocking"
             first = (s.first_message or "").strip().splitlines()[0] if s.first_message else None
-            why = f"This test failed in all {runs_n} of its runs, including when run on its own, so test order does not explain it."
+            why = f"This test failed in all {_plural(runs_n, 'run')} it was in, including when run on its own, so test order does not explain it."
             if s.count("isolated")[1] == 0:
-                why = f"This test failed in all {runs_n} of its runs, so it is not an intermittent failure."
+                why = f"This test failed in all {_plural(runs_n, 'run')} it was in, so it is not an intermittent failure."
             if first:
                 why += f" The failure message is: {first}"
-            summary = f"Real failure · failed in {s.failures} of {runs_n} runs. Quarantine refused."
+            summary = f"Real failure · failed in {s.failures} of {_plural(runs_n, 'run')}. Quarantine refused."
             limits = "FlakeGuard did not look for the cause of the bug. A failure in every run is treated as a real defect."
             quarantine = m.Quarantine(allowed=False, reason="Fails in every run. A real failure cannot be quarantined.")
             iso_failed, iso_total = s.count("isolated")
@@ -327,12 +343,12 @@ def build_run(
             else:
                 verdict, tier, severity = "unknown", "observed", "needs-evidence"
                 why = (
-                    f"This test failed in {s.failures} of {runs_n} runs and passed in the other {s.passes}. "
+                    f"This test failed in {s.failures} of {_plural(runs_n, 'run')} and passed in the other {s.passes}. "
                     "No polluter test was found, and no targeted run reproduced the failure."
                 )
-                summary = f"{_plural(s.failures, 'failure')} in {runs_n} runs. Too few to call it flaky."
+                summary = f"{_plural(s.failures, 'failure')} in {_plural(runs_n, 'run')}. Too few to call it flaky."
                 limits = (
-                    f"{_plural(s.failures, 'failure')} in {runs_n} runs is not enough to tell a flaky test from a one-off. "
+                    f"{_plural(s.failures, 'failure')} in {_plural(runs_n, 'run')} is not enough to tell a flaky test from a one-off. "
                     "Run more shuffled runs to decide."
                 )
                 quarantine = m.Quarantine(allowed=False, reason="Too few failures to call this test flaky. Re-verify first.")
@@ -351,8 +367,9 @@ def build_run(
     tree = _build_tree(repo, analysis, links, stats, findings, tests, polluters, finding_id_by_test, status_by_test)
     run = _build_status(
         repo, events_path, run_id, target_label, shuffled_n, runs, stats, findings, tests,
-        diagnoses, bisection_seconds, links, analysis,
+        diagnoses, bisection_seconds, links, analysis, live, stage_text or {},
     )
+    note("verdict", "done")
     facts = {
         "tests": len(tests),
         "findings": {f.test: f.verdict for f in findings},
@@ -420,6 +437,18 @@ def _seconds(a: datetime, b: datetime) -> str:
     return "under 1 s" if delta < 1 else f"{round(delta)} s"
 
 
+def shuffled_seeds(events_path: Path) -> list[int]:
+    """The seed of each shuffled run, in order, as recorded by the engine."""
+    seeds = []
+    for line in events_path.read_text(encoding="utf-8").splitlines():
+        if line.strip():
+            ev = json.loads(line)
+            if ev["stage"] == "run" and ev["type"] == "progress" and ev["data"].get("mode") == "shuffled":
+                if "seed" in ev["data"]:
+                    seeds.append(ev["data"]["seed"])
+    return seeds
+
+
 def _event_times(events_path: Path) -> list[tuple[datetime, dict]]:
     out = []
     for line in events_path.read_text(encoding="utf-8").splitlines():
@@ -433,7 +462,7 @@ def _build_status(
     repo: Path, events_path: Path, run_id: str, target_label: str, shuffled_n: int,
     runs: list[RunRecord], stats: dict[str, TestStats], findings: list[m.Finding],
     tests: dict[str, TestDef], diagnoses: dict[str, Diagnosis], bisection_seconds: float,
-    links: list[SharedLink], analysis: RepoAnalysis,
+    links: list[SharedLink], analysis: RepoAnalysis, live: bool, stage_text: dict[str, str],
 ) -> m.RunStatus:
     events = _event_times(events_path)
 
@@ -462,18 +491,21 @@ def _build_status(
 
     b_failed, b_n = mode_counts("baseline")
     s_failed, s_n = mode_counts("shuffled")
+    seeds = shuffled_seeds(events_path)
+    seed_text = (f"seeds {seeds[0]} to {seeds[-1]}" if len(seeds) > 1 else f"seed {seeds[0]}") if seeds else "seeds not recorded"
     i_rs = [r for r in runs if r.mode == "isolated"]
     pollutions = [d for d in diagnoses.values() if d.reproduced and d.bisection]
     stages = [
-        m.Stage(id="checkout", name="Checkout", detail="Local fixture, used in place. No clone was needed.",
+        m.Stage(id="checkout", name="Checkout",
+                detail=stage_text.get("checkout", "Local fixture, used in place. No clone was needed."),
                 tool="local path", time=span(t_ingest, t_discover), state="done"),
-        m.Stage(id="install", name="Install", detail="Not run. The fixture has no dependencies to install.",
+        m.Stage(id="install", name="Install", detail=stage_text.get("install", "Not run. The fixture has no dependencies to install."),
                 tool="not run", time=None, state="pending"),
         m.Stage(id="baseline", name="Baseline",
                 detail=f"{_plural(b_n, 'run')} in default order, {_plural(b_failed, 'test')} failed", tool="pytest",
                 time=span(t_base, t_shuf), state="done"),
         m.Stage(id="shuffled", name="Shuffled runs",
-                detail=f"{_plural(s_n, 'run')}, seeds 1001 to {1000 + s_n}, {_plural(s_failed, 'test')} failed at least once",
+                detail=f"{_plural(s_n, 'run')}, {seed_text}, {_plural(s_failed, 'test')} failed at least once",
                 tool="pytest, pytest-randomly", time=span(t_shuf, t_rev), state="done"),
         m.Stage(id="isolated", name="Isolated runs",
                 detail=f"{_plural(len(i_rs), 'test')} run alone", tool="pytest", time=span(t_iso, t_rep), state="done"),
@@ -487,7 +519,7 @@ def _build_status(
         m.Stage(id="verdict", name="Verdict",
                 detail=", ".join(f"{sum(1 for f in findings if f.verdict == v)} {v}" for v in ("flaky", "real", "unknown")),
                 tool="FlakeGuard rules (no LLM)", time=None, state="done"),
-        m.Stage(id="pr-comment", name="PR comment", detail="Not run. This is a local fixture, not a pull request.",
+        m.Stage(id="pr-comment", name="PR comment", detail=stage_text.get("pr-comment", "Not run. This is a local fixture, not a pull request."),
                 tool="not run", time=None, state="pending"),
     ]
 
@@ -506,9 +538,12 @@ def _build_status(
     sh_done = len([r for r in runs if r.mode == "shuffled"])
     focus_failures = s.count("shuffled")[0] if focus else 0
     return m.RunStatus(
-        id=run_id, target=target_label, mode="recorded", status="complete", pr=None, stages=stages,
+        id=run_id, target=target_label, mode="local" if live else "recorded", status="complete", pr=None,
+        stages=stages,
         current=None,
         counters=m.Counters(runsDone=sh_done, runsTotal=shuffled_n, failures=focus_failures, flagged=len(findings)),
         matrix=matrix,
-        notice=m.Notice(kind="recorded-run", detail="Replay of a saved scan of a local fixture, not a GitHub pull request."),
+        notice=None if live else m.Notice(
+            kind="recorded-run", detail="Replay of a saved scan of a local fixture, not a GitHub pull request."
+        ),
     )

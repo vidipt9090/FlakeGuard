@@ -17,6 +17,7 @@ export default function Live() {
   const [startError, setStartError] = useState<string | null>(null);
 
   const { data: run, error } = usePolling(() => api.getRun(runId ?? 'none'), 2000, true, [runId]);
+  const { data: health } = usePolling(() => api.health(), 15000, true, []);
 
   async function start() {
     setStartError(null);
@@ -60,6 +61,9 @@ export default function Live() {
         <p className="footnote" style={{ marginTop: -8 }}>
           Repo has no tests? <Link to="/no-tests">See how FlakeGuard handles it</Link> ·{' '}
           <Link to="/states">Screen states</Link> · <Link to="/bot-text">Text the bot posts on GitHub</Link>
+          {health?.recorded && (
+            <> · <button type="button" className="linklike" onClick={() => setRunId(health.recorded)}>Replay the recorded run</button></>
+          )}
         </p>
 
         {startError && <Banner kind="scan-incomplete" detail={startError} />}

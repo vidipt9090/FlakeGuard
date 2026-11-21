@@ -176,3 +176,4 @@ table.tbl { width: 100%; border-collapse: collapse; margin-top: 12px; }
 .checks { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 14px 0; }
 .demo-badge { background: #FFF3C4; color: #5C4500; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
 .cell svg{display:block}
+.linklike { background: none; border: 0; padding: 0; font: inherit; color: var(--blue); text-decoration: underline; cursor: pointer; }

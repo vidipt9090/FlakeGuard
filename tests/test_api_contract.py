@@ -175,13 +175,6 @@ def test_results_are_dashes_until_a_run_exists(client):
     assert client.get("/api/results?label=made-up").status_code == 422
 
 
-def test_post_runs_replays_the_latest_recorded_run(client, run_id):
-    body = {"target": "x", "source": "sample", "runs": 10, "docker": False}
-    resp = client.post("/api/runs", json=body)
-    assert resp.status_code == 200 and resp.json() == {"id": run_id}
-    assert client.post("/api/runs", json={"target": "x"}).status_code == 422
-
-
 def test_quarantine_is_refused_for_the_real_failure_and_never_calls_github(client, run_id):
     findings = client.get(f"/api/runs/{run_id}/findings").json()
     real = next(f for f in findings if f["verdict"] == "real")
@@ -227,7 +220,7 @@ def test_recorded_counts_match_the_raw_junit_files(run_id):
     for f in findings:
         s = stats[f"{f.file}::{f.test}"]
         for bullet in f.evidence:
-            mode = re.match(r"^(.*?): (passed|failed) in (\d+) of (\d+) runs", bullet)
+            mode = re.match(r"^(.*?): (passed|failed) in (\d+) of (\d+) runs?", bullet)
             if not mode:
                 continue
             label = mode.group(1)
