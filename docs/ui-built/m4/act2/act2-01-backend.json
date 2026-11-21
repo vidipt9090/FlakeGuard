@@ -1,0 +1,116 @@
+{
+  "id": "actions-44877769478",
+  "target": "vidipt9090/flakeguard-demo#4",
+  "mode": "actions",
+  "status": "running",
+  "pr": {
+    "number": 4,
+    "title": "Act 2: bring back the seeded faults (git revert of the clean-main commit)",
+    "state": "open",
+    "checkState": "in progress",
+    "postMergeState": "waiting for merge",
+    "prUrl": "https://github.com/vidipt9090/flakeguard-demo/pull/4",
+    "runUrl": "https://github.com/vidipt9090/flakeguard-demo/actions/runs/44877769478"
+  },
+  "stages": [
+    {
+      "id": "checkout",
+      "name": "Checkout",
+      "detail": "Waiting to start",
+      "tool": "GitHub Actions",
+      "time": null,
+      "state": "pending"
+    },
+    {
+      "id": "install",
+      "name": "Install",
+      "detail": "Waiting to start",
+      "tool": "pip",
+      "time": null,
+      "state": "pending"
+    },
+    {
+      "id": "baseline",
+      "name": "Baseline",
+      "detail": "Waiting to start",
+      "tool": "pytest",
+      "time": null,
+      "state": "pending"
+    },
+    {
+      "id": "shuffled",
+      "name": "Shuffled runs",
+      "detail": "Waiting to start",
+      "tool": "pytest, pytest-randomly",
+      "time": null,
+      "state": "pending"
+    },
+    {
+      "id": "isolated",
+      "name": "Isolated runs",
+      "detail": "Waiting to start",
+      "tool": "pytest",
+      "time": null,
+      "state": "pending"
+    },
+    {
+      "id": "bisection",
+      "name": "Bisection",
+      "detail": "Waiting to start",
+      "tool": "FlakeGuard evidence engine",
+      "time": null,
+      "state": "pending"
+    },
+    {
+      "id": "retrieval",
+      "name": "Retrieval",
+      "detail": "Waiting to start",
+      "tool": "AST + Jedi",
+      "time": null,
+      "state": "pending"
+    },
+    {
+      "id": "verdict",
+      "name": "Verdict",
+      "detail": "Waiting to start",
+      "tool": "FlakeGuard rules (no LLM)",
+      "time": null,
+      "state": "pending"
+    },
+    {
+      "id": "pr-comment",
+      "name": "PR comment",
+      "detail": "Waiting to start",
+      "tool": "GitHub API",
+      "time": null,
+      "state": "pending"
+    }
+  ],
+  "current": null,
+  "counters": {
+    "runsDone": 0,
+    "runsTotal": 0,
+    "failures": 0,
+    "flagged": 0
+  },
+  "matrix": [
+    {
+      "label": "Baseline",
+      "summary": "whole suite: no runs yet",
+      "cells": [
+        "none"
+      ]
+    },
+    {
+      "label": "Shuffled",
+      "summary": "whole suite: no runs yet",
+      "cells": []
+    },
+    {
+      "label": "Isolated",
+      "summary": "whole suite: no runs yet",
+      "cells": []
+    }
+  ],
+  "notice": null
+}

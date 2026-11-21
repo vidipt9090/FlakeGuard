@@ -1,0 +1,130 @@
+{
+  "id": "actions-44877769478",
+  "target": "vidipt9090/flakeguard-demo#4",
+  "mode": "actions",
+  "status": "running",
+  "pr": {
+    "number": 4,
+    "title": "Act 2: bring back the seeded faults (git revert of the clean-main commit)",
+    "state": "open",
+    "checkState": "in progress",
+    "postMergeState": "waiting for merge",
+    "prUrl": "https://github.com/vidipt9090/flakeguard-demo/pull/4",
+    "runUrl": "https://github.com/vidipt9090/flakeguard-demo/actions/runs/44877769478"
+  },
+  "stages": [
+    {
+      "id": "checkout",
+      "name": "Checkout",
+      "detail": "Done",
+      "tool": "GitHub Actions",
+      "time": "under 1 s",
+      "state": "done"
+    },
+    {
+      "id": "install",
+      "name": "Install",
+      "detail": "Done",
+      "tool": "pip",
+      "time": "4 s",
+      "state": "done"
+    },
+    {
+      "id": "baseline",
+      "name": "Baseline",
+      "detail": "Done",
+      "tool": "pytest",
+      "time": "1 s",
+      "state": "done"
+    },
+    {
+      "id": "shuffled",
+      "name": "Shuffled runs",
+      "detail": "10 of 10 runs done (seeds 1 to 10), 3 tests failed at least once",
+      "tool": "pytest, pytest-randomly",
+      "time": "24 s",
+      "state": "done"
+    },
+    {
+      "id": "isolated",
+      "name": "Isolated runs",
+      "detail": "Running",
+      "tool": "pytest",
+      "time": null,
+      "state": "running"
+    },
+    {
+      "id": "bisection",
+      "name": "Bisection",
+      "detail": "Waiting to start",
+      "tool": "FlakeGuard evidence engine",
+      "time": null,
+      "state": "pending"
+    },
+    {
+      "id": "retrieval",
+      "name": "Retrieval",
+      "detail": "Waiting to start",
+      "tool": "AST + Jedi",
+      "time": null,
+      "state": "pending"
+    },
+    {
+      "id": "verdict",
+      "name": "Verdict",
+      "detail": "Waiting to start",
+      "tool": "FlakeGuard rules (no LLM)",
+      "time": null,
+      "state": "pending"
+    },
+    {
+      "id": "pr-comment",
+      "name": "PR comment",
+      "detail": "Waiting to start",
+      "tool": "GitHub API",
+      "time": null,
+      "state": "pending"
+    }
+  ],
+  "current": {
+    "test": "tests.test_report::test_report_total",
+    "condition": "Isolated runs"
+  },
+  "counters": {
+    "runsDone": 10,
+    "runsTotal": 10,
+    "failures": 5,
+    "flagged": 3
+  },
+  "matrix": [
+    {
+      "label": "Baseline",
+      "summary": "test_report_total: 1 run done, 1 passed, 0 failed",
+      "cells": [
+        "pass"
+      ]
+    },
+    {
+      "label": "Shuffled",
+      "summary": "test_report_total: 10 runs done, 5 passed, 5 failed (seeds 1 to 10)",
+      "cells": [
+        "fail",
+        "fail",
+        "pass",
+        "fail",
+        "pass",
+        "pass",
+        "fail",
+        "pass",
+        "fail",
+        "pass"
+      ]
+    },
+    {
+      "label": "Isolated",
+      "summary": "test_report_total: no runs yet",
+      "cells": []
+    }
+  ],
+  "notice": null
+}
