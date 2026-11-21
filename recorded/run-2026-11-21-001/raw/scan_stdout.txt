@@ -1,0 +1,17 @@
+================================================================================
+FLAKEGUARD SCAN: tests/data/demo_inventory
+Pinned SHA: HEAD | Shuffled Runs: 10 (seeds 1001 to 1010) | Sandbox: Local
+================================================================================
+
+================================================================================
+SCAN COMPLETED SUCCESSFULLY
+================================================================================
+Run ID: scan_20261121_055810_295a45
+Pinned SHA: 3962ac65bccf3e23cdaf32a3dc0336b1fddf59a3
+Event Log: recorded\run-2026-11-21-001\raw\events.jsonl
+Total Perturbation Slices: 17
+Total Unique Tests: 28
+Detected Flaky Tests (2):
+  - tests.test_report::test_report_total                         (Fail rate: 35.7%)
+  - tests.test_sync::test_sync_timeout                           (Fail rate: 7.1%)
+================================================================================
