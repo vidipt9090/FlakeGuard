@@ -48,6 +48,13 @@ dev = [
     # module skips, so CI would pass without ever checking the CI page.
     "pyyaml",
 ]
+# What the GitHub Actions analyze job needs to run the engine (no Streamlit, pandas or PyTorch).
+actions = [
+    "pytest",
+    "pytest-randomly",
+    "pytest-repeat",
+    "jedi>=0.20.0",
+]
 # Optional: the embedding retriever only. Kept out of `dev` on purpose,
 # because these pull in PyTorch (~2.5 GB) and CI does not need it to test
 # the chunker, which is pure ast.

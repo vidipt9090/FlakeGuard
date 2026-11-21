@@ -186,16 +186,27 @@ class PerturbationMatrix:
         artifacts_dir: Path,
         event_logger: EventLogger,
         observer: RunObserver | None = None,
+        preloaded: Path | None = None,
     ) -> list[SliceResult]:
-        """Execute baseline, shuffled, reversed, isolated, repeated, and parallel runs."""
+        """Execute baseline, shuffled, reversed, isolated, repeated, and parallel runs.
+
+        ``preloaded`` is a directory holding ``junit_baseline.xml`` and ``junit_shuffled_<i>.xml``
+        produced elsewhere (the per-seed jobs of the GitHub Actions workflow). Those runs are read
+        instead of executed, and are marked ``preloaded`` in the event log.
+        """
         artifacts_dir.mkdir(parents=True, exist_ok=True)
         env = self._build_env()
         results: list[SliceResult] = []
 
-        def begin(mode: str, iteration: int, seed: int | None = None, test_id: str | None = None) -> None:
+        def begin(
+            mode: str, iteration: int, seed: int | None = None, test_id: str | None = None,
+            preloaded_run: bool = False,
+        ) -> None:
             data: dict[str, object] = {"mode": mode, "iteration": iteration}
             if seed is not None:
                 data["seed"] = seed
+            if preloaded_run:
+                data["preloaded"] = True
             event_logger.log("run", "progress", test_id=test_id, data=data)
             if observer is not None:
                 observer.on_run_start(mode, iteration, seed, test_id)
@@ -205,65 +216,62 @@ class PerturbationMatrix:
             if observer is not None:
                 observer.on_run_end(result)
 
+        def preloaded_file(name: str) -> Path | None:
+            if preloaded is None:
+                return None
+            path = preloaded / name
+            return path if path.is_file() and path.stat().st_size > 0 else None
+
+        def use_preloaded(source: Path, dest: Path) -> Path:
+            if source.resolve() != dest.resolve():
+                dest.write_bytes(source.read_bytes())
+            return dest
+
         # 1. Baseline Run (default order, disable randomizer if present)
-        begin("baseline", 1)
         base_junit = artifacts_dir / "junit_baseline.xml"
-        cmd = [
-            self.python_exe,
-            "-m",
-            "pytest",
-            "-q",
-            "-p",
-            "no:randomly",
-            self.test_dir,
-            f"--junitxml={str(base_junit.resolve())}",
-        ]
-        res = self.sandbox.run(cmd, cwd=self.repo_path, env=env, timeout=self.timeout)
-        base_outcomes = parse_junit_xml(base_junit)
-        finish(
-            SliceResult(
-                mode="baseline",
-                iteration=1,
-                exit_code=res.exit_code,
-                duration_s=res.duration,
-                outcomes=base_outcomes,
-                raw_stdout=res.stdout,
-                raw_stderr=res.stderr,
+        base_pre = preloaded_file("junit_baseline.xml")
+        begin("baseline", 1, preloaded_run=base_pre is not None)
+        if base_pre is not None:
+            use_preloaded(base_pre, base_junit)
+            finish(SliceResult(
+                mode="baseline", iteration=1, exit_code=0, duration_s=0.0,
+                outcomes=parse_junit_xml(base_junit), junit_path=base_junit,
+            ))
+        else:
+            cmd = [
+                self.python_exe, "-m", "pytest", "-q", "-p", "no:randomly", self.test_dir,
+                f"--junitxml={str(base_junit.resolve())}",
+            ]
+            res = self.sandbox.run(cmd, cwd=self.repo_path, env=env, timeout=self.timeout)
+            finish(SliceResult(
+                mode="baseline", iteration=1, exit_code=res.exit_code, duration_s=res.duration,
+                outcomes=parse_junit_xml(base_junit), raw_stdout=res.stdout, raw_stderr=res.stderr,
                 junit_path=base_junit,
-            )
-        )
+            ))
 
         # 2. Shuffled N Runs
         for i in range(1, self.shuffled_n + 1):
             seed = self.seed_start + i - 1
-            begin("shuffled", i, seed=seed)
             shuf_junit = artifacts_dir / f"junit_shuffled_{i}.xml"
+            shuf_pre = preloaded_file(f"junit_shuffled_{i}.xml")
+            begin("shuffled", i, seed=seed, preloaded_run=shuf_pre is not None)
+            if shuf_pre is not None:
+                use_preloaded(shuf_pre, shuf_junit)
+                finish(SliceResult(
+                    mode="shuffled", iteration=i, seed=seed, exit_code=0, duration_s=0.0,
+                    outcomes=parse_junit_xml(shuf_junit), junit_path=shuf_junit,
+                ))
+                continue
             cmd = [
-                self.python_exe,
-                "-m",
-                "pytest",
-                "-q",
-                "-p",
-                "randomly",
-                f"--randomly-seed={seed}",
-                self.test_dir,
-                f"--junitxml={str(shuf_junit.resolve())}",
+                self.python_exe, "-m", "pytest", "-q", "-p", "randomly", f"--randomly-seed={seed}",
+                self.test_dir, f"--junitxml={str(shuf_junit.resolve())}",
             ]
             res = self.sandbox.run(cmd, cwd=self.repo_path, env=env, timeout=self.timeout)
-            outcomes = parse_junit_xml(shuf_junit)
-            finish(
-                SliceResult(
-                    mode="shuffled",
-                    iteration=i,
-                    seed=seed,
-                    exit_code=res.exit_code,
-                    duration_s=res.duration,
-                    outcomes=outcomes,
-                    raw_stdout=res.stdout,
-                    raw_stderr=res.stderr,
-                    junit_path=shuf_junit,
-                )
-            )
+            finish(SliceResult(
+                mode="shuffled", iteration=i, seed=seed, exit_code=res.exit_code, duration_s=res.duration,
+                outcomes=parse_junit_xml(shuf_junit), raw_stdout=res.stdout, raw_stderr=res.stderr,
+                junit_path=shuf_junit,
+            ))
 
         # 3. Reversed Run (collect test IDs and run in reversed order)
         begin("reversed", 1)

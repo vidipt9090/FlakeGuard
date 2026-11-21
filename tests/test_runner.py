@@ -306,3 +306,47 @@ def test_cli_accepts_seed_start():
     args = build_parser().parse_args(["scan", "somewhere", "--seed-start", "1"])
     assert args.seed_start == 1
     assert build_parser().parse_args(["scan", "somewhere"]).seed_start == 1001
+
+
+# ---------------------------------------------------------------------------
+# Preloaded runs (the per-seed jobs of the GitHub Actions workflow)
+# ---------------------------------------------------------------------------
+
+PASSING_JUNIT = (
+    '<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" tests="1">'
+    '<testcase classname="tests.test_a" name="test_x" time="0.01"/></testsuite></testsuites>'
+)
+
+
+def test_preloaded_runs_are_read_not_executed(tmp_path: Path):
+    repo = tmp_path / "repo"
+    (repo / "tests").mkdir(parents=True)
+    (repo / "tests" / "__init__.py").write_text("")
+    # This test really fails. If the baseline or shuffled runs were executed, they would say FAIL.
+    (repo / "tests" / "test_a.py").write_text("def test_x():\n    assert False\n")
+    pre = tmp_path / "pre"
+    pre.mkdir()
+    (pre / "junit_baseline.xml").write_text(PASSING_JUNIT)
+    for i in (1, 2):
+        (pre / f"junit_shuffled_{i}.xml").write_text(PASSING_JUNIT)
+
+    config = ScanConfig(
+        target=str(repo), shuffled_n=2, seed_start=5, preloaded_dir=str(pre),
+        output_events=str(tmp_path / "events.jsonl"), output_artifacts=str(tmp_path / "art"),
+    )
+    assert scan(config).success
+
+    art = tmp_path / "art"
+    assert [o.outcome for o in parse_junit_xml(art / "junit_baseline.xml")] == ["PASS"]
+    assert [o.outcome for o in parse_junit_xml(art / "junit_shuffled_2.xml")] == ["PASS"]
+    # runs that were not preloaded were executed for real, and failed
+    assert [o.outcome for o in parse_junit_xml(art / "junit_isolated_1.xml")] == ["FAIL"]
+
+    import json
+
+    events = [json.loads(line) for line in (tmp_path / "events.jsonl").read_text().splitlines() if line.strip()]
+    progress = [e["data"] for e in events if e["stage"] == "run" and e["type"] == "progress"]
+    pre_flags = {(d["mode"], d["iteration"]): d.get("preloaded", False) for d in progress}
+    assert pre_flags[("baseline", 1)] and pre_flags[("shuffled", 1)] and pre_flags[("shuffled", 2)]
+    assert not pre_flags[("reversed", 1)] and not pre_flags[("isolated", 1)]
+    assert [d["seed"] for d in progress if d["mode"] == "shuffled"] == [5, 6], "seeds are still recorded"

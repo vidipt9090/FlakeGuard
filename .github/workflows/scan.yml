@@ -1,135 +1,353 @@
-name: FlakeGuard Scan (Reusable Workflow)
+name: FlakeGuard scan
+
+# Reusable (workflow_call) and dispatchable (workflow_dispatch) FlakeGuard scan.
+#
+# One matrix job per shuffled seed gives a live result per seed. Step names inside the jobs are
+# the stage ids the console shows (checkout, install, baseline, isolated, bisection, retrieval,
+# verdict, pr-comment), so the backend can map GitHub's job and step status to stages.
+#
+#   plan      decide the seeds, the refs and the PR number
+#   scan      checkout, install, baseline                     -> artifact junit-baseline
+#   shuffled  one job per seed ("shuffled (seed N)")            -> artifact junit-shuffled-N
+#   analyze   isolated, bisection, retrieval, verdict           -> artifact flakeguard-console
+#   comment   pr-comment: one comment per PR, edited in place
+#
+# Pinning: call this file at a commit SHA (`uses: .../scan.yml@<sha>`). The engine code is checked
+# out at the same commit (`github.job_workflow_sha`) unless `flakeguard_ref` says otherwise.
 
 on:
   workflow_call:
     inputs:
-      repo_url:
-        description: "Target repository to scan (owner/repo shorthand or full Git URL)"
-        required: true
-        type: string
       n_runs:
-        description: "Number of shuffled runs in perturbation matrix"
-        required: false
-        default: 3
+        description: "Number of shuffled runs (one job per seed)"
         type: number
-      fork_owner:
-        description: "Optional fork owner username if running against a fork"
-        required: false
+        default: 10
+      seed_start:
+        description: "First pytest-randomly seed; shuffled run i uses seed_start + i - 1"
+        type: number
+        default: 1001
+      mode:
+        description: "pr (comment on the pull request) or post-merge (comment after the merge)"
+        type: string
+        default: pr
+      test_dir:
+        description: "Directory pytest collects"
+        type: string
+        default: tests
+      pr_number:
+        description: "Pull request to comment on when the event is not a pull_request"
+        type: string
         default: ""
-        type: string
       flakeguard_ref:
-        description: "Branch or ref of FlakeGuard to checkout and execute"
-        required: false
-        default: "main"
+        description: "FlakeGuard commit to run the engine from. Empty means this workflow's own commit."
         type: string
-    secrets:
-      LLM_API_KEY:
-        required: false
-      GEMINI_API_KEY:
-        required: false
-      OPENAI_API_KEY:
-        required: false
-
+        default: ""
+      flakeguard_repository:
+        type: string
+        default: vidipt9090/FlakeGuard
   workflow_dispatch:
     inputs:
-      repo_url:
-        description: "Target repository to scan (owner/repo shorthand or full Git URL)"
-        required: true
-        default: "tkem/cachetools"
-        type: string
       n_runs:
-        description: "Number of shuffled runs in perturbation matrix"
-        required: false
-        default: 3
         type: number
-      fork_owner:
-        description: "Optional fork owner username if running against a fork"
-        required: false
+        default: 10
+      seed_start:
+        type: number
+        default: 1001
+      mode:
+        type: choice
+        options: [pr, post-merge]
+        default: pr
+      test_dir:
+        type: string
+        default: tests
+      pr_number:
+        description: "Pull request to comment on (empty: no comment)"
+        type: string
         default: ""
-        type: string
       flakeguard_ref:
-        description: "Branch or ref of FlakeGuard to checkout and execute"
-        required: false
-        default: "main"
         type: string
+        default: ""
+      flakeguard_repository:
+        type: string
+        default: vidipt9090/FlakeGuard
 
+# A new push to the same pull request cancels the scan that is still running for it.
 concurrency:
-  group: scan-${{ github.workflow }}-${{ inputs.repo_url }}-${{ github.event.pull_request.number || github.ref }}
+  group: flakeguard-scan-${{ github.repository }}-${{ github.event.pull_request.number || inputs.pr_number || github.ref }}
   cancel-in-progress: true
 
+# Read-only by default. Only the comment job is allowed to write, and only pull request comments.
 permissions:
-  contents: write
-  pull-requests: write
-  issues: write
+  contents: read
 
 jobs:
-  flakeguard-scan:
-    name: FlakeGuard Perturbation Scan & Triage
+  plan:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      pr_number: ${{ steps.plan.outputs.pr_number }}
+      target_ref: ${{ steps.plan.outputs.target_ref }}
+      engine_ref: ${{ steps.plan.outputs.engine_ref }}
     steps:
-      - name: Parse and resolve target repository
-        id: target-meta
+      - name: plan
+        id: plan
+        env:
+          N_RUNS: ${{ inputs.n_runs }}
+          SEED_START: ${{ inputs.seed_start }}
+          MODE: ${{ inputs.mode }}
+          PR_EVENT: ${{ github.event.pull_request.number }}
+          PR_INPUT: ${{ inputs.pr_number }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          ENGINE_INPUT: ${{ inputs.flakeguard_ref }}
+          WORKFLOW_SHA: ${{ github.job_workflow_sha }}
         run: |
-          RAW="${{ inputs.repo_url }}"
-          SLUG=$(echo "$RAW" | sed -E 's|https?://github.com/||' | sed 's|\.git$||')
-          echo "slug=$SLUG" >> "$GITHUB_OUTPUT"
-          echo "Target repo resolved to: $SLUG"
+          python3 - <<'PY'
+          import json, os, sys
+          n = int(float(os.environ["N_RUNS"]))
+          start = int(float(os.environ["SEED_START"]))
+          if not 1 <= n <= 50:
+              sys.exit(f"n_runs must be between 1 and 50, got {n}")
+          mode = os.environ["MODE"]
+          if mode not in ("pr", "post-merge"):
+              sys.exit(f"mode must be pr or post-merge, got {mode!r}")
+          engine = os.environ["ENGINE_INPUT"] or os.environ["WORKFLOW_SHA"]
+          if not engine:
+              sys.exit("Cannot tell which FlakeGuard commit to run: pass flakeguard_ref")
+          matrix = {"include": [{"i": i, "seed": start + i - 1} for i in range(1, n + 1)]}
+          target = os.environ["MERGE_SHA"] if mode == "post-merge" else ""
+          pr = os.environ["PR_EVENT"] or os.environ["PR_INPUT"]
+          out = {"matrix": json.dumps(matrix), "pr_number": pr, "target_ref": target, "engine_ref": engine}
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              for k, v in out.items():
+                  f.write(f"{k}={v}\n")
+          print(f"{n} shuffled runs, seeds {start} to {start + n - 1}; mode {mode}; pr {pr or 'none'}; engine {engine}")
+          PY
 
-      - name: Checkout target repository
+  scan:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: checkout
         uses: actions/checkout@v4
         with:
-          repository: ${{ steps.target-meta.outputs.slug }}
-          path: target_repo
-          fetch-depth: 50
+          ref: ${{ needs.plan.outputs.target_ref }}
           persist-credentials: false
-
-      - name: Checkout FlakeGuard framework
-        uses: actions/checkout@v4
-        with:
-          repository: vidipt9090/FlakeGuard
-          ref: ${{ inputs.flakeguard_ref || 'main' }}
-          path: flakeguard_repo
-          fetch-depth: 1
-
-      - name: Set up Python 3.12
+      - name: python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-          cache: "pip"
-          cache-dependency-path: flakeguard_repo/pyproject.toml
-
-      - name: Install dependencies & FlakeGuard
+      - name: install
         run: |
           python -m pip install --upgrade pip
-          pip install -e "./flakeguard_repo[dev]"
-          cd target_repo
-          if [ -f requirements.txt ]; then pip install -r requirements.txt || true; fi
-          if [ -f pyproject.toml ]; then pip install -e . || pip install . || true; fi
-          if [ -f setup.py ]; then pip install -e . || pip install . || true; fi
-          pip install pytest pytest-json-report || true
-
-      - name: Execute FlakeGuard Matrix Scan
-        id: run-scan
+          if [ -f pyproject.toml ] || [ -f setup.py ]; then
+            python -m pip install -e .
+          elif [ -f requirements.txt ]; then
+            python -m pip install -r requirements.txt
+          fi
+          python -m pip install pytest pytest-randomly
+      - name: baseline
+        env:
+          TEST_DIR: ${{ inputs.test_dir }}
         run: |
-          mkdir -p scan_artifacts
-          flakeguard scan target_repo --shuffled-n ${{ inputs.n_runs }} --output-artifacts scan_artifacts
-
-      - name: Upload Single-Source-of-Truth Scan Artifacts
-        if: always()
+          export PYTHONPATH="$PWD/src:$PWD:${PYTHONPATH:-}"
+          # pytest exits 1 when tests fail. That is a result, not a failure of this step. Any other
+          # non-zero exit (usage error, interrupted, no tests collected) means pytest could not
+          # produce a result, and the step fails.
+          set +e
+          python -m pytest -q -p no:randomly "$TEST_DIR" --junitxml=junit_baseline.xml
+          code=$?
+          set -e
+          if [ "$code" -gt 1 ]; then echo "pytest could not run (exit $code)"; exit "$code"; fi
+          test -s junit_baseline.xml
+      - name: upload
         uses: actions/upload-artifact@v4
         with:
-          name: flakeguard-scan-results
-          path: |
-            scan_artifacts/
-            data/events/*.jsonl
-          if-no-files-found: warn
-          retention-days: 14
+          name: junit-baseline
+          path: junit_baseline.xml
+          if-no-files-found: error
 
-      - name: Post or Update Sticky CI Triage Comment
-        if: github.event_name == 'pull_request' || github.event.pull_request != null
+  shuffled:
+    name: shuffled (seed ${{ matrix.seed }})
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - name: get-code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.target_ref }}
+          persist-credentials: false
+      - name: python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: deps
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f pyproject.toml ] || [ -f setup.py ]; then
+            python -m pip install -e .
+          elif [ -f requirements.txt ]; then
+            python -m pip install -r requirements.txt
+          fi
+          python -m pip install pytest pytest-randomly
+      - name: shuffled
+        env:
+          TEST_DIR: ${{ inputs.test_dir }}
+          SEED: ${{ matrix.seed }}
+          INDEX: ${{ matrix.i }}
+        run: |
+          export PYTHONPATH="$PWD/src:$PWD:${PYTHONPATH:-}"
+          # Same rule as the baseline: exit 1 (tests failed) is a result; anything else is not.
+          set +e
+          python -m pytest -q -p randomly "--randomly-seed=$SEED" "$TEST_DIR" --junitxml="junit_shuffled_$INDEX.xml"
+          code=$?
+          set -e
+          if [ "$code" -gt 1 ]; then echo "pytest could not run (exit $code)"; exit "$code"; fi
+          test -s "junit_shuffled_$INDEX.xml"
+      - name: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-shuffled-${{ matrix.i }}
+          path: junit_shuffled_${{ matrix.i }}.xml
+          if-no-files-found: error
+
+  analyze:
+    needs: [plan, scan, shuffled]
+    if: ${{ !cancelled() && needs.scan.result == 'success' && needs.shuffled.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: get-target
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.target_ref }}
+          path: target
+          persist-credentials: false
+      - name: get-engine
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.flakeguard_repository }}
+          ref: ${{ needs.plan.outputs.engine_ref }}
+          path: engine
+          persist-credentials: false
+      - name: python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: engine/pyproject.toml
+      - name: deps
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "./engine[actions]"
+          cd target
+          if [ -f pyproject.toml ] || [ -f setup.py ]; then
+            python -m pip install -e .
+          elif [ -f requirements.txt ]; then
+            python -m pip install -r requirements.txt
+          fi
+      - name: download
+        uses: actions/download-artifact@v4
+        with:
+          pattern: junit-*
+          merge-multiple: true
+          path: artifacts
+      - name: isolated
+        run: python -m flakeguard.console.actions_scan isolated --repo target --artifacts artifacts --work flakeguard-work --out flakeguard-out --shuffled-n "$N_RUNS" --seed-start "$SEED_START" --run-id "$RUN_ID" --mode "$MODE" --run-url "$RUN_URL" --label "$LABEL"
+        env:
+          N_RUNS: ${{ inputs.n_runs }}
+          SEED_START: ${{ inputs.seed_start }}
+          MODE: ${{ inputs.mode }}
+          RUN_ID: gh-${{ github.run_id }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          LABEL: ${{ github.repository }}
+          PYTHONUTF8: "1"
+      - name: bisection
+        run: python -m flakeguard.console.actions_scan bisection --repo target --artifacts artifacts --work flakeguard-work --out flakeguard-out --shuffled-n "$N_RUNS" --seed-start "$SEED_START" --run-id "$RUN_ID" --mode "$MODE" --run-url "$RUN_URL" --label "$LABEL"
+        env:
+          N_RUNS: ${{ inputs.n_runs }}
+          SEED_START: ${{ inputs.seed_start }}
+          MODE: ${{ inputs.mode }}
+          RUN_ID: gh-${{ github.run_id }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          LABEL: ${{ github.repository }}
+          PYTHONUTF8: "1"
+      - name: retrieval
+        run: python -m flakeguard.console.actions_scan retrieval --repo target --artifacts artifacts --work flakeguard-work --out flakeguard-out --shuffled-n "$N_RUNS" --seed-start "$SEED_START" --run-id "$RUN_ID" --mode "$MODE" --run-url "$RUN_URL" --label "$LABEL"
+        env:
+          N_RUNS: ${{ inputs.n_runs }}
+          SEED_START: ${{ inputs.seed_start }}
+          MODE: ${{ inputs.mode }}
+          RUN_ID: gh-${{ github.run_id }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          LABEL: ${{ github.repository }}
+          PYTHONUTF8: "1"
+      - name: verdict
+        run: |
+          python -m flakeguard.console.actions_scan verdict --repo target --artifacts artifacts --work flakeguard-work --out flakeguard-out --shuffled-n "$N_RUNS" --seed-start "$SEED_START" --run-id "$RUN_ID" --mode "$MODE" --run-url "$RUN_URL" --label "$LABEL" \
+            --commit "$(git -C target rev-parse HEAD)"
+        env:
+          N_RUNS: ${{ inputs.n_runs }}
+          SEED_START: ${{ inputs.seed_start }}
+          MODE: ${{ inputs.mode }}
+          RUN_ID: gh-${{ github.run_id }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          LABEL: ${{ github.repository }}
+          PYTHONUTF8: "1"
+      - name: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: flakeguard-console
+          path: flakeguard-out
+          if-no-files-found: error
+
+  comment:
+    needs: [plan, scan, shuffled, analyze]
+    if: ${{ !cancelled() && needs.plan.outputs.pr_number != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: get-code
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.flakeguard_repository }}
+          ref: ${{ needs.plan.outputs.engine_ref }}
+          path: engine
+          persist-credentials: false
+      - name: download
+        if: ${{ needs.analyze.result == 'success' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: flakeguard-console
+          path: flakeguard-out
+      - name: pr-comment
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || secrets.LLM_API_KEY }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || secrets.LLM_API_KEY }}
+          PR_NUMBER: ${{ needs.plan.outputs.pr_number }}
+          ANALYZE_RESULT: ${{ needs.analyze.result }}
+          MODE: ${{ inputs.mode }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          PYTHONUTF8: "1"
         run: |
-          python flakeguard_repo/scripts/post_triage_comment.py scan_artifacts/junit.xml
+          if [ "$ANALYZE_RESULT" = "success" ]; then
+            cp flakeguard-out/comment.md comment.md
+          else
+            # The scan did not finish: say so, and show no verdict.
+            python3 - <<'PY'
+          import importlib.util, os
+          spec = importlib.util.spec_from_file_location("bot_templates", "engine/flakeguard/bot_templates.py")
+          module = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(module)
+          text = module.did_not_finish(run_url=os.environ["RUN_URL"], post_merge=os.environ["MODE"] == "post-merge")
+          open("comment.md", "w", encoding="utf-8").write(text)
+          PY
+          fi
+          python3 engine/scripts/upsert_pr_comment.py --file comment.md --pr "$PR_NUMBER"

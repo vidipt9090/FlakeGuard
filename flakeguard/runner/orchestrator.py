@@ -35,6 +35,7 @@ class ScanConfig:
     output_artifacts: str | None = None
     base_image: str = "python:3.12-slim"
     seed_start: int = DEFAULT_SEED_START  # first pytest-randomly seed; shuffled run i uses seed_start + i - 1
+    preloaded_dir: str | None = None  # junit_baseline.xml / junit_shuffled_<i>.xml produced elsewhere
 
 
 @dataclass
@@ -443,6 +444,7 @@ def scan(config: ScanConfig, observer: RunObserver | None = None) -> ScanResult:
             artifacts_dir=artifacts_dir,
             event_logger=event_logger,
             observer=observer,
+            preloaded=Path(config.preloaded_dir) if config.preloaded_dir else None,
         )
 
         # 5. Aggregate Results & Identify Flakes

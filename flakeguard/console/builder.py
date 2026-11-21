@@ -166,6 +166,18 @@ def diagnose_order_dependence(repo: Path, victim: str, runs: list[RunRecord]) ->
     return Diagnosis(result, time.perf_counter() - start, reproduced, len(prefix))
 
 
+def compute_diagnoses(
+    repo: Path, runs: list[RunRecord], stats: dict[str, TestStats]
+) -> tuple[dict[str, Diagnosis], float]:
+    """Bisect every test that both passed and failed. Returns the diagnoses and the seconds spent."""
+    start = time.perf_counter()
+    diagnoses: dict[str, Diagnosis] = {}
+    for tid, s in stats.items():
+        if s.failures and s.passes:
+            diagnoses[tid] = diagnose_order_dependence(repo, tid, runs)
+    return diagnoses, time.perf_counter() - start
+
+
 def _plural(n: int, word: str) -> str:
     return f"{n} {word}" if n == 1 else f"{n} {word}s"
 
@@ -233,30 +245,32 @@ def build_run(
     progress: Callable[[str, str], None] | None = None,
     stage_text: dict[str, str] | None = None,
     notice_detail: str = "Replay of a saved scan of a local fixture, not a GitHub pull request.",
+    analysis: RepoAnalysis | None = None,
+    diagnoses: dict[str, Diagnosis] | None = None,
+    bisection_seconds: float = 0.0,
 ) -> Built:
     """``live=True`` builds a local scan (mode ``local``, no notice); otherwise a recorded replay.
 
     ``progress(stage_id, state)`` is called around retrieval, bisection and the verdict.
     ``stage_text`` overrides the detail text of the checkout, install and pr-comment stages.
+    ``analysis`` and ``diagnoses`` (with ``bisection_seconds``) can be passed in when earlier
+    workflow steps already computed them; otherwise they are computed here.
     """
     note = progress or (lambda stage, state: None)
     repo = repo.resolve()
     runs = load_runs(repo, artifacts)
     stats = collect_stats(runs)
-    note("retrieval", "running")
-    analysis = analyse_repo(repo)
+    if analysis is None:
+        note("retrieval", "running")
+        analysis = analyse_repo(repo)
+        note("retrieval", "done")
     links = shared_links(analysis)
     tests = {t.id: t for t in analysis.tests}
-    note("retrieval", "done")
 
-    note("bisection", "running")
-    t0 = time.perf_counter()
-    diagnoses: dict[str, Diagnosis] = {}
-    for tid, s in stats.items():
-        if s.failures and s.passes:
-            diagnoses[tid] = diagnose_order_dependence(repo, tid, runs)
-    bisection_seconds = time.perf_counter() - t0
-    note("bisection", "done")
+    if diagnoses is None:
+        note("bisection", "running")
+        diagnoses, bisection_seconds = compute_diagnoses(repo, runs, stats)
+        note("bisection", "done")
     note("verdict", "running")
 
     findings: list[m.Finding] = []
