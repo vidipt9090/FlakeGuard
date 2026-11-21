@@ -69,8 +69,8 @@ include = ["flakeguard*"]
 
 [tool.ruff]
 line-length = 100
-# Sample project recorded by scripts/record_run.py; its layout is part of the recording.
-extend-exclude = ["tests/data/demo_inventory"]
+# The sample project, saved recordings (never edit them) and throwaway spike scripts are not linted.
+extend-exclude = ["tests/data/demo_inventory", "recorded", "docs/spikes"]
 target-version = "py312"
 
 [tool.ruff.lint]
