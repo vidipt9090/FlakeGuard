@@ -28,6 +28,13 @@ def test_is_reusable_and_dispatchable():
         assert {"n_runs", "seed_start", "mode", "pr_number", "flakeguard_ref"} <= set(triggers[event]["inputs"])
 
 
+def test_the_engine_commit_must_be_named_by_the_caller():
+    triggers = load()["on"]
+    for event in ("workflow_call", "workflow_dispatch"):
+        assert triggers[event]["inputs"]["flakeguard_ref"]["required"] is True
+    assert "job_workflow_sha" not in WORKFLOW.read_text(encoding="utf-8").replace("job_workflow_sha` is", "")
+
+
 def test_step_names_are_the_stage_ids():
     jobs = load()["jobs"]
     assert {"checkout", "install", "baseline"} <= set(step_names(jobs["scan"]))

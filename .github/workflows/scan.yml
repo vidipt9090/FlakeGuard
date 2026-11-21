@@ -12,8 +12,9 @@ name: FlakeGuard scan
 #   analyze   isolated, bisection, retrieval, verdict           -> artifact flakeguard-console
 #   comment   pr-comment: one comment per PR, edited in place
 #
-# Pinning: call this file at a commit SHA (`uses: .../scan.yml@<sha>`). The engine code is checked
-# out at the same commit (`github.job_workflow_sha`) unless `flakeguard_ref` says otherwise.
+# Pinning: call this file at a commit SHA (`uses: .../scan.yml@<sha>`) and pass the same value as
+# `flakeguard_ref`, so the engine code is the same commit as this workflow. (`github.job_workflow_sha`
+# is empty in a workflow called from another repository, so the commit cannot be inferred.)
 
 on:
   workflow_call:
@@ -39,9 +40,9 @@ on:
         type: string
         default: ""
       flakeguard_ref:
-        description: "FlakeGuard commit to run the engine from. Empty means this workflow's own commit."
+        description: "FlakeGuard commit or branch the engine runs from. Pass the same value as the ref after @ in `uses:`."
         type: string
-        default: ""
+        required: true
       flakeguard_repository:
         type: string
         default: vidipt9090/FlakeGuard
@@ -65,8 +66,9 @@ on:
         type: string
         default: ""
       flakeguard_ref:
+        description: "FlakeGuard commit or branch the engine runs from"
         type: string
-        default: ""
+        required: true
       flakeguard_repository:
         type: string
         default: vidipt9090/FlakeGuard
@@ -100,7 +102,6 @@ jobs:
           PR_INPUT: ${{ inputs.pr_number }}
           MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
           ENGINE_INPUT: ${{ inputs.flakeguard_ref }}
-          WORKFLOW_SHA: ${{ github.job_workflow_sha }}
         run: |
           python3 - <<'PY'
           import json, os, sys
@@ -111,9 +112,9 @@ jobs:
           mode = os.environ["MODE"]
           if mode not in ("pr", "post-merge"):
               sys.exit(f"mode must be pr or post-merge, got {mode!r}")
-          engine = os.environ["ENGINE_INPUT"] or os.environ["WORKFLOW_SHA"]
+          engine = os.environ["ENGINE_INPUT"]
           if not engine:
-              sys.exit("Cannot tell which FlakeGuard commit to run: pass flakeguard_ref")
+              sys.exit("flakeguard_ref is required: pass the same commit (or branch) as the ref after @ in uses:")
           matrix = {"include": [{"i": i, "seed": start + i - 1} for i in range(1, n + 1)]}
           target = os.environ["MERGE_SHA"] if mode == "post-merge" else ""
           pr = os.environ["PR_EVENT"] or os.environ["PR_INPUT"]
