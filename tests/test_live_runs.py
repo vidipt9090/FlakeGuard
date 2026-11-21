@@ -118,6 +118,10 @@ def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         return FakeProc()
 
     monkeypatch.setattr(runs_module.subprocess, "Popen", fake_popen)
+    # No real GitHub token, whatever this machine is signed in to: tests must not depend on it.
+    from flakeguard.console import routes
+
+    monkeypatch.setattr(routes, "github_token", lambda: None)
     c = TestClient(app)
     c.manager = manager  # type: ignore[attr-defined]
     c.started = started  # type: ignore[attr-defined]
@@ -154,10 +158,66 @@ def test_second_scan_is_refused_while_one_is_running(client):
     assert len(client.started) == 1
 
 
-def test_pull_request_source_is_refused_until_actions_mode_exists(client):
-    resp = client.post("/api/runs", json={**BODY, "source": "pull-request", "target": "demo/inventory#7"})
-    assert resp.status_code == 422 and "GitHub Actions" in resp.json()["detail"]
+def test_pull_request_target_must_look_like_owner_repo_hash_number(client):
+    resp = client.post("/api/runs", json={**BODY, "source": "pull-request", "target": "just some words"})
+    assert resp.status_code == 422 and "owner/repo#7" in resp.json()["detail"]
     assert client.started == []
+
+
+def test_pull_request_source_without_a_backend_token_says_so(client, monkeypatch):
+    from flakeguard.console import routes
+
+    monkeypatch.setattr(routes, "actions_source", lambda root: None)
+    resp = client.post("/api/runs", json={**BODY, "source": "pull-request", "target": "o/r#7"})
+    assert resp.status_code == 503 and "GITHUB_TOKEN" in resp.json()["detail"]
+    assert client.started == [], "a pull request scan never starts a local subprocess"
+
+
+def test_pull_request_source_attaches_to_the_github_run_and_returns_its_id(client, monkeypatch):
+    from flakeguard.console import routes
+
+    seen = {}
+
+    class FakeSource:
+        def attach(self, repo, pr):
+            seen["target"] = (repo, pr)
+            return "actions-123"
+
+    monkeypatch.setattr(routes, "actions_source", lambda root: FakeSource())
+    resp = client.post("/api/runs", json={**BODY, "source": "pull-request", "target": "vidipt9090/flakeguard-demo#3"})
+    assert resp.status_code == 200 and resp.json() == {"id": "actions-123"}
+    assert seen["target"] == ("vidipt9090/flakeguard-demo", 3)
+    assert client.started == []
+
+
+def test_pull_request_with_no_run_yet_is_a_readable_404(client, monkeypatch):
+    from flakeguard.console import routes
+    from flakeguard.console.actions import NoRun
+
+    class FakeSource:
+        def attach(self, repo, pr):
+            raise NoRun("No FlakeGuard run exists for o/r#7 at commit abc1234 yet.")
+
+    monkeypatch.setattr(routes, "actions_source", lambda root: FakeSource())
+    resp = client.post("/api/runs", json={**BODY, "source": "pull-request", "target": "o/r#7"})
+    assert resp.status_code == 404 and "No FlakeGuard run exists" in resp.json()["detail"]
+
+
+def test_github_budget_and_api_errors_have_readable_answers(client, monkeypatch):
+    from flakeguard.console import routes
+    from flakeguard.console.actions import ApiError, BudgetExhausted
+
+    for exc, status, words in ((BudgetExhausted("x"), 429, "1,000 requests per hour"),
+                               (ApiError(404, "x"), 404, "could not find"),
+                               (ApiError(403, "x"), 502, "refused"),
+                               (ApiError(500, "x"), 502, "HTTP 500")):
+        class FakeSource:
+            def attach(self, repo, pr, exc=exc):
+                raise exc
+
+        monkeypatch.setattr(routes, "actions_source", lambda root, f=FakeSource: f())
+        resp = client.post("/api/runs", json={**BODY, "source": "pull-request", "target": "o/r#7"})
+        assert resp.status_code == status and words in resp.json()["detail"], (exc, resp.json())
 
 
 def test_unvetted_remote_repository_needs_docker(client):

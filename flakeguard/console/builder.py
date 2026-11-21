@@ -248,6 +248,7 @@ def build_run(
     analysis: RepoAnalysis | None = None,
     diagnoses: dict[str, Diagnosis] | None = None,
     bisection_seconds: float = 0.0,
+    repo_name: str | None = None,
 ) -> Built:
     """``live=True`` builds a local scan (mode ``local``, no notice); otherwise a recorded replay.
 
@@ -379,7 +380,8 @@ def build_run(
         finding_id_by_test[s.test_id] = fid
 
     verdict_by_test = {f.test: f.verdict for f in findings}
-    tree = _build_tree(repo, analysis, links, stats, findings, tests, polluters, finding_id_by_test, status_by_test)
+    tree = _build_tree(
+        repo, analysis, links, stats, findings, tests, polluters, finding_id_by_test, status_by_test, repo_name)
     run = _build_status(
         repo, events_path, run_id, target_label, shuffled_n, runs, stats, findings, tests,
         diagnoses, bisection_seconds, links, analysis, live, stage_text or {}, notice_detail,
@@ -397,7 +399,7 @@ def build_run(
 def _build_tree(
     repo: Path, analysis: RepoAnalysis, links: list[SharedLink], stats: dict[str, TestStats],
     findings: list[m.Finding], tests: dict[str, TestDef], polluters: dict[str, str],
-    finding_id_by_test: dict[str, str], label_by_test: dict[str, str],
+    finding_id_by_test: dict[str, str], label_by_test: dict[str, str], repo_name: str | None = None,
 ) -> m.TreeData:
     verdict_by_finding = {f.id: f.verdict for f in findings}
     node_ids = {tid: f"t{i}" for i, tid in enumerate(sorted(tests), 1)}
@@ -433,7 +435,7 @@ def _build_tree(
             label=label, faults=sum(counts.values()), findingId=None, children=leaves,
         ))
     root = m.TreeNode(
-        id="repo", kind="repo", name=repo.name, path=None, status="clean",
+        id="repo", kind="repo", name=repo_name or repo.name, path=None, status="clean",
         label=f"{len(tests)} tests · {_plural(len(findings), 'fault')}", faults=len(findings),
         findingId=None, children=file_nodes,
     )

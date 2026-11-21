@@ -11,11 +11,21 @@ from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel, TypeAdapter, ValidationError
+from starlette.concurrency import run_in_threadpool
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.routing import Route
 
 from flakeguard.console import models as m
+from flakeguard.console.actions import (
+    TARGET,
+    ApiError,
+    BudgetExhausted,
+    NoRun,
+    actions_source,
+    github_token,
+    is_actions_id,
+)
 from flakeguard.console.runs import Refused, is_live_id, manager, seed_start_from_env
 from flakeguard.console.store import FINDING_SEPARATOR, NotFound, RecordedStore, empty_no_tests_plan
 from flakeguard.runner.matrix import DEFAULT_SEED_START
@@ -55,14 +65,51 @@ def respond(model: BaseModel | list[BaseModel]) -> Response:
     return Response(model.model_dump_json(), media_type="application/json")
 
 
+def _source():
+    """The GitHub Actions source, or an error the person can read when there is no token."""
+    src = actions_source(manager().root)
+    if src is None:
+        raise Refused("The backend has no GitHub token. Set GITHUB_TOKEN, or sign in with `gh auth login`.", 503)
+    return src
+
+
 def _run(run_id: str) -> m.RunStatus:
+    if is_actions_id(run_id):
+        return _source().status(run_id)
     return manager().status(run_id) if is_live_id(run_id) else store().run(run_id)
 
 
 def _findings(run_id: str) -> list[m.Finding]:
+    if is_actions_id(run_id):
+        return TypeAdapter(list[m.Finding]).validate_json(_source().findings_json(run_id))
     if is_live_id(run_id):
         return TypeAdapter(list[m.Finding]).validate_json(manager().findings_json(run_id))
     return store().findings(run_id)
+
+
+def _tree_json(run_id: str) -> str | None:
+    """The tree as JSON text for live and Actions runs; None for recorded runs (validated models)."""
+    if is_actions_id(run_id):
+        return _source().tree_json(run_id)
+    if is_live_id(run_id):
+        return manager().tree_json(run_id)
+    return None
+
+
+def github_failure(e: Exception) -> JSONResponse:
+    """Readable answers for GitHub-side problems."""
+    if isinstance(e, BudgetExhausted):
+        return detail("The GitHub request budget for this hour is used up (the console plans for 1,000 requests per hour). "
+                      "Try again later.", 429)
+    if isinstance(e, NoRun):
+        return detail(str(e), 404)
+    if isinstance(e, ApiError):
+        if e.status == 404:
+            return detail("GitHub could not find that pull request or run. Check the repository and the number.", 404)
+        if e.status in (401, 403):
+            return detail("GitHub refused the backend's token for that request.", 502)
+        return detail(f"GitHub did not answer as expected (HTTP {e.status}).", 502)
+    raise e
 
 
 def _find_finding(finding_id: str) -> tuple[str, m.Finding]:
@@ -100,7 +147,7 @@ async def health(request: Request) -> Response:
 
     docker = DockerSandbox(repo_path=Path(".")).is_available()
     return JSONResponse({
-        "ok": True, "mode": "local", "docker": bool(docker),
+        "ok": True, "mode": "actions" if github_token() else "local", "docker": bool(docker),
         "recorded": store().latest_id(),  # newest recorded run, if any, for the explicit replay link
     })
 
@@ -113,6 +160,18 @@ async def start_run(request: Request) -> Response:
         return detail("The scan request is missing a field. Check the repository, source, runs and Docker option.", 422)
     if not 1 <= req.runs <= 50:
         return detail("Shuffled runs must be between 1 and 50.", 422)
+    if req.source == "pull-request":
+        match = TARGET.match(req.target.strip())
+        if match is None:
+            return detail("Write the pull request as owner/repo#7, for example vidipt9090/flakeguard-demo#3.", 422)
+        try:
+            src = _source()
+            run_id = await run_in_threadpool(src.attach, match["repo"], int(match["pr"]))
+        except Refused as e:
+            return detail(str(e), e.status)
+        except (ApiError, BudgetExhausted, NoRun) as e:
+            return github_failure(e)
+        return JSONResponse({"id": run_id})
     mgr = manager()
     try:
         target, label = mgr.resolve_target(req)
@@ -129,37 +188,46 @@ async def start_run(request: Request) -> Response:
 
 async def get_run(request: Request) -> Response:
     try:
-        return respond(_run(request.path_params["run_id"]))
-    except NotFound as e:
-        return detail(str(e), 404)
-
-
-async def get_findings(request: Request) -> Response:
-    try:
-        return respond(_findings(request.path_params["run_id"]))
+        return respond(await run_in_threadpool(_run, request.path_params["run_id"]))
     except NotFound as e:
         return detail(str(e), 404)
     except Refused as e:
         return detail(str(e), e.status)
+    except (ApiError, BudgetExhausted) as e:
+        return github_failure(e)
+
+
+async def get_findings(request: Request) -> Response:
+    try:
+        return respond(await run_in_threadpool(_findings, request.path_params["run_id"]))
+    except NotFound as e:
+        return detail(str(e), 404)
+    except Refused as e:
+        return detail(str(e), e.status)
+    except (ApiError, BudgetExhausted) as e:
+        return github_failure(e)
 
 
 async def get_tree(request: Request) -> Response:
     run_id = request.path_params["run_id"]
     try:
-        if is_live_id(run_id):
-            return Response(manager().tree_json(run_id), media_type="application/json")
+        text = await run_in_threadpool(_tree_json, run_id)
+        if text is not None:
+            return Response(text, media_type="application/json")
         return respond(store().tree(run_id))
     except NotFound as e:
         return detail(str(e), 404)
     except Refused as e:
         return detail(str(e), e.status)
+    except (ApiError, BudgetExhausted) as e:
+        return github_failure(e)
 
 
 async def get_no_tests(request: Request) -> Response:
     run_id = request.path_params["run_id"]
     try:
-        if is_live_id(run_id):
-            return respond(empty_no_tests_plan(manager().status(run_id).target))
+        if is_live_id(run_id) or is_actions_id(run_id):
+            return respond(empty_no_tests_plan((await run_in_threadpool(_run, run_id)).target))
         return respond(store().no_tests(run_id))
     except NotFound as e:
         return detail(str(e), 404)

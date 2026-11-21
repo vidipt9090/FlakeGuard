@@ -75,6 +75,60 @@ def stopped_early(run: m.RunStatus, detail: str) -> m.RunStatus:
     })
 
 
+def runs_of(finished: list[SliceResult], mode: str) -> list[SliceResult]:
+    return [r for r in finished if r.mode == mode]
+
+
+def failing_tests(finished: list[SliceResult], modes: tuple[str, ...] | None = None) -> set[str]:
+    return {
+        o.test_id for r in finished if modes is None or r.mode in modes
+        for o in r.outcomes if o.outcome in FAILED
+    }
+
+
+def focus_test(finished: list[SliceResult]) -> str | None:
+    """The test the matrix follows: one that both passed and failed, else any failing test."""
+    counts: dict[str, Counter] = {}
+    for r in finished:
+        for o in r.outcomes:
+            counts.setdefault(o.test_id, Counter())["fail" if o.outcome in FAILED else "pass"] += 1
+    mixed = [t for t, c in counts.items() if c["fail"] and c["pass"]]
+    if mixed:
+        return max(mixed, key=lambda t: (counts[t]["fail"], t))
+    failing = sorted(t for t, c in counts.items() if c["fail"])
+    return failing[0] if failing else None
+
+
+def matrix_rows(finished: list[SliceResult], shuffled_n: int) -> list[m.MatrixRow]:
+    """Baseline, Shuffled and Isolated rows for the followed test (the whole suite before one fails)."""
+    focus = focus_test(finished)
+    scope = focus.split("::")[-1] if focus else "whole suite"
+
+    def cells_for(mode: str, expected: int) -> list[str]:
+        rs = runs_of(finished, mode)
+        if focus:
+            cells = ["fail" if any(o.test_id == focus and o.outcome in FAILED for o in r.outcomes) else "pass"
+                     for r in rs if any(o.test_id == focus for o in r.outcomes)]
+        else:
+            cells = ["fail" if any(o.outcome in FAILED for o in r.outcomes) else "pass" for r in rs]
+        return cells + ["none"] * max(0, expected - len(cells))
+
+    rows = []
+    for label, mode, expected in (("Baseline", "baseline", 1), ("Shuffled", "shuffled", shuffled_n),
+                                  ("Isolated", "isolated", 0)):
+        cells = cells_for(mode, expected)
+        done = [c for c in cells if c != "none"]
+        failed = sum(1 for c in done if c == "fail")
+        summary = (f"{scope}: {plural(len(done), 'run')} done, {len(done) - failed} passed, {failed} failed"
+                   if done else f"{scope}: no runs yet")
+        if mode == "shuffled" and runs_of(finished, "shuffled"):
+            seeds = [r.seed for r in runs_of(finished, "shuffled") if r.seed is not None]
+            if seeds:
+                summary += f" (seeds {seeds[0]} to {seeds[-1]})" if len(seeds) > 1 else f" (seed {seeds[0]})"
+        rows.append(m.MatrixRow(label=label, summary=summary, cells=cells))  # type: ignore[arg-type]
+    return rows
+
+
 class LiveRun:
     """Observer for ``PerturbationMatrix.run_matrix`` that keeps ``progress.json`` current."""
 
@@ -144,25 +198,13 @@ class LiveRun:
     # ---------------------------------------------------------------- derived
 
     def _runs(self, mode: str) -> list[SliceResult]:
-        return [r for r in self.finished if r.mode == mode]
+        return runs_of(self.finished, mode)
 
     def _failing_tests(self, modes: tuple[str, ...] | None = None) -> set[str]:
-        return {
-            o.test_id for r in self.finished if modes is None or r.mode in modes
-            for o in r.outcomes if o.outcome in FAILED
-        }
+        return failing_tests(self.finished, modes)
 
     def _focus(self) -> str | None:
-        """The test the matrix follows: one that both passed and failed, else any failing test."""
-        counts: dict[str, Counter] = {}
-        for r in self.finished:
-            for o in r.outcomes:
-                counts.setdefault(o.test_id, Counter())["fail" if o.outcome in FAILED else "pass"] += 1
-        mixed = [t for t, c in counts.items() if c["fail"] and c["pass"]]
-        if mixed:
-            return max(mixed, key=lambda t: (counts[t]["fail"], t))
-        failing = sorted(t for t, c in counts.items() if c["fail"])
-        return failing[0] if failing else None
+        return focus_test(self.finished)
 
     def _describe(self) -> None:
         base, shuf, iso = self._runs("baseline"), self._runs("shuffled"), self._runs("isolated")
@@ -190,31 +232,7 @@ class LiveRun:
             self.stages["isolated"]["detail"] = ", ".join(parts)
 
     def _matrix(self) -> list[m.MatrixRow]:
-        focus = self._focus()
-        scope = focus.split("::")[-1] if focus else "whole suite"
-
-        def cells_for(mode: str, expected: int) -> list[str]:
-            rs = self._runs(mode)
-            if focus:
-                cells = ["fail" if any(o.test_id == focus and o.outcome in FAILED for o in r.outcomes) else "pass"
-                         for r in rs if any(o.test_id == focus for o in r.outcomes)]
-            else:
-                cells = ["fail" if any(o.outcome in FAILED for o in r.outcomes) else "pass" for r in rs]
-            return cells + ["none"] * max(0, expected - len(cells))
-
-        rows = []
-        for label, mode, expected in (("Baseline", "baseline", 1), ("Shuffled", "shuffled", self.shuffled_n),
-                                      ("Isolated", "isolated", 0)):
-            cells = cells_for(mode, expected)
-            done = [c for c in cells if c != "none"]
-            failed = sum(1 for c in done if c == "fail")
-            summary = f"{scope}: {plural(len(done), 'run')} done, {len(done) - failed} passed, {failed} failed" if done else f"{scope}: no runs yet"
-            if mode == "shuffled" and self._runs("shuffled"):
-                seeds = [r.seed for r in self._runs("shuffled") if r.seed is not None]
-                if seeds:
-                    summary += f" (seeds {seeds[0]} to {seeds[-1]})" if len(seeds) > 1 else f" (seed {seeds[0]})"
-            rows.append(m.MatrixRow(label=label, summary=summary, cells=cells))  # type: ignore[arg-type]
-        return rows
+        return matrix_rows(self.finished, self.shuffled_n)
 
     def snapshot(self) -> m.RunStatus:
         stages = [
@@ -246,7 +264,8 @@ class LiveRun:
 
     def complete(self, built: m.RunStatus) -> None:
         """Replace the progress with the finished run from the builder."""
-        self.write(built.model_copy(update={"mode": "local", "notice": None, "current": None}))
+        matrix = built.matrix or self._matrix()  # a clean run has no followed test: show the whole suite
+        self.write(built.model_copy(update={"mode": "local", "notice": None, "current": None, "matrix": matrix}))
 
     def fail(self, detail: str) -> None:
         self.write(stopped_early(self.snapshot(), detail))

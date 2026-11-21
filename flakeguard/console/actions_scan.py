@@ -80,6 +80,7 @@ def verdict(args: argparse.Namespace) -> int:
     built = build_run(
         repo, artifacts, events, args.run_id, args.label, args.shuffled_n, live=True,
         analysis=analysis, diagnoses=diagnoses, bisection_seconds=seconds,
+        repo_name=args.label.split("/")[-1] or None,
         stage_text={
             "checkout": f"Checked out {args.commit[:7]}" if args.commit else "Checked out the target",
             "install": "Installed the project and pytest in the runner",
