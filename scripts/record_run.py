@@ -28,7 +28,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 
-from flakeguard.console.builder import build_run, collect_stats, load_runs  # noqa: E402
+from flakeguard.console.builder import build_run, collect_stats, load_runs, shuffled_seeds  # noqa: E402
 
 
 def git(*args: str) -> str:
@@ -54,6 +54,7 @@ def main() -> int:
     ap.add_argument("--out", default="recorded")
     ap.add_argument("--want-single-failure", metavar="TEST_ID", default=None)
     ap.add_argument("--max-attempts", type=int, default=30)
+    ap.add_argument("--seed-start", type=int, default=None, help="First pytest-randomly seed (engine default if omitted)")
     ap.add_argument("--allow-dirty", action="store_true", help="Record even if tracked files are modified")
     args = ap.parse_args()
 
@@ -74,6 +75,8 @@ def main() -> int:
         "--output-events", f"{args.out}/{run_id}/raw/events.jsonl",
         "--output-artifacts", f"{args.out}/{run_id}/raw/artifacts",
     ]
+    if args.seed_start is not None:
+        scan_cmd += ["--seed-start", str(args.seed_start)]
 
     attempts = 0
     while True:
@@ -111,6 +114,13 @@ def main() -> int:
     (run_dir / "meta.json").write_text(json.dumps({"target": args.target}, indent=2), encoding="utf-8")
 
     record_cmd = ["python", "scripts/record_run.py", args.target, "--shuffled-n", str(args.shuffled_n)]
+    if args.seed_start is not None:
+        record_cmd += ["--seed-start", str(args.seed_start)]
+    seeds = shuffled_seeds(raw / "events.jsonl")
+    seed_line = (
+        f"{', '.join(str(x) for x in seeds)} (read from raw/events.jsonl, one per shuffled run)"
+        if seeds else "not recorded"
+    )
     if args.want_single_failure:
         record_cmd += ["--want-single-failure", args.want_single_failure]
     selection = (
@@ -141,7 +151,7 @@ Selection:
 Environment:
   Python {platform.python_version()} on {platform.platform()}
   pytest {version('pytest')}, pytest-randomly {version('pytest-randomly')}, jedi {version('jedi')}
-  Shuffled seeds: 1001 to {1000 + args.shuffled_n} (set by flakeguard.runner.matrix)
+  Shuffled seeds: {seed_line}
 
 Files:
   raw/                 what flakeguard scan wrote: events.jsonl, one JUnit XML per run, scan_stdout.txt
