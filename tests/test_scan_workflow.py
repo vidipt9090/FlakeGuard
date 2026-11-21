@@ -32,7 +32,8 @@ def test_the_engine_commit_must_be_named_by_the_caller():
     triggers = load()["on"]
     for event in ("workflow_call", "workflow_dispatch"):
         assert triggers[event]["inputs"]["flakeguard_ref"]["required"] is True
-    assert "job_workflow_sha" not in WORKFLOW.read_text(encoding="utf-8").replace("job_workflow_sha` is", "")
+    # github.job_workflow_sha is empty across repositories, so no expression may depend on it
+    assert not re.search(r"\$\{\{[^}]*job_workflow_sha", WORKFLOW.read_text(encoding="utf-8"))
 
 
 def test_step_names_are_the_stage_ids():
