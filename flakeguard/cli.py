@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import sys
 
+from flakeguard.runner.matrix import DEFAULT_SEED_START
 from flakeguard.runner.orchestrator import ScanConfig, scan
 
 
@@ -34,6 +35,15 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=5,
         help="Number of shuffled runs in the perturbation matrix (default: 5).",
+    )
+    scan_parser.add_argument(
+        "--seed-start",
+        type=int,
+        default=DEFAULT_SEED_START,
+        help=(
+            "First pytest-randomly seed. Shuffled run i uses seed_start + i - 1, so "
+            f"--seed-start 1 gives seeds 1..N (default: {DEFAULT_SEED_START})."
+        ),
     )
     scan_parser.add_argument(
         "--timeout",
@@ -87,6 +97,7 @@ def main(argv: list[str] | None = None) -> int:
             target=args.target,
             sha=args.sha,
             shuffled_n=args.shuffled_n,
+            seed_start=args.seed_start,
             timeout=args.timeout,
             use_docker=args.docker,
             output_events=args.output_events,
@@ -95,7 +106,7 @@ def main(argv: list[str] | None = None) -> int:
 
         print("=" * 80)
         print(f"FLAKEGUARD SCAN: {config.target}")
-        print(f"Pinned SHA: {config.sha or 'HEAD'} | Shuffled Runs: {config.shuffled_n} | Sandbox: {'Docker' if config.use_docker else 'Local'}")
+        print(f"Pinned SHA: {config.sha or 'HEAD'} | Shuffled Runs: {config.shuffled_n} (seeds {config.seed_start} to {config.seed_start + config.shuffled_n - 1}) | Sandbox: {'Docker' if config.use_docker else 'Local'}")
         print("=" * 80)
 
         result = scan(config)

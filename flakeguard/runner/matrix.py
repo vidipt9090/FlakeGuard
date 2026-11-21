@@ -15,6 +15,7 @@ import os
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Protocol
 
 from flakeguard.runner.events import EventLogger
 from flakeguard.runner.sandbox import Sandbox
@@ -44,6 +45,19 @@ class TestRunOutcome:
     message: str = ""
 
 
+# Shuffled run i uses seed `seed_start + i - 1`. The default keeps the seeds the engine always
+# used (1001, 1002, ...), so existing scans are unchanged.
+DEFAULT_SEED_START = 1001
+
+
+class RunObserver(Protocol):
+    """Told about every individual run as it starts and ends (used for live progress)."""
+
+    def on_run_start(self, mode: str, iteration: int, seed: int | None, test_id: str | None) -> None: ...
+
+    def on_run_end(self, result: "SliceResult") -> None: ...
+
+
 @dataclass
 class SliceResult:
     mode: str  # baseline, shuffled, reversed, isolated, repeated, parallel
@@ -54,6 +68,7 @@ class SliceResult:
     raw_stdout: str = ""
     raw_stderr: str = ""
     junit_path: Path | None = None
+    seed: int | None = None  # pytest-randomly seed; only the shuffled runs have one
 
 
 def parse_junit_xml(xml_path: Path) -> list[TestRunOutcome]:
@@ -126,7 +141,9 @@ class PerturbationMatrix:
         test_dir: str = "tests",
         timeout: float = 60.0,
         python_exe: str = "python",
+        seed_start: int = DEFAULT_SEED_START,
     ) -> None:
+        self.seed_start = seed_start
         self.sandbox = sandbox
         self.repo_path = repo_path.resolve()
         self.shuffled_n = shuffled_n
@@ -168,16 +185,28 @@ class PerturbationMatrix:
         self,
         artifacts_dir: Path,
         event_logger: EventLogger,
+        observer: RunObserver | None = None,
     ) -> list[SliceResult]:
         """Execute baseline, shuffled, reversed, isolated, repeated, and parallel runs."""
         artifacts_dir.mkdir(parents=True, exist_ok=True)
         env = self._build_env()
         results: list[SliceResult] = []
 
+        def begin(mode: str, iteration: int, seed: int | None = None, test_id: str | None = None) -> None:
+            data: dict[str, object] = {"mode": mode, "iteration": iteration}
+            if seed is not None:
+                data["seed"] = seed
+            event_logger.log("run", "progress", test_id=test_id, data=data)
+            if observer is not None:
+                observer.on_run_start(mode, iteration, seed, test_id)
+
+        def finish(result: SliceResult) -> None:
+            results.append(result)
+            if observer is not None:
+                observer.on_run_end(result)
+
         # 1. Baseline Run (default order, disable randomizer if present)
-        event_logger.log(
-            "run", "progress", data={"mode": "baseline", "iteration": 1}
-        )
+        begin("baseline", 1)
         base_junit = artifacts_dir / "junit_baseline.xml"
         cmd = [
             self.python_exe,
@@ -191,7 +220,7 @@ class PerturbationMatrix:
         ]
         res = self.sandbox.run(cmd, cwd=self.repo_path, env=env, timeout=self.timeout)
         base_outcomes = parse_junit_xml(base_junit)
-        results.append(
+        finish(
             SliceResult(
                 mode="baseline",
                 iteration=1,
@@ -206,11 +235,9 @@ class PerturbationMatrix:
 
         # 2. Shuffled N Runs
         for i in range(1, self.shuffled_n + 1):
-            event_logger.log(
-                "run", "progress", data={"mode": "shuffled", "iteration": i}
-            )
+            seed = self.seed_start + i - 1
+            begin("shuffled", i, seed=seed)
             shuf_junit = artifacts_dir / f"junit_shuffled_{i}.xml"
-            seed = 1000 + i
             cmd = [
                 self.python_exe,
                 "-m",
@@ -224,10 +251,11 @@ class PerturbationMatrix:
             ]
             res = self.sandbox.run(cmd, cwd=self.repo_path, env=env, timeout=self.timeout)
             outcomes = parse_junit_xml(shuf_junit)
-            results.append(
+            finish(
                 SliceResult(
                     mode="shuffled",
                     iteration=i,
+                    seed=seed,
                     exit_code=res.exit_code,
                     duration_s=res.duration,
                     outcomes=outcomes,
@@ -238,9 +266,7 @@ class PerturbationMatrix:
             )
 
         # 3. Reversed Run (collect test IDs and run in reversed order)
-        event_logger.log(
-            "run", "progress", data={"mode": "reversed", "iteration": 1}
-        )
+        begin("reversed", 1)
         rev_junit = artifacts_dir / "junit_reversed.xml"
         collected = self._collect_test_ids()
         if collected:
@@ -268,7 +294,7 @@ class PerturbationMatrix:
 
         res = self.sandbox.run(cmd, cwd=self.repo_path, env=env, timeout=self.timeout)
         rev_outcomes = parse_junit_xml(rev_junit)
-        results.append(
+        finish(
             SliceResult(
                 mode="reversed",
                 iteration=1,
@@ -299,9 +325,7 @@ class PerturbationMatrix:
         # 4. Isolated Runs
         iso_idx = 1
         for tid in candidates_to_isolate[:5]:  # bound to top 5
-            event_logger.log(
-                "run", "progress", test_id=tid, data={"mode": "isolated", "iteration": iso_idx}
-            )
+            begin("isolated", iso_idx, test_id=tid)
             iso_junit = artifacts_dir / f"junit_isolated_{iso_idx}.xml"
             cmd = [
                 self.python_exe,
@@ -315,7 +339,7 @@ class PerturbationMatrix:
             ]
             res = self.sandbox.run(cmd, cwd=self.repo_path, env=env, timeout=self.timeout)
             outcomes = parse_junit_xml(iso_junit)
-            results.append(
+            finish(
                 SliceResult(
                     mode="isolated",
                     iteration=iso_idx,
@@ -330,9 +354,7 @@ class PerturbationMatrix:
             iso_idx += 1
 
         # 5. Repeated Run (pytest-repeat --count=3)
-        event_logger.log(
-            "run", "progress", data={"mode": "repeated", "iteration": 1}
-        )
+        begin("repeated", 1)
         rep_junit = artifacts_dir / "junit_repeated.xml"
         cmd = [
             self.python_exe,
@@ -347,7 +369,7 @@ class PerturbationMatrix:
         ]
         res = self.sandbox.run(cmd, cwd=self.repo_path, env=env, timeout=self.timeout)
         rep_outcomes = parse_junit_xml(rep_junit)
-        results.append(
+        finish(
             SliceResult(
                 mode="repeated",
                 iteration=1,
@@ -361,9 +383,7 @@ class PerturbationMatrix:
         )
 
         # 6. Parallel Run
-        event_logger.log(
-            "run", "progress", data={"mode": "parallel", "iteration": 1}
-        )
+        begin("parallel", 1)
         par_junit = artifacts_dir / "junit_parallel.xml"
         # Try -n 2 if xdist is installed; otherwise fallback sequentially
         cmd = [
@@ -393,7 +413,7 @@ class PerturbationMatrix:
             res = self.sandbox.run(cmd, cwd=self.repo_path, env=env, timeout=self.timeout)
 
         par_outcomes = parse_junit_xml(par_junit)
-        results.append(
+        finish(
             SliceResult(
                 mode="parallel",
                 iteration=1,

@@ -246,3 +246,63 @@ def test_isolated_slice_runs_the_selected_test(tmp_path: Path):
     assert result.success
     isolated = parse_junit_xml(tmp_path / "art" / "junit_isolated_1.xml")
     assert [o.outcome for o in isolated] == ["FAIL"]
+
+
+# ---------------------------------------------------------------------------
+# Shuffled-run seeds
+# ---------------------------------------------------------------------------
+
+
+def _seed_logging_repo(tmp_path: Path) -> Path:
+    """A project whose test logs the pytest-randomly seed it was given."""
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests" / "__init__.py").write_text("")
+    (tmp_path / "tests" / "test_seed.py").write_text(
+        "from pathlib import Path\n\n\n"
+        "def test_seed(pytestconfig):\n"
+        "    seed = pytestconfig.getoption('randomly_seed', default=None)\n"
+        "    if seed is not None:\n"
+        "        with open(Path(__file__).parent / 'seeds.log', 'a') as f:\n"
+        "            f.write(str(seed) + chr(10))\n"
+    )
+    return tmp_path
+
+
+def _shuffled_seeds_in_events(events: Path) -> list[int]:
+    import json
+
+    rows = [json.loads(line) for line in events.read_text().splitlines() if line.strip()]
+    return [
+        r["data"]["seed"] for r in rows
+        if r["stage"] == "run" and r["type"] == "progress" and r["data"].get("mode") == "shuffled"
+    ]
+
+
+def test_seed_start_sets_the_shuffled_seeds_and_records_them(tmp_path: Path):
+    repo = _seed_logging_repo(tmp_path)
+    config = ScanConfig(
+        target=str(repo), shuffled_n=3, seed_start=1,
+        output_events=str(tmp_path / "events.jsonl"), output_artifacts=str(tmp_path / "art"),
+    )
+    assert scan(config).success
+    # pytest-randomly received seeds 1, 2, 3
+    assert (repo / "tests" / "seeds.log").read_text().split() == ["1", "2", "3"]
+    # and every shuffled run recorded its seed in the event log
+    assert _shuffled_seeds_in_events(tmp_path / "events.jsonl") == [1, 2, 3]
+
+
+def test_default_seeds_are_unchanged(tmp_path: Path):
+    repo = _seed_logging_repo(tmp_path)
+    config = ScanConfig(
+        target=str(repo), shuffled_n=2,
+        output_events=str(tmp_path / "events.jsonl"), output_artifacts=str(tmp_path / "art"),
+    )
+    assert scan(config).success
+    assert (repo / "tests" / "seeds.log").read_text().split() == ["1001", "1002"]
+    assert _shuffled_seeds_in_events(tmp_path / "events.jsonl") == [1001, 1002]
+
+
+def test_cli_accepts_seed_start():
+    args = build_parser().parse_args(["scan", "somewhere", "--seed-start", "1"])
+    assert args.seed_start == 1
+    assert build_parser().parse_args(["scan", "somewhere"]).seed_start == 1001

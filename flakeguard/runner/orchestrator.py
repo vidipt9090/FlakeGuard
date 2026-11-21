@@ -15,7 +15,7 @@ from typing import Any
 
 from flakeguard.runner.detector import detect_repository
 from flakeguard.runner.events import EventLogger
-from flakeguard.runner.matrix import PerturbationMatrix, SliceResult
+from flakeguard.runner.matrix import DEFAULT_SEED_START, PerturbationMatrix, SliceResult
 from flakeguard.runner.sandbox import DockerSandbox, LocalProcessSandbox, Sandbox
 
 
@@ -29,6 +29,7 @@ class ScanConfig:
     output_events: str | None = None
     output_artifacts: str | None = None
     base_image: str = "python:3.12-slim"
+    seed_start: int = DEFAULT_SEED_START  # first pytest-randomly seed; shuffled run i uses seed_start + i - 1
 
 
 @dataclass
@@ -412,6 +413,8 @@ def scan(config: ScanConfig) -> ScanResult:
                     "parallel",
                 ],
                 "shuffled_n": config.shuffled_n,
+                "seed_start": config.seed_start,
+                "seeds": [config.seed_start + k for k in range(config.shuffled_n)],
             },
         )
 
@@ -425,6 +428,7 @@ def scan(config: ScanConfig) -> ScanResult:
             test_dir=framework_info.test_dir,
             timeout=config.timeout,
             python_exe=python_exe,
+            seed_start=config.seed_start,
         )
 
         matrix_results: list[SliceResult] = matrix.run_matrix(
