@@ -1,0 +1,62 @@
+name: spike-live
+
+# THROWAWAY (FlakeGuard M4 spike). Measures: live job/step status, a matrix job per seed,
+# artifacts mid-run, and the rate limit of GITHUB_TOKEN.
+on:
+  push:
+    branches: ["spike/m4"]
+
+permissions:
+  contents: read
+
+jobs:
+  stages:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: install
+        run: sleep 8
+      - name: baseline
+        run: sleep 8
+      - name: shuffled
+        run: |
+          for i in 1 2 3; do echo "run $i"; sleep 5; done
+      - name: write-progress
+        run: echo '{"runsDone":3}' > progress.json
+      - name: upload-progress
+        uses: actions/upload-artifact@v4
+        with:
+          name: mid-run-progress-2
+          path: progress.json
+      - name: after-upload
+        run: |
+          date -u +%Y-%m-%dT%H:%M:%SZ > /dev/null
+          echo "artifact uploaded at $(date -u +%H:%M:%S); sleeping 45 s inside the same job"
+          sleep 45
+      - name: rate-limit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -s -D - -o /dev/null -H "Authorization: Bearer $GH_TOKEN" https://api.github.com/rate_limit | grep -i "^x-ratelimit"
+          curl -s -H "Authorization: Bearer $GH_TOKEN" https://api.github.com/rate_limit | python3 -c "import json,sys; print('core:', json.load(sys.stdin)['resources']['core'])"
+      - name: isolated
+        run: sleep 5
+
+  seed:
+    name: seed ${{ matrix.seed }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        seed: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: install
+        run: pip install pytest pytest-randomly
+      - name: shuffled-seed
+        run: pytest -p randomly --randomly-seed=${{ matrix.seed }} tests/test_sync.py::test_sync_timeout -q

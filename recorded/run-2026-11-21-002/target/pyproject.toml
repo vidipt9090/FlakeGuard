@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "inventory"
+version = "0.1.0"
+description = "Small inventory project, deliberately seeded with test faults for the FlakeGuard demo"
+requires-python = ">=3.10"
+
+[project.optional-dependencies]
+test = ["pytest", "pytest-randomly"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

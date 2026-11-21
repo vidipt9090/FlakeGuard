@@ -1,0 +1,19 @@
+name: spike-slash
+
+# THROWAWAY: does `uses: owner/repo/path@branch/with/slash` resolve? (c/eval3-actions exists in vidipt9090/FlakeGuard)
+on:
+  push:
+    branches: ["spike/m4"]
+    paths: [".github/workflows/spike-slash.yml"]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  call:
+    uses: vidipt9090/FlakeGuard/.github/workflows/scan.yml@c/eval3-actions
+    with:
+      repo_url: vidipt9090/flakeguard-demo
+      n_runs: 1

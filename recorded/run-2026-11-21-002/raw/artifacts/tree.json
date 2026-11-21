@@ -1,0 +1,145 @@
+{
+  "repo": "target",
+  "sha": "cfd9e3612364b50021699ac8536248c740720cce",
+  "generated_at": "2026-11-21T06:09:55.993800+00:00",
+  "cases": [
+    {
+      "test_id": "tests.test_report::test_report_total",
+      "tree": {
+        "test_id": "tests.test_report::test_report_total",
+        "repo": "target",
+        "sha": "cfd9e3612364b50021699ac8536248c740720cce",
+        "stats": {
+          "test_id": "tests.test_report::test_report_total",
+          "nodes": 1,
+          "edges": 0,
+          "max_depth": 0,
+          "files_touched": 0,
+          "branching_factor": 0.0,
+          "nodes_by_depth": {
+            "0": 1
+          },
+          "nodes_by_edge": {},
+          "nodes_by_kind": {
+            "test": 1
+          }
+        },
+        "root": {
+          "node_id": "tests.test_report::test_report_total",
+          "kind": "test",
+          "label": "tests.test_report::test_report_total",
+          "edge": "",
+          "via": "",
+          "path": "",
+          "start_line": 0,
+          "end_line": 0,
+          "depth": 0,
+          "score": 0.0,
+          "detail": "the failing test the navigator was asked about",
+          "children": []
+        }
+      },
+      "stats": {
+        "test_id": "tests.test_report::test_report_total",
+        "nodes": 1,
+        "edges": 0,
+        "max_depth": 0,
+        "files_touched": 0,
+        "branching_factor": 0.0,
+        "nodes_by_depth": {
+          "0": 1
+        },
+        "nodes_by_edge": {},
+        "nodes_by_kind": {
+          "test": 1
+        }
+      },
+      "rows": [
+        {
+          "id": "tests.test_report::test_report_total",
+          "parent": "",
+          "label": "tests.test_report::test_report_total",
+          "kind": "test",
+          "edge": "root",
+          "via": "-",
+          "depth": 0,
+          "score": 0.0,
+          "path": "",
+          "start_line": 0,
+          "end_line": 0,
+          "lines": 0,
+          "detail": "the failing test the navigator was asked about"
+        }
+      ]
+    },
+    {
+      "test_id": "tests.test_sync::test_sync_timeout",
+      "tree": {
+        "test_id": "tests.test_sync::test_sync_timeout",
+        "repo": "target",
+        "sha": "cfd9e3612364b50021699ac8536248c740720cce",
+        "stats": {
+          "test_id": "tests.test_sync::test_sync_timeout",
+          "nodes": 1,
+          "edges": 0,
+          "max_depth": 0,
+          "files_touched": 0,
+          "branching_factor": 0.0,
+          "nodes_by_depth": {
+            "0": 1
+          },
+          "nodes_by_edge": {},
+          "nodes_by_kind": {
+            "test": 1
+          }
+        },
+        "root": {
+          "node_id": "tests.test_sync::test_sync_timeout",
+          "kind": "test",
+          "label": "tests.test_sync::test_sync_timeout",
+          "edge": "",
+          "via": "",
+          "path": "",
+          "start_line": 0,
+          "end_line": 0,
+          "depth": 0,
+          "score": 0.0,
+          "detail": "the failing test the navigator was asked about",
+          "children": []
+        }
+      },
+      "stats": {
+        "test_id": "tests.test_sync::test_sync_timeout",
+        "nodes": 1,
+        "edges": 0,
+        "max_depth": 0,
+        "files_touched": 0,
+        "branching_factor": 0.0,
+        "nodes_by_depth": {
+          "0": 1
+        },
+        "nodes_by_edge": {},
+        "nodes_by_kind": {
+          "test": 1
+        }
+      },
+      "rows": [
+        {
+          "id": "tests.test_sync::test_sync_timeout",
+          "parent": "",
+          "label": "tests.test_sync::test_sync_timeout",
+          "kind": "test",
+          "edge": "root",
+          "via": "-",
+          "depth": 0,
+          "score": 0.0,
+          "path": "",
+          "start_line": 0,
+          "end_line": 0,
+          "lines": 0,
+          "detail": "the failing test the navigator was asked about"
+        }
+      ]
+    }
+  ]
+}

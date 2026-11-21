@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="7" time="0.523" timestamp="2026-11-21T11:39:29.613700+05:30" hostname="Priyal"><testcase classname="tests.test_sync" name="test_sync_clean" time="0.003" /><testcase classname="tests.test_sync" name="test_sync_timeout" time="0.001" /><testcase classname="tests.test_stock" name="test_reserve_negative" time="0.001"><failure message="Failed: DID NOT RAISE ValueError">def test_reserve_negative():
+        # Real bug: reserve() accepts a negative quantity, so this fails in every run.
+        stock = StockService()
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_stock.py:9: Failed</failure></testcase><testcase classname="tests.test_stock" name="test_reserve_ok" time="0.001" /><testcase classname="tests.test_report" name="test_report_total" time="0.002" /><testcase classname="tests.test_report" name="test_report_title" time="0.001" /><testcase classname="tests.test_warmup" name="test_cache_warm" time="0.001" /></testsuite></testsuites>

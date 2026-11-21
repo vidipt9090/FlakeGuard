@@ -1,0 +1,20 @@
+name: spike-reusable-call
+
+# THROWAWAY (FlakeGuard M4 spike, question a): call a reusable workflow that lives in
+# vidipt9090/FlakeGuard, at a branch ref, from this repository.
+on:
+  push:
+    branches: ["spike/m4"]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  call-flakeguard:
+    if: ${{ false }}
+    uses: vidipt9090/FlakeGuard/.github/workflows/scan.yml@develop
+    with:
+      repo_url: vidipt9090/flakeguard-demo
+      n_runs: 1

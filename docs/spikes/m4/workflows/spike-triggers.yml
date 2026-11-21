@@ -1,0 +1,13 @@
+name: spike-dispatch
+
+# THROWAWAY (question e): these two triggers exist only on a non-default branch.
+on:
+  workflow_dispatch:
+  issue_comment:
+    types: [created]
+
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "event=${{ github.event_name }} ref=${{ github.ref }} sha=${{ github.sha }}"
