@@ -104,13 +104,24 @@ def matrix_rows(finished: list[SliceResult], shuffled_n: int) -> list[m.MatrixRo
     focus = focus_test(finished)
     scope = focus.split("::")[-1] if focus else "whole suite"
 
+    def result_of(r: SliceResult) -> str | None:
+        if focus:
+            if not any(o.test_id == focus for o in r.outcomes):
+                return None
+            return "fail" if any(o.test_id == focus and o.outcome in FAILED for o in r.outcomes) else "pass"
+        return "fail" if any(o.outcome in FAILED for o in r.outcomes) else "pass"
+
     def cells_for(mode: str, expected: int) -> list[str]:
         rs = runs_of(finished, mode)
-        if focus:
-            cells = ["fail" if any(o.test_id == focus and o.outcome in FAILED for o in r.outcomes) else "pass"
-                     for r in rs if any(o.test_id == focus for o in r.outcomes)]
-        else:
-            cells = ["fail" if any(o.outcome in FAILED for o in r.outcomes) else "pass" for r in rs]
+        if mode == "shuffled":
+            # Seeds can finish out of order (parallel jobs), so a mark sits at its own run's position.
+            cells = ["none"] * expected
+            for r in rs:
+                result = result_of(r)
+                if result is not None and 1 <= r.iteration <= expected:
+                    cells[r.iteration - 1] = result
+            return cells
+        cells = [c for c in (result_of(r) for r in rs) if c is not None]
         return cells + ["none"] * max(0, expected - len(cells))
 
     rows = []

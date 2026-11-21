@@ -66,6 +66,12 @@ JOB_STEPS = {
     "comment": ("pr-comment",),
 }
 CALLER_WORKFLOW = "flakeguard.yml"
+# Workflow steps that are not stage ids, in words a person can follow while they run.
+SETUP_STEPS = {
+    "plan": "Planning the run", "python": "Setting up Python", "get-code": "Fetching the code",
+    "get-target": "Fetching the repository under test", "get-engine": "Fetching the FlakeGuard engine",
+    "deps": "Installing dependencies", "download": "Downloading the run results", "upload": "Uploading the results",
+}
 
 
 def is_actions_id(run_id: str) -> bool:
@@ -306,7 +312,7 @@ class ActionsRunSource:
         )
         return m.RunStatus(
             id=run_id, target=f"{repo}#{meta['pr_number']}", mode="actions", status="running", pr=pr_info,
-            stages=stages, current=self._current(stages, seed_jobs, focus), counters=counters,
+            stages=stages, current=self._current(stages, seed_jobs, focus, jobs), counters=counters,
             matrix=matrix_rows(slices, shuffled_n), notice=None,
         )
 
@@ -382,11 +388,20 @@ class ActionsRunSource:
         return stage.model_copy(update={"detail": engine.detail})
 
     @staticmethod
-    def _current(stages: list[m.Stage], seed_jobs: list[dict], focus: str | None) -> m.Current | None:
+    def _current(stages: list[m.Stage], seed_jobs: list[dict], focus: str | None, jobs: list[dict]) -> m.Current | None:
         running = [s for s in stages if s.state == "running"]
         if not running:
+            # Between stages the run is busy with setup steps (installing the engine takes about 30 s).
+            for job in jobs:
+                if job["status"] != "in_progress":
+                    continue
+                for step in job.get("steps", []):
+                    if step.get("status") == "in_progress":
+                        return m.Current(test=focus or "Whole suite",
+                                         condition=SETUP_STEPS.get(step["name"], f"Step {step['name']}"))
             return None
-        stage = running[0]
+        # Stages can overlap (the scan job installs while the seed jobs run); the seeds say more.
+        stage = next((s for s in running if s.id == "shuffled"), running[0])
         if stage.id == "shuffled":
             live_seeds = [re.search(r"seed (\d+)", j["name"]).group(1) for j in seed_jobs if j["status"] == "in_progress"]  # type: ignore[union-attr]
             cond = "Shuffled order · seeds " + ", ".join(live_seeds) + " running" if live_seeds else "Shuffled order"

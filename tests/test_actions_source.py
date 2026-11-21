@@ -238,3 +238,53 @@ def test_github_errors_become_api_errors(tmp_path: Path):
     with pytest.raises(ApiError) as e:
         src.attach(REPO, PR)
     assert e.value.status == 404
+
+
+MID = Path(__file__).parent / "data" / "actions" / "act1-run-44877437008"
+
+
+def mid_run_source(tmp_path: Path, snapshot: str, finished_artifacts: set[str]) -> tuple[ActionsRunSource, FakeGitHub]:
+    """A real mid-run job listing (captured while PR #3 was being scanned), served as the run."""
+    jobs = json.loads((MID / snapshot).read_text(encoding="utf-8"))
+    run = load("run.json") | {"status": "in_progress", "conclusion": None}
+    listing = load("artifacts.json")
+    listing["artifacts"] = [a for a in listing["artifacts"] if a["name"] in finished_artifacts]
+    gh = FakeGitHub({f"/actions/runs/{RUN}/jobs": jobs, f"/actions/runs/{RUN}": run,
+                     f"/actions/runs/{RUN}/artifacts": listing})
+    src = ActionsRunSource(GitHubApi("t", transport=httpx.MockTransport(gh.handler)), tmp_path / "runs")
+    return src, gh
+
+
+SEED_ARTIFACTS = {"junit-baseline"} | {f"junit-shuffled-{i}" for i in range(1, 11)}
+
+
+def test_while_the_engine_installs_the_console_says_what_the_run_is_doing(tmp_path: Path):
+    """Real snapshot: the analyze job was installing the engine, which is not a stage id."""
+    src, _ = mid_run_source(tmp_path, "jobs-analyze-deps.json", SEED_ARTIFACTS)
+    run = src.status(src.attach(REPO, PR))
+    assert run.status == "running" and run.current is not None
+    assert run.current.condition == "Installing dependencies"
+    stage = {s.id: s for s in run.stages}
+    assert stage["shuffled"].state == "done" and stage["isolated"].state == "pending"
+
+
+def test_a_snapshot_with_the_analysis_running_names_the_stage(tmp_path: Path):
+    src, _ = mid_run_source(tmp_path, "jobs-analyze-retrieval.json", SEED_ARTIFACTS)
+    run = src.status(src.attach(REPO, PR))
+    assert run.current is not None and run.current.condition == "Retrieval"
+    assert {s.id: s.state for s in run.stages}["retrieval"] == "running"
+
+
+def test_seed_jobs_in_progress_show_their_seeds_and_only_finished_seeds_get_a_mark(tmp_path: Path):
+    """Real snapshot taken about 25 s in: seeds 4, 5, 6 and 8 had finished, six were still running,
+    and the scan job was still installing."""
+    src, _ = mid_run_source(tmp_path, "jobs-seeds-running.json", {f"junit-shuffled-{i}" for i in (4, 5, 6, 8)})
+    run = src.status(src.attach(REPO, PR))
+    assert run.current is not None
+    assert run.current.condition == "Shuffled order · seeds 1, 2, 3, 7, 9, 10 running"
+    assert run.counters.runsDone == 4 and run.counters.runsTotal == 10
+    shuffled = next(r for r in run.matrix if r.label == "Shuffled")
+    assert shuffled.cells == ["none", "none", "none", "pass", "pass", "pass", "none", "pass", "none", "none"]
+    stage = {s.id: s for s in run.stages}
+    assert stage["shuffled"].state == "running" and stage["install"].state == "running"
+    assert stage["shuffled"].detail.startswith("4 of 10 runs done (seeds 1 to 10)")
