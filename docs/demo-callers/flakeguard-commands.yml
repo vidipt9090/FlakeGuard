@@ -1,0 +1,23 @@
+name: flakeguard-commands
+
+# Slash commands on a pull request: /flakeguard fix | ask <question> | quarantine <test>.
+# GitHub starts issue_comment workflows only from the default branch, so this file must be on main.
+# Only commenters with write access are acted on; anyone else gets a "declined" reply and nothing runs.
+on:
+  issue_comment:
+    types: [created]
+
+# The reusable workflow may ask for no more than this.
+permissions:
+  contents: read
+  actions: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  command:
+    if: ${{ github.event.issue.pull_request && startsWith(github.event.comment.body, '/flakeguard') }}
+    # Same FlakeGuard version as flakeguard.yml; keep the two lines identical.
+    uses: vidipt9090/FlakeGuard/.github/workflows/commands.yml@c/eval3-console
+    with:
+      flakeguard_ref: c/eval3-console # the same value as the ref after @ in uses:
