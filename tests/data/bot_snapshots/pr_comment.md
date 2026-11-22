@@ -23,6 +23,13 @@
 - **Why:** This test failed in 1 of 17 runs and passed in the other 16. No polluter test was found, and no targeted run reproduced the failure.
 - **Limits:** 1 failure in 17 runs is not enough to tell a flaky test from a one-off. Run more shuffled runs to decide.
 
+**Reply to this comment with**
+
+```
+/flakeguard ask why is this order-dependent?
+/flakeguard quarantine test_report_total
+```
+
 This comment is updated in place on every push.
 
 Scanned commit cfd9e36 · shuffled seeds 1 to 10 · [Actions run](https://github.com/vidipt9090/flakeguard-demo/actions/runs/1)

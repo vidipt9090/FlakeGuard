@@ -27,6 +27,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
+from flakeguard.console import fixer
 from flakeguard.console import models as m
 from flakeguard.console.analysis import (
     RepoAnalysis,
@@ -234,6 +235,37 @@ class Built:
     facts: dict
 
 
+def _validated_fix(
+    repo: Path, state, polluter: TestDef, victim: TestDef, stats: "TestStats",
+    known_failing: set[str], runs: int, evidence: list[str],
+) -> m.FixPreview | None:
+    """The fix preview, only if the fix passed validation on a copy. A fix that failed is said so."""
+    plan = fixer.plan_fix(repo, state)
+    if plan is None:
+        return None
+    test_dir = victim.file.split("/")[0] if "/" in victim.file else "."
+    v = fixer.validate_fix(repo, plan, polluter=polluter.id, victim=victim.id, known_failing=known_failing,
+                           test_dir=test_dir, runs=runs)
+    if not v.passed:
+        evidence.append(f"A fix (restore {state.name} after each test) was tried on a copy and did not pass validation: {v.reason()}.")
+        return None
+    failed, total = stats.count("shuffled")
+    n = len(plan.added_lines)
+    where = f"{'Appends' if plan.existed else 'Adds'} an autouse fixture {'to' if plan.existed else 'in'} {plan.file} ({_plural(n, 'line')})"
+    return m.FixPreview(
+        summary=f"{where} that puts {state.name} back to its value from before each test, so no test can leave state behind.",
+        file=plan.file,
+        diff=[f"+{line}" for line in plan.added_lines],
+        checked=(
+            f"Applied to a copy and ran the suite in {_plural(runs, 'shuffled order')} (seeds {v.seeds[0]} to {v.seeds[-1]}): "
+            f"{victim.name} failed in {v.victim_failed_after} of {runs} with the fix; the scan saw it fail in {failed} of "
+            f"{_plural(total, 'shuffled run')} without it. The two-test repro ({polluter.name} then {victim.name}) failed "
+            "without the fix and passes with it. No test that had never failed in the scan failed with the fix."
+        ),
+        doesNotProve="That the code is correct in orders that were not run, or that no other test leaves state behind in a way this fixture does not reset.",
+    )
+
+
 def build_run(
     repo: Path,
     artifacts: Path,
@@ -249,6 +281,7 @@ def build_run(
     diagnoses: dict[str, Diagnosis] | None = None,
     bisection_seconds: float = 0.0,
     repo_name: str | None = None,
+    fix_runs: int = fixer.DEFAULT_RUNS,
 ) -> Built:
     """``live=True`` builds a local scan (mode ``local``, no notice); otherwise a recorded replay.
 
@@ -278,6 +311,7 @@ def build_run(
     status_by_test: dict[str, str] = {}
     finding_id_by_test: dict[str, str] = {}
     polluters: dict[str, str] = {}  # polluter test id -> victim test id
+    known_failing = {tid for tid, st in stats.items() if st.failures}
 
     ordered = sorted(
         (s for s in stats.values() if s.failures and s.test_id in tests),
@@ -299,6 +333,7 @@ def build_run(
         did = "Nothing was posted or changed. This run scanned a local fixture, not a GitHub pull request."
         subtype: str | None = None
         quarantine = m.Quarantine(allowed=True, reason=None)
+        fix: m.FixPreview | None = None
 
         if s.passes == 0:
             verdict, tier, severity = "real", "observed", "blocking"
@@ -353,6 +388,8 @@ def build_run(
                         f"This test fails when {p.name} runs before it, and passes on its own. "
                         "The shared value behind this was not identified by the static analysis."
                     )
+                if fix_runs > 0 and link and s.test_id in link.readers and polluter_id in link.writers:
+                    fix = _validated_fix(repo, link.state, p, t, s, known_failing, fix_runs, evidence)
                 summary = "Order-dependent · evidence: reproduced"
                 limits = "The order dependence is shown for these two tests. Other causes of flakiness in this test are not ruled out."
                 label = "Flaky · order-dependent"
@@ -373,7 +410,7 @@ def build_run(
         findings.append(m.Finding(
             id=fid, test=t.name, file=t.file, line=t.line, verdict=verdict, subtype=subtype,  # type: ignore[arg-type]
             severity=severity, evidenceTier=tier, summaryLine=summary, why=why, evidence=evidence,  # type: ignore[arg-type]
-            lives=chips, did=did, limits=limits, writer=writer, reader=reader, repro=repro, fix=None,
+            lives=chips, did=did, limits=limits, writer=writer, reader=reader, repro=repro, fix=fix,
             quarantine=quarantine,
         ))
         status_by_test[s.test_id] = label

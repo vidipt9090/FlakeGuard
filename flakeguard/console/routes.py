@@ -6,7 +6,10 @@ Errors are ``{"detail": "<readable sentence>"}``. The console shows ``detail`` v
 from __future__ import annotations
 
 import json
-import re
+import os
+import shutil
+import tempfile
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -16,7 +19,9 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.routing import Route
 
+from flakeguard.console import forge
 from flakeguard.console import models as m
+from flakeguard.console import reverify as reverify_mod
 from flakeguard.console.actions import (
     TARGET,
     ApiError,
@@ -26,19 +31,14 @@ from flakeguard.console.actions import (
     github_token,
     is_actions_id,
 )
-from flakeguard.console.runs import Refused, is_live_id, manager, seed_start_from_env
+from flakeguard.console.ask import answer_question, clear_indexes
+from flakeguard.console.runs import DEMO_REPOS, Refused, is_live_id, manager, seed_start_from_env
 from flakeguard.console.store import FINDING_SEPARATOR, NotFound, RecordedStore, empty_no_tests_plan
 from flakeguard.runner.matrix import DEFAULT_SEED_START
 
-STOPWORDS = {
-    "the", "and", "why", "what", "how", "does", "did", "this", "that", "with", "from", "are", "was",
-    "for", "has", "have", "can", "not", "its", "test", "tests", "fail", "fails", "failing", "when",
-    "which", "where", "who", "should", "would", "could", "about", "into", "than", "then", "there",
-}
 RESULTS_LABELS = ("injected", "natural", "planted")
 
 _store: RecordedStore | None = None
-_indexes: dict[str, Any] = {}
 
 
 def store() -> RecordedStore:
@@ -52,7 +52,7 @@ def set_store(value: RecordedStore | None) -> None:
     """Point the routes at another recorded directory (used by tests)."""
     global _store
     _store = value
-    _indexes.clear()
+    clear_indexes()
 
 
 def detail(message: str, status: int) -> JSONResponse:
@@ -63,6 +63,10 @@ def respond(model: BaseModel | list[BaseModel]) -> Response:
     if isinstance(model, list):
         return Response("[" + ",".join(x.model_dump_json() for x in model) + "]", media_type="application/json")
     return Response(model.model_dump_json(), media_type="application/json")
+
+
+def respond_json(payload: dict) -> Response:
+    return Response(json.dumps(payload), media_type="application/json")
 
 
 def _source():
@@ -81,10 +85,12 @@ def _run(run_id: str) -> m.RunStatus:
 
 def _findings(run_id: str) -> list[m.Finding]:
     if is_actions_id(run_id):
-        return TypeAdapter(list[m.Finding]).validate_json(_source().findings_json(run_id))
-    if is_live_id(run_id):
-        return TypeAdapter(list[m.Finding]).validate_json(manager().findings_json(run_id))
-    return store().findings(run_id)
+        found = TypeAdapter(list[m.Finding]).validate_json(_source().findings_json(run_id))
+    elif is_live_id(run_id):
+        found = TypeAdapter(list[m.Finding]).validate_json(manager().findings_json(run_id))
+    else:
+        return store().findings(run_id)
+    return reverify_mod.with_evidence(manager().root / run_id, found)
 
 
 def _tree_json(run_id: str) -> str | None:
@@ -255,18 +261,6 @@ async def get_results(request: Request) -> Response:
 # --------------------------------------------------------------------------- actions
 
 
-def _tokens(question: str) -> set[str]:
-    words = re.findall(r"[A-Za-z][A-Za-z0-9]*", question.replace("_", " "))
-    return {w.lower() for w in words if len(w) >= 3 and w.lower() not in STOPWORDS}
-
-
-def _identifier_parts(*names: str) -> set[str]:
-    parts: set[str] = set()
-    for name in names:
-        parts.update(p.lower() for p in re.findall(r"[A-Za-z][A-Za-z0-9]*", name.replace("_", " ")))
-    return parts
-
-
 async def ask(request: Request) -> Response:
     finding_id = request.path_params["finding_id"]
     question = str((await body_of(request)).get("question", "")).strip()
@@ -279,62 +273,113 @@ async def ask(request: Request) -> Response:
     repo = _target_path(run_id)
     if repo is None:
         return detail("The scanned repository is not on this machine, so there is no code to search.", 409)
+    return respond(await run_in_threadpool(answer_question, repo, finding, question))
 
-    from flakeguard.rag.index import CodebaseIndexer
 
-    key = str(repo)
-    if key not in _indexes:
-        idx = CodebaseIndexer(repo)
-        idx.index()
-        _indexes[key] = idx
-    tokens = _tokens(question)
-    scored = []
-    for chunk in _indexes[key].chunks:
-        if chunk.kind == "ci_event":
-            continue
-        parts = _identifier_parts(chunk.name, Path(chunk.file).stem, *chunk.reads, *chunk.writes)
-        hits = tokens & parts
-        if hits:
-            scored.append((len(hits), chunk))
-    scored.sort(key=lambda x: (-x[0], x[1].file, x[1].line_start))
-    top = [c for _, c in scored[:5]]
-    if not top:
-        return respond(m.AskAnswer(text="", citations=[], chunks=0))
-    cites = [m.AskCitation(label=f"{c.file}:{c.line_start}", file=c.file, line=c.line_start) for c in top]
-    names = ", ".join(f"{c.name} ({c.file}:{c.line_start})" for c in top)
-    text = f"Code that matches your question: {names}. What the scan found for {finding.test}: {finding.why}"
-    return respond(m.AskAnswer(text=text, citations=cites, chunks=len(top)))
+def _run_dir(run_id: str) -> Path | None:
+    """Where backend-side data for a live or Actions run lives. Recorded runs are read-only."""
+    return manager().root / run_id if is_live_id(run_id) or is_actions_id(run_id) else None
+
+
+def _known_failing(run_id: str) -> set[str]:
+    return {f"{f.file}::{f.test}" for f in _findings(run_id)}
+
+
+def _run_url(run_id: str) -> str | None:
+    pr = _run(run_id).pr
+    return pr.runUrl if pr else None
 
 
 async def fix(request: Request) -> Response:
     try:
-        _, finding = _find_finding(request.path_params["finding_id"])
+        run_id, finding = _find_finding(request.path_params["finding_id"])
     except NotFound as e:
         return detail(str(e), 404)
     if finding.fix is None:
         return detail("There is no validated fix for this finding, so no pull request can be opened.", 409)
-    return detail("Opening a fix pull request is not available yet.", 409)
+    source = _run(run_id).source
+    if source is None:
+        return detail("This run did not scan a GitHub repository, so there is no fork to open a pull request on.", 409)
+    if source.repo not in DEMO_REPOS:
+        return detail(f"{source.repo} is not a repository FlakeGuard may run without Docker, and the fix is validated by "
+                      "running its tests. No pull request was opened.", 409)
+    owner = os.environ.get("FLAKEGUARD_FORK_OWNER", "").strip()
+    if not owner:
+        return detail("No fork owner is set. Set FLAKEGUARD_FORK_OWNER to the GitHub user whose fork receives the fix.", 409)
+    try:
+        result = await run_in_threadpool(
+            forge.open_fix_pr, source, finding, _known_failing(run_id), fork_owner=owner, token=forge.fork_token(owner))
+    except forge.ForgeError as e:
+        return detail(str(e), e.status)
+    return respond_json({"prUrl": result.pr_url})
 
 
 async def reverify(request: Request) -> Response:
     try:
-        _find_finding(request.path_params["finding_id"])
+        run_id, finding = _find_finding(request.path_params["finding_id"])
     except NotFound as e:
         return detail(str(e), 404)
-    return detail("Re-verify needs a live scan. This server is replaying a recorded run.", 409)
+    run_dir = _run_dir(run_id)
+    if run_dir is None:
+        return detail("Re-verify needs a live scan. This server is replaying a recorded run.", 409)
+    body = await body_of(request)
+    if body.get("runs", reverify_mod.RUNS) != reverify_mod.RUNS:
+        return detail(f"Re-verify runs exactly {reverify_mod.RUNS} shuffled runs.", 422)
+    repo = _target_path(run_id)
+    cleanup: Path | None = None
+    if repo is None:
+        source = _run(run_id).source
+        if source is None or source.repo not in DEMO_REPOS:
+            return detail("The scanned repository is not on this machine and is not one FlakeGuard may run without Docker.", 409)
+        cleanup = Path(tempfile.mkdtemp(prefix="flakeguard-reverify-src-"))
+        try:
+            await run_in_threadpool(forge.fetch_source, source, cleanup / "repo")
+        except forge.ForgeError as e:
+            shutil.rmtree(cleanup, ignore_errors=True)
+            return detail(str(e), e.status)
+        repo = cleanup / "repo"
+    if not reverify_mod.claim(finding.id):
+        if cleanup:
+            shutil.rmtree(cleanup, ignore_errors=True)
+        return detail("A re-verify of this finding is already running.", 409)
+
+    def work() -> None:
+        try:
+            reverify_mod.run_reverify(repo, run_dir, finding)
+        finally:
+            reverify_mod.release(finding.id)
+            if cleanup:
+                shutil.rmtree(cleanup, ignore_errors=True)
+
+    threading.Thread(target=work, daemon=True).start()
+    return respond_json({"started": True})
 
 
 async def quarantine(request: Request) -> Response:
     try:
-        _, finding = _find_finding(request.path_params["finding_id"])
+        run_id, finding = _find_finding(request.path_params["finding_id"])
     except NotFound as e:
         return detail(str(e), 404)
-    if not finding.quarantine.allowed:
-        return detail(finding.quarantine.reason or "Quarantine is refused for this test.", 409)
-    return detail(
-        "Quarantine needs write access to a GitHub repository. This run is a local fixture, so nothing was changed.",
-        409,
-    )
+    refusal = forge.quarantine_refusal(finding)
+    if refusal:
+        return detail(refusal, 409)
+    source = _run(run_id).source
+    if source is None:
+        return detail("Quarantine needs write access to a GitHub repository. This run is a local fixture, "
+                      "so nothing was changed.", 409)
+    token = github_token()
+    if token is None:
+        return detail("The backend has no GitHub token. Set GITHUB_TOKEN, or sign in with `gh auth login`.", 503)
+    gh = forge.GitHub(token)
+    try:
+        login = gh.json("GET", "/user")["login"]
+        if not forge.can_write(gh, source.repo, login):
+            return detail(f"Quarantine is refused: {login} does not have write access to {source.repo}.", 409)
+        url = await run_in_threadpool(
+            forge.open_quarantine_issue, gh, source.repo, finding, requester=login, run_url=_run_url(run_id))
+    except forge.ForgeError as e:
+        return detail(str(e), e.status)
+    return respond_json({"issueUrl": url})
 
 
 ROUTES = [

@@ -11,6 +11,13 @@
 - **Where:** tests/ › test_report.py › test_report_total › reads CACHE ← test_cache_warm
 - **Limits:** The order dependence is shown for these two tests. Other causes of flakiness in this test are not ruled out.
 
+**Reply to this comment with**
+
+```
+/flakeguard ask why is this order-dependent?
+/flakeguard quarantine test_report_total
+```
+
 This comment is updated in place on every push.
 
 Scanned commit cfd9e36 · shuffled seeds 1 to 10 · [Actions run](https://github.com/vidipt9090/flakeguard-demo/actions/runs/1)

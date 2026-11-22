@@ -25,7 +25,7 @@ CASES = {
     "post_merge_no_findings": lambda: bt.post_merge_comment([], shuffled_runs=10, commit=COMMIT, seeds="1 to 10", run_url=URL),
     "post_merge_findings": lambda: bt.post_merge_comment(FINDINGS, shuffled_runs=10, commit=COMMIT, seeds="1 to 10", run_url=URL),
     "post_merge_did_not_finish": lambda: bt.did_not_finish(run_url=URL, post_merge=True),
-}
+}  # the commands block is part of "pr_comment" and "pr_comment_flaky_only"
 
 
 def test_every_snapshot_matches():
@@ -59,10 +59,32 @@ def test_rule_of_three_wording_uses_the_real_run_count():
     assert "about 15%" in bt.pr_comment([], shuffled_runs=20)
 
 
-def test_reply_with_commands_are_not_promised():
-    text = "".join(make() for make in CASES.values())
-    for command in ("/flakeguard fix", "/flakeguard ask", "/flakeguard quarantine"):
-        assert command not in text
+def test_the_commands_block_lists_only_commands_that_can_act():
+    flaky = [f for f in FINDINGS if f["verdict"] == "flaky"]
+    with_fix = [{**flaky[0], "fix": {"summary": "x"}}]
+    assert "/flakeguard fix" not in bt.commands_block(flaky)  # no validated fix, so none is offered
+    assert "/flakeguard fix" in bt.commands_block(with_fix)
+    assert "/flakeguard quarantine test_report_total" in bt.commands_block(flaky)
+    real_only = [f for f in FINDINGS if f["verdict"] == "real"]
+    assert "quarantine" not in bt.commands_block(real_only)
+    assert "/flakeguard ask" in bt.commands_block(real_only)
+
+
+def test_no_findings_and_post_merge_comments_offer_no_commands():
+    for name in ("pr_comment_no_findings", "post_merge_no_findings", "post_merge_findings", "pr_comment_did_not_finish"):
+        assert "/flakeguard " not in CASES[name](), name  # the trailing space skips the repository name in links
+    assert "/flakeguard ask" in CASES["pr_comment"]()
+
+
+def test_fix_pr_description_has_the_reference_sections_and_no_overclaim():
+    text = bt.fix_pr(test="test_report_total", state="CACHE", file="tests/conftest.py", lines=10, existed=True,
+                     runs=20, seeds=list(range(1, 21)), victim_failed_after=0, polluter="test_cache_warm",
+                     upstream="o/r", commit=COMMIT, base="flakeguard/base-cfd9e36", log=["with the fix, seed 1: exit 1"])
+    for head in ("What this changes", "How it was checked", "What it does not prove", "How to undo", "Who merges"):
+        assert f"**{head}**" in text
+    assert "20 shuffled runs (seeds 1 to 20)" in text and "failed in 0 of them" in text
+    assert "A person. FlakeGuard opened this on the fork and will not merge it." in text
+    assert "is fixed" not in text and "stable" not in text and " safe" not in text
 
 
 if __name__ == "__main__":

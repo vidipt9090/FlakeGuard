@@ -27,6 +27,7 @@ export default function Findings() {
   const [answer, setAnswer] = useState<AskAnswer | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
+  const [link, setLink] = useState<string | null>(null);
 
   useEffect(() => {
     if (findings && !selId) setSelId(findings.find((f) => f.verdict === 'flaky')?.id ?? findings[0]?.id ?? null);
@@ -36,8 +37,13 @@ export default function Findings() {
   const sel = useMemo(() => findings?.find((f) => f.id === selId) ?? null, [findings, selId]);
 
   async function run(label: string, fn: () => Promise<unknown>) {
-    setBusy(label); setNote(null);
-    try { await fn(); setNote(`${label}: started.`); } catch (e) { setNote(`${label} failed: ${e instanceof Error ? e.message : e}`); }
+    setBusy(label); setNote(null); setLink(null);
+    try {
+      const r = (await fn()) as { prUrl?: string; issueUrl?: string } | undefined;
+      const url = r?.prUrl ?? r?.issueUrl ?? null;
+      setLink(url);
+      setNote(url ? `${label}: opened.` : label === 'Re-verify' ? 'Re-verify: started. The result is added to Evidence when the runs finish.' : `${label}: started.`);
+    } catch (e) { setNote(`${label} failed: ${e instanceof Error ? e.message : e}`); }
     setBusy(null);
   }
 
@@ -59,7 +65,7 @@ export default function Findings() {
                 <div key={g.key}>
                   <div className="eyebrow list-h">{g.title} · {items.length}</div>
                   {items.map((f) => (
-                    <button key={f.id} type="button" className={`item ${f.id === selId ? 'sel' : ''}`} onClick={() => { setSelId(f.id); setAnswer(null); setNote(null); }}>
+                    <button key={f.id} type="button" className={`item ${f.id === selId ? 'sel' : ''}`} onClick={() => { setSelId(f.id); setAnswer(null); setNote(null); setLink(null); }}>
                       <SeverityChip severity={f.severity} fixReady={f.fix !== null} />
                       <div className="nm">{f.test}</div>
                       <div className="sm">{f.summaryLine}</div>
@@ -123,7 +129,11 @@ export default function Findings() {
                 </div>
                 <p className="footnote">Quarantine needs write access to the repo, opens a tracking issue, and is refused for real failures. The fix PR is opened on the fork and a person merges it.</p>
                 {note === 'refused' && <Banner kind="quarantine-refused" detail={sel.quarantine.reason ?? undefined} />}
-                {note && note !== 'refused' && <p role="status" style={{ marginTop: 8 }}>{note}</p>}
+                {note && note !== 'refused' && (
+                  <p role="status" style={{ marginTop: 8 }}>
+                    {note}{link && <> <a href={link} target="_blank" rel="noopener noreferrer">{link}</a></>}
+                  </p>
+                )}
               </section>
 
               {sel.fix && (

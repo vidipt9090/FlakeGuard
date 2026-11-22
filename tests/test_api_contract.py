@@ -183,15 +183,66 @@ def test_results_are_dashes_until_a_run_exists(client):
     assert client.get("/api/results?label=made-up").status_code == 422
 
 
-def test_quarantine_is_refused_for_the_real_failure_and_never_calls_github(client, run_id):
+@pytest.fixture
+def github_calls(monkeypatch):
+    """The routes' GitHub client on a mock transport. ``permission`` is what the mock answers for write access."""
+    import functools
+
+    import httpx
+
+    from flakeguard.console import forge, routes
+
+    calls: list[tuple[str, str]] = []
+    state = {"permission": "admin"}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append((request.method, request.url.path))
+        if request.url.path == "/user":
+            return httpx.Response(200, json={"login": "someone"})
+        if request.url.path.endswith("/permission"):
+            return httpx.Response(200, json={"permission": state["permission"]})
+        if request.url.path.endswith("/issues"):
+            return httpx.Response(201, json={"html_url": "https://github.com/o/r/issues/1"})
+        return httpx.Response(404, json={"message": "unexpected"})
+
+    monkeypatch.setattr(forge, "GitHub", functools.partial(forge.GitHub, transport=httpx.MockTransport(handler)))
+    monkeypatch.setattr(routes, "github_token", lambda: "test-token")
+    return calls, state
+
+
+def test_quarantine_is_refused_for_the_real_failure_and_never_calls_github(client, run_id, github_calls):
+    calls, _ = github_calls
     findings = client.get(f"/api/runs/{run_id}/findings").json()
     real = next(f for f in findings if f["verdict"] == "real")
     resp = client.post(f"/api/findings/{real['id']}/quarantine")
     assert resp.status_code == 409
     assert resp.json()["detail"] == real["quarantine"]["reason"]
+    unknown = next(f for f in findings if f["verdict"] == "unknown")
+    resp = client.post(f"/api/findings/{unknown['id']}/quarantine")
+    assert resp.status_code == 409 and resp.json()["detail"] == unknown["quarantine"]["reason"]
+    assert calls == []  # a refusal calls nothing on GitHub
+
+
+def test_quarantine_of_a_flaky_test_needs_write_access_and_then_opens_one_issue(client, run_id, github_calls):
+    calls, state = github_calls
+    flaky = next(f for f in client.get(f"/api/runs/{run_id}/findings").json() if f["verdict"] == "flaky")
+    state["permission"] = "read"
+    resp = client.post(f"/api/findings/{flaky['id']}/quarantine")
+    assert resp.status_code == 409 and "does not have write access" in resp.json()["detail"]
+    assert ("POST", "/repos/vidipt9090/flakeguard-demo/issues") not in calls
+    state["permission"] = "write"
+    resp = client.post(f"/api/findings/{flaky['id']}/quarantine")
+    assert resp.status_code == 200 and resp.json() == {"issueUrl": "https://github.com/o/r/issues/1"}
+    assert calls.count(("POST", "/repos/vidipt9090/flakeguard-demo/issues")) == 1
+
+
+def test_quarantine_on_a_local_fixture_changes_nothing(client, github_calls):
+    calls, _ = github_calls
+    findings = client.get("/api/runs/run-2026-11-18-001/findings").json()
     flaky = next(f for f in findings if f["verdict"] == "flaky")
     resp = client.post(f"/api/findings/{flaky['id']}/quarantine")
     assert resp.status_code == 409 and "local fixture" in resp.json()["detail"]
+    assert calls == []
 
 
 def test_fix_is_refused_when_there_is_no_fix(client, run_id):

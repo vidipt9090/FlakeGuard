@@ -6,8 +6,6 @@ without installing anything. Inputs are plain dictionaries (the ``findings.json`
 
 Deliberate differences from the reference page, recorded in ``docs/DECISIONS.md`` (M4-12):
 
-* The "Reply to this comment with /flakeguard ..." block is left out. Those commands do not
-  exist yet, and the comment must not promise them.
 * A footnote names the scanned commit, the shuffled seeds and the Actions run, so the numbers
   in the comment can be traced.
 """
@@ -116,8 +114,21 @@ def pr_comment(
         else:
             out += ["", f"**{f['test']}**", "", f"- **Why:** {f['why']}",
                     f"- **Quarantine:** {f['quarantine']['reason'] or 'refused'}"]
-    out += ["", foot, ""]
+    out += ["", commands_block(findings), "", foot, ""]
     return "\n".join(out)
+
+
+def commands_block(findings: list[dict]) -> str:
+    """The commands the comment offers. Only commands that can act on a finding here are listed."""
+    flaky = [f for f in findings if f["verdict"] == "flaky"]
+    lines = []
+    if any(f.get("fix") for f in flaky):
+        lines.append("/flakeguard fix")
+    lines.append("/flakeguard ask why is this order-dependent?")
+    quarantinable = [f for f in findings if f["quarantine"]["allowed"]]
+    if quarantinable:
+        lines.append(f"/flakeguard quarantine {quarantinable[0]['test']}")
+    return "**Reply to this comment with**\n\n```\n" + "\n".join(lines) + "\n```"
 
 
 def did_not_finish(*, run_url: str | None, reason: str | None = None, post_merge: bool = False) -> str:
@@ -150,4 +161,101 @@ def post_merge_comment(
         f"{MARKER_POST_MERGE}\n## FlakeGuard post-merge check\n\n"
         f"The scan after this change found {_plural(len(findings), 'test')} that failed.\n\n"
         f"| Test | Verdict | Evidence |\n|---|---|---|\n{rows}\n\n{foot}\n"
+    )
+
+
+
+def fix_pr(
+    *, test: str, state: str, file: str, lines: int, existed: bool, runs: int, seeds: list[int],
+    victim_failed_after: int, polluter: str, upstream: str, commit: str, base: str, log: list[str],
+) -> str:
+    """Description of a fix pull request opened on the fork. Sections follow the reference page."""
+    verb = "Appends" if existed else "Adds"
+    seed_text = f"seeds {seeds[0]} to {seeds[-1]}" if len(seeds) > 1 else f"seed {seeds[0]}"
+    detail = "\n".join(log)
+    return (
+        f"## Fix order dependence in {test}\n\n"
+        f"**What this changes**\n{verb} a fixture in `{file}` ({_plural(lines, 'line')}) that puts `{state}` back to "
+        f"the value it had before each test, so no test can leave state behind.\n\n"
+        f"**How it was checked**\n{_plural(runs, 'shuffled run')} ({seed_text}) with this change: `{test}` failed "
+        f"in {victim_failed_after} of them, and no test that had not failed in the scan failed. The two-test repro "
+        f"(`{polluter}` then `{test}`) failed before this change and passes now.\n\n"
+        f"<details><summary>Validation log</summary>\n\n```\n{detail}\n```\n\n</details>\n\n"
+        "**What it does not prove**\nThat the code is correct in orders that were not run.\n\n"
+        "**How to undo**\nRevert this pull request. Nothing else is touched.\n\n"
+        "**Who merges**\nA person. FlakeGuard opened this on the fork and will not merge it.\n\n"
+        f"Base branch `{base}` is a copy of `{upstream}` at `{commit[:7]}`, the commit that was scanned.\n"
+    )
+
+
+def quarantine_issue(
+    *, test: str, file: str, line: int, why: str, evidence: list[str], requester: str, run_url: str | None,
+) -> str:
+    """Body of the tracking issue. Nothing is skipped or deleted; a person decides what to do."""
+    bullets = "\n".join(f"- {e}" for e in evidence)
+    link = f"\n\n[FlakeGuard run]({run_url})" if run_url else ""
+    return (
+        f"FlakeGuard was asked by @{requester} to quarantine `{test}` (`{file}:{line}`).\n\n"
+        f"**Why:** {why}\n\n**Evidence**\n{bullets}\n\n"
+        "This issue only tracks the test. No test was skipped, marked or deleted." + link + "\n"
+    )
+
+
+def quarantine_refused(*, test: str, reason: str) -> str:
+    return (
+        f"## Not quarantined: {test}\n\n{reason}\n\n"
+        "Quarantine also needs write access to the repository. Requests from anyone without it are declined.\n"
+    )
+
+
+def declined_no_write_access(*, login: str, command: str) -> str:
+    return (
+        f"## FlakeGuard declined `{command}`\n\n"
+        f"@{login} does not have write access to this repository, so nothing was run and nothing was changed.\n"
+    )
+
+
+def ask_reply(*, question: str, text: str, citations: list[str], chunks: int) -> str:
+    """Answer to ``/flakeguard ask``. With nothing retrieved it says so and answers nothing."""
+    if chunks == 0:
+        return (
+            "## FlakeGuard\n\n"
+            f"No code matching this question was found, so there is no answer. Question: {question}\n"
+        )
+    cites = ", ".join(f"`{c}`" for c in citations)
+    return (
+        f"## FlakeGuard\n\n{text}\n\nCode cited: {cites}\n\n"
+        f"Answered from {_plural(chunks, 'retrieved code chunk')}. If nothing relevant is found, the answer says so.\n"
+    )
+
+
+def fix_validated_reply(*, test: str, file: str, diff: list[str], checked: str) -> str:
+    """Answer to ``/flakeguard fix`` when the fix passed validation. No pull request is opened from CI."""
+    code = "\n".join(diff)
+    return (
+        f"## FlakeGuard · A fix for {test} passed validation\n\n"
+        f"**Checked before showing it:** {checked}\n\n"
+        f"Proposed change to `{file}`:\n\n```diff\n{code}\n```\n\n"
+        "No pull request was opened. A fix pull request is opened on the fork of the person asking, which needs "
+        "that person's own credential, and this workflow does not have one. Open it with **Propose fix PR** in the "
+        "FlakeGuard console, or apply the change above by hand. A person merges it; FlakeGuard never does.\n"
+    )
+
+
+def fix_unavailable_reply(*, test: str, reason: str) -> str:
+    return f"## FlakeGuard · No fix for {test}\n\n{reason}\n\nNothing was changed.\n"
+
+
+def unknown_command_reply(*, command: str) -> str:
+    return (
+        f"## FlakeGuard did not understand `{command}`\n\n"
+        "Commands: `/flakeguard fix`, `/flakeguard ask <question>`, `/flakeguard quarantine <test name>`.\n"
+    )
+
+
+def no_scan_reply(*, command: str) -> str:
+    return (
+        f"## FlakeGuard could not run `{command}`\n\n"
+        "No finished FlakeGuard scan was found for the latest commit of this pull request, so there are no findings "
+        "to act on. Nothing was changed.\n"
     )
