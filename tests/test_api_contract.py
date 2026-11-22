@@ -17,7 +17,7 @@ import typing
 from pathlib import Path
 
 import pytest
-from pydantic import BaseModel
+from pydantic import BaseModel, TypeAdapter
 from starlette.testclient import TestClient
 
 from flakeguard.console import models as m
@@ -303,3 +303,16 @@ if __name__ == "__main__":
     if "--update" in sys.argv:
         SNAPSHOT.write_text(json.dumps(current_snapshot(), indent=2) + "\n", encoding="utf-8")
         print(f"wrote {SNAPSHOT}")
+
+
+def test_an_actions_finding_id_resolves_to_its_actions_run(monkeypatch):
+    """Findings made in Actions are named gh-<run>_finding-N; the console's run id is actions-<run>."""
+    from flakeguard.console import routes
+
+    seen = []
+    recorded = TypeAdapter(list[m.Finding]).validate_json(
+        (RECORDED_DIR / "run-2026-11-21-002" / "findings.json").read_text(encoding="utf-8"))
+    finding = recorded[0].model_copy(update={"id": "gh-123_finding-1"})
+    monkeypatch.setattr(routes, "_findings", lambda run_id: (seen.append(run_id), [finding])[1])
+    assert routes._find_finding("gh-123_finding-1") == ("actions-123", finding)
+    assert seen == ["actions-123"]

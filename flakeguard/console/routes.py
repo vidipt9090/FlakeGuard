@@ -120,6 +120,8 @@ def github_failure(e: Exception) -> JSONResponse:
 
 def _find_finding(finding_id: str) -> tuple[str, m.Finding]:
     run_id, sep, _ = finding_id.partition(FINDING_SEPARATOR)
+    if run_id.startswith("gh-"):
+        run_id = "actions-" + run_id[len("gh-"):]  # the Actions job names its run gh-<id>; the console calls it actions-<id>
     if sep:
         for f in _findings(run_id):
             if f.id == finding_id:

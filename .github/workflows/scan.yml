@@ -335,6 +335,7 @@ jobs:
           PR_NUMBER: ${{ needs.plan.outputs.pr_number }}
           ANALYZE_RESULT: ${{ needs.analyze.result }}
           MODE: ${{ inputs.mode }}
+          IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           PYTHONUTF8: "1"
         run: |
@@ -351,4 +352,11 @@ jobs:
           open("comment.md", "w", encoding="utf-8").write(text)
           PY
           fi
-          python3 engine/scripts/upsert_pr_comment.py --file comment.md --pr "$PR_NUMBER"
+          if [ "$IS_FORK" = "true" ]; then
+            # A pull request from a fork gets a read-only GITHUB_TOKEN, so a comment cannot be posted
+            # (observed: HTTP 403). Show the same text in the run summary instead of failing the run.
+            { echo "This pull request comes from a fork, so GitHub gives this run a read-only token and the comment cannot be posted. The text below is what FlakeGuard would have posted."; echo; cat comment.md; } >> "$GITHUB_STEP_SUMMARY"
+            echo "Fork pull request: comment written to the run summary, not posted."
+          else
+            python3 engine/scripts/upsert_pr_comment.py --file comment.md --pr "$PR_NUMBER"
+          fi
