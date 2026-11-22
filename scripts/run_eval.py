@@ -104,8 +104,8 @@ SENSITIVITY = {
 }
 B1_TOLERANCE = "B1 found-flaky counts vary by about 1 test between executions (unseeded randomness tests)."
 B3_TOLERANCE = ("B3 is not stable between executions. Its inputs (failure counts and test durations of runs that are made again each time) change a little, "
-                "and a forest trained on 31 tests reacts strongly: trained on planted at N=20 it wrongly flagged 28 of 450 stable injected tests in one execution "
-                "and 152 in the next. Read a B3 row as a range, not a point.")
+                "and a forest trained on 31 tests reacts strongly: trained on planted at N=20 it wrongly flagged 28, 152 and 2 of 450 stable injected tests in three executions of the same command. "
+                "Read a B3 row as a range, not a point.")
 
 
 # ------------------------------------------------------------------------------------- provenance
@@ -148,7 +148,7 @@ def provenance(label: str, labels: list[dict], command: str) -> dict:
         "date_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "clock": {"local": now.strftime("%Y-%m-%d %H:%M:%S %Z%z"), "weekday": now.strftime("%A")},
         "commit": _git("rev-parse", "HEAD"),
-        "tracked_files_modified": bool(_git("status", "--porcelain", "--untracked-files=no")),
+        "tracked_files_modified": bool(_git("status", "--porcelain", "--untracked-files=no", "--", ".", ":(exclude)results")),  # results/ are this command's outputs
         "environment": {"python": platform.python_version(), "pytest": pytest.__version__, "platform": platform.platform()},
         "budget_minutes": BUDGET_MINUTES,
         "tolerances": {"b1_fixed_order": B1_TOLERANCE, "b3": B3_TOLERANCE,
