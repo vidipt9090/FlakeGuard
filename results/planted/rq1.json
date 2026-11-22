@@ -1,0 +1,2505 @@
+{
+  "provenance": {
+    "label_type": "planted",
+    "dataset": {
+      "suite": "synthetic/tests",
+      "labels_file": "labels/labels.json",
+      "labels_sha256": "89a10867c7d8154e1955bdf071b8ecbcb3e34eab587b11b2ed29964f19d01b5d",
+      "how_labelled": "by construction: each fault was written into the test or the code by hand, so its label is known",
+      "n_tests": 31,
+      "n_by_label": {
+        "stable": 10,
+        "flaky": 15,
+        "real": 6
+      }
+    },
+    "command": "python scripts/run_eval.py planted",
+    "date_utc": "2026-11-22T05:25:20Z",
+    "clock": {
+      "local": "2026-11-22 10:55:20 India Standard Time+0530",
+      "weekday": "Sunday"
+    },
+    "commit": "ac0649386b8c06dd52ed75fa58e009de517de61a",
+    "tracked_files_modified": false,
+    "environment": {
+      "python": "3.12.13",
+      "pytest": "9.2.0",
+      "platform": "Windows-11-10.0.26300-SP0"
+    },
+    "budget_minutes": 6.0,
+    "limitations": [
+      "Planted faults only. Results on planted faults are partly circular: the faults were written to be the kinds that shuffled runs and the AST analysis are built to find. Read them as a check that the methods work, not as a measure of how often they find real-world flakes.",
+      "No natural flakes (flakes found in real projects) were available. Natural results are not reported and stay dashes.",
+      "Faults that depend on the clock (root cause time_tz) cannot be made to fail on demand on this machine. Whether they fail depends on the weekday and time at which the command is run (recorded under provenance.clock). They are reported in their own rows and the headline table is also given without them.",
+      "Small N: 15 flaky and 16 other tests. Intervals are wide and a difference between methods of a few tests is not evidence of a difference."
+    ]
+  },
+  "rows": [
+    {
+      "method": "b1_fixed_order",
+      "full_suite_runs": 5,
+      "minutes_measured": 0.248,
+      "within_budget": true,
+      "all_tests": {
+        "n_tests": 31,
+        "flaky_found": {
+          "k": 3,
+          "n": 15
+        },
+        "wrongly_flagged_flaky": {
+          "k": 0,
+          "n": 16
+        },
+        "precision": {
+          "k": 3,
+          "n": 3,
+          "value": 1.0,
+          "ci95_wilson": [
+            0.4385,
+            1.0
+          ]
+        },
+        "recall": {
+          "k": 3,
+          "n": 15,
+          "value": 0.2,
+          "ci95_wilson": [
+            0.0705,
+            0.4519
+          ]
+        },
+        "f1": {
+          "value": 0.3333,
+          "ci95_bootstrap": [
+            0.0,
+            0.6
+          ],
+          "resamples": 2000,
+          "n": 31
+        },
+        "real_failures_called_flaky": {
+          "k": 0,
+          "n": 6,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.3903
+          ]
+        },
+        "flaky_called_real": {
+          "k": 8,
+          "n": 15,
+          "value": 0.5333,
+          "ci95_wilson": [
+            0.3012,
+            0.7519
+          ]
+        },
+        "confusion_actual_by_predicted": {
+          "flaky": {
+            "flaky": 3,
+            "real": 8,
+            "none_seen": 4
+          },
+          "real": {
+            "flaky": 0,
+            "real": 6,
+            "none_seen": 0
+          },
+          "stable": {
+            "flaky": 0,
+            "real": 0,
+            "none_seen": 10
+          }
+        },
+        "by_root_cause": {
+          "order_dep": {
+            "found_flaky": 0,
+            "n": 3
+          },
+          "randomness": {
+            "found_flaky": 2,
+            "n": 3
+          },
+          "shared_state": {
+            "found_flaky": 0,
+            "n": 3
+          },
+          "time_tz": {
+            "found_flaky": 0,
+            "n": 3
+          },
+          "timing": {
+            "found_flaky": 1,
+            "n": 3
+          }
+        }
+      },
+      "without_clock_dependent_tests": {
+        "n_tests": 28,
+        "flaky_found": {
+          "k": 3,
+          "n": 12
+        },
+        "wrongly_flagged_flaky": {
+          "k": 0,
+          "n": 16
+        },
+        "precision": {
+          "k": 3,
+          "n": 3,
+          "value": 1.0,
+          "ci95_wilson": [
+            0.4385,
+            1.0
+          ]
+        },
+        "recall": {
+          "k": 3,
+          "n": 12,
+          "value": 0.25,
+          "ci95_wilson": [
+            0.0889,
+            0.5323
+          ]
+        },
+        "f1": {
+          "value": 0.4,
+          "ci95_bootstrap": [
+            0.0,
+            0.6667
+          ],
+          "resamples": 2000,
+          "n": 28
+        },
+        "real_failures_called_flaky": {
+          "k": 0,
+          "n": 6,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.3903
+          ]
+        },
+        "flaky_called_real": {
+          "k": 5,
+          "n": 12,
+          "value": 0.4167,
+          "ci95_wilson": [
+            0.1933,
+            0.6805
+          ]
+        },
+        "confusion_actual_by_predicted": {
+          "flaky": {
+            "flaky": 3,
+            "real": 5,
+            "none_seen": 4
+          },
+          "real": {
+            "flaky": 0,
+            "real": 6,
+            "none_seen": 0
+          },
+          "stable": {
+            "flaky": 0,
+            "real": 0,
+            "none_seen": 10
+          }
+        },
+        "by_root_cause": {
+          "order_dep": {
+            "found_flaky": 0,
+            "n": 3
+          },
+          "randomness": {
+            "found_flaky": 2,
+            "n": 3
+          },
+          "shared_state": {
+            "found_flaky": 0,
+            "n": 3
+          },
+          "timing": {
+            "found_flaky": 1,
+            "n": 3
+          }
+        }
+      },
+      "per_test": {
+        "synthetic/tests/test_suite_01.py::test_case_01": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_01.py::test_case_02": {
+          "label": "flaky",
+          "root_cause": "order_dep",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_01.py::test_case_03": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_01.py::test_case_04": {
+          "label": "flaky",
+          "root_cause": "order_dep",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_01.py::test_case_05": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_01.py::test_case_06": {
+          "label": "flaky",
+          "root_cause": "order_dep",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_01.py::test_case_07": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_01.py::test_case_08": {
+          "label": "flaky",
+          "root_cause": "shared_state",
+          "called": "real",
+          "failed_in": 5,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_01.py::test_case_09": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_01.py::test_case_10": {
+          "label": "flaky",
+          "root_cause": "shared_state",
+          "called": "real",
+          "failed_in": 5,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_02.py::test_case_11": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_02.py::test_case_12": {
+          "label": "flaky",
+          "root_cause": "shared_state",
+          "called": "real",
+          "failed_in": 5,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_02.py::test_case_13": {
+          "label": "flaky",
+          "root_cause": "timing",
+          "called": "flaky",
+          "failed_in": 4,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_02.py::test_case_14": {
+          "label": "flaky",
+          "root_cause": "timing",
+          "called": "real",
+          "failed_in": 5,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_02.py::test_case_15": {
+          "label": "flaky",
+          "root_cause": "timing",
+          "called": "real",
+          "failed_in": 5,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_02.py::test_case_16": {
+          "label": "flaky",
+          "root_cause": "randomness",
+          "called": "flaky",
+          "failed_in": 1,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_02.py::test_case_17": {
+          "label": "flaky",
+          "root_cause": "randomness",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_02.py::test_case_18": {
+          "label": "flaky",
+          "root_cause": "randomness",
+          "called": "flaky",
+          "failed_in": 2,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_02.py::test_case_19": {
+          "label": "flaky",
+          "root_cause": "time_tz",
+          "called": "real",
+          "failed_in": 5,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_02.py::test_case_20": {
+          "label": "flaky",
+          "root_cause": "time_tz",
+          "called": "real",
+          "failed_in": 5,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_03.py::test_case_21": {
+          "label": "flaky",
+          "root_cause": "time_tz",
+          "called": "real",
+          "failed_in": 5,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_03.py::test_case_22": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 5,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_03.py::test_case_23": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 5,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_03.py::test_case_24": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 5,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_03.py::test_case_25": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 5,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_03.py::test_case_26": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 5,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_03.py::test_case_27": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 5,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_03.py::test_case_28": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_03.py::test_case_29": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_03.py::test_case_30": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_03.py::test_case_31": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 5
+        }
+      }
+    },
+    {
+      "method": "b1_fixed_order",
+      "full_suite_runs": 10,
+      "minutes_measured": 0.484,
+      "within_budget": true,
+      "all_tests": {
+        "n_tests": 31,
+        "flaky_found": {
+          "k": 4,
+          "n": 15
+        },
+        "wrongly_flagged_flaky": {
+          "k": 0,
+          "n": 16
+        },
+        "precision": {
+          "k": 4,
+          "n": 4,
+          "value": 1.0,
+          "ci95_wilson": [
+            0.5101,
+            1.0
+          ]
+        },
+        "recall": {
+          "k": 4,
+          "n": 15,
+          "value": 0.2667,
+          "ci95_wilson": [
+            0.109,
+            0.5195
+          ]
+        },
+        "f1": {
+          "value": 0.4211,
+          "ci95_bootstrap": [
+            0.125,
+            0.6667
+          ],
+          "resamples": 2000,
+          "n": 31
+        },
+        "real_failures_called_flaky": {
+          "k": 0,
+          "n": 6,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.3903
+          ]
+        },
+        "flaky_called_real": {
+          "k": 8,
+          "n": 15,
+          "value": 0.5333,
+          "ci95_wilson": [
+            0.3012,
+            0.7519
+          ]
+        },
+        "confusion_actual_by_predicted": {
+          "flaky": {
+            "flaky": 4,
+            "real": 8,
+            "none_seen": 3
+          },
+          "real": {
+            "flaky": 0,
+            "real": 6,
+            "none_seen": 0
+          },
+          "stable": {
+            "flaky": 0,
+            "real": 0,
+            "none_seen": 10
+          }
+        },
+        "by_root_cause": {
+          "order_dep": {
+            "found_flaky": 0,
+            "n": 3
+          },
+          "randomness": {
+            "found_flaky": 3,
+            "n": 3
+          },
+          "shared_state": {
+            "found_flaky": 0,
+            "n": 3
+          },
+          "time_tz": {
+            "found_flaky": 0,
+            "n": 3
+          },
+          "timing": {
+            "found_flaky": 1,
+            "n": 3
+          }
+        }
+      },
+      "without_clock_dependent_tests": {
+        "n_tests": 28,
+        "flaky_found": {
+          "k": 4,
+          "n": 12
+        },
+        "wrongly_flagged_flaky": {
+          "k": 0,
+          "n": 16
+        },
+        "precision": {
+          "k": 4,
+          "n": 4,
+          "value": 1.0,
+          "ci95_wilson": [
+            0.5101,
+            1.0
+          ]
+        },
+        "recall": {
+          "k": 4,
+          "n": 12,
+          "value": 0.3333,
+          "ci95_wilson": [
+            0.1381,
+            0.6094
+          ]
+        },
+        "f1": {
+          "value": 0.5,
+          "ci95_bootstrap": [
+            0.1429,
+            0.7619
+          ],
+          "resamples": 2000,
+          "n": 28
+        },
+        "real_failures_called_flaky": {
+          "k": 0,
+          "n": 6,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.3903
+          ]
+        },
+        "flaky_called_real": {
+          "k": 5,
+          "n": 12,
+          "value": 0.4167,
+          "ci95_wilson": [
+            0.1933,
+            0.6805
+          ]
+        },
+        "confusion_actual_by_predicted": {
+          "flaky": {
+            "flaky": 4,
+            "real": 5,
+            "none_seen": 3
+          },
+          "real": {
+            "flaky": 0,
+            "real": 6,
+            "none_seen": 0
+          },
+          "stable": {
+            "flaky": 0,
+            "real": 0,
+            "none_seen": 10
+          }
+        },
+        "by_root_cause": {
+          "order_dep": {
+            "found_flaky": 0,
+            "n": 3
+          },
+          "randomness": {
+            "found_flaky": 3,
+            "n": 3
+          },
+          "shared_state": {
+            "found_flaky": 0,
+            "n": 3
+          },
+          "timing": {
+            "found_flaky": 1,
+            "n": 3
+          }
+        }
+      },
+      "per_test": {
+        "synthetic/tests/test_suite_01.py::test_case_01": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_01.py::test_case_02": {
+          "label": "flaky",
+          "root_cause": "order_dep",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_01.py::test_case_03": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_01.py::test_case_04": {
+          "label": "flaky",
+          "root_cause": "order_dep",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_01.py::test_case_05": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_01.py::test_case_06": {
+          "label": "flaky",
+          "root_cause": "order_dep",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_01.py::test_case_07": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_01.py::test_case_08": {
+          "label": "flaky",
+          "root_cause": "shared_state",
+          "called": "real",
+          "failed_in": 10,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_01.py::test_case_09": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_01.py::test_case_10": {
+          "label": "flaky",
+          "root_cause": "shared_state",
+          "called": "real",
+          "failed_in": 10,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_02.py::test_case_11": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_02.py::test_case_12": {
+          "label": "flaky",
+          "root_cause": "shared_state",
+          "called": "real",
+          "failed_in": 10,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_02.py::test_case_13": {
+          "label": "flaky",
+          "root_cause": "timing",
+          "called": "flaky",
+          "failed_in": 8,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_02.py::test_case_14": {
+          "label": "flaky",
+          "root_cause": "timing",
+          "called": "real",
+          "failed_in": 10,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_02.py::test_case_15": {
+          "label": "flaky",
+          "root_cause": "timing",
+          "called": "real",
+          "failed_in": 10,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_02.py::test_case_16": {
+          "label": "flaky",
+          "root_cause": "randomness",
+          "called": "flaky",
+          "failed_in": 5,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_02.py::test_case_17": {
+          "label": "flaky",
+          "root_cause": "randomness",
+          "called": "flaky",
+          "failed_in": 1,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_02.py::test_case_18": {
+          "label": "flaky",
+          "root_cause": "randomness",
+          "called": "flaky",
+          "failed_in": 3,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_02.py::test_case_19": {
+          "label": "flaky",
+          "root_cause": "time_tz",
+          "called": "real",
+          "failed_in": 10,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_02.py::test_case_20": {
+          "label": "flaky",
+          "root_cause": "time_tz",
+          "called": "real",
+          "failed_in": 10,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_03.py::test_case_21": {
+          "label": "flaky",
+          "root_cause": "time_tz",
+          "called": "real",
+          "failed_in": 10,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_03.py::test_case_22": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 10,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_03.py::test_case_23": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 10,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_03.py::test_case_24": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 10,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_03.py::test_case_25": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 10,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_03.py::test_case_26": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 10,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_03.py::test_case_27": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 10,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_03.py::test_case_28": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_03.py::test_case_29": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_03.py::test_case_30": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_03.py::test_case_31": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 10
+        }
+      }
+    },
+    {
+      "method": "b1_fixed_order",
+      "full_suite_runs": 20,
+      "minutes_measured": 1.02,
+      "within_budget": true,
+      "all_tests": {
+        "n_tests": 31,
+        "flaky_found": {
+          "k": 4,
+          "n": 15
+        },
+        "wrongly_flagged_flaky": {
+          "k": 0,
+          "n": 16
+        },
+        "precision": {
+          "k": 4,
+          "n": 4,
+          "value": 1.0,
+          "ci95_wilson": [
+            0.5101,
+            1.0
+          ]
+        },
+        "recall": {
+          "k": 4,
+          "n": 15,
+          "value": 0.2667,
+          "ci95_wilson": [
+            0.109,
+            0.5195
+          ]
+        },
+        "f1": {
+          "value": 0.4211,
+          "ci95_bootstrap": [
+            0.125,
+            0.6667
+          ],
+          "resamples": 2000,
+          "n": 31
+        },
+        "real_failures_called_flaky": {
+          "k": 0,
+          "n": 6,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.3903
+          ]
+        },
+        "flaky_called_real": {
+          "k": 8,
+          "n": 15,
+          "value": 0.5333,
+          "ci95_wilson": [
+            0.3012,
+            0.7519
+          ]
+        },
+        "confusion_actual_by_predicted": {
+          "flaky": {
+            "flaky": 4,
+            "real": 8,
+            "none_seen": 3
+          },
+          "real": {
+            "flaky": 0,
+            "real": 6,
+            "none_seen": 0
+          },
+          "stable": {
+            "flaky": 0,
+            "real": 0,
+            "none_seen": 10
+          }
+        },
+        "by_root_cause": {
+          "order_dep": {
+            "found_flaky": 0,
+            "n": 3
+          },
+          "randomness": {
+            "found_flaky": 3,
+            "n": 3
+          },
+          "shared_state": {
+            "found_flaky": 0,
+            "n": 3
+          },
+          "time_tz": {
+            "found_flaky": 0,
+            "n": 3
+          },
+          "timing": {
+            "found_flaky": 1,
+            "n": 3
+          }
+        }
+      },
+      "without_clock_dependent_tests": {
+        "n_tests": 28,
+        "flaky_found": {
+          "k": 4,
+          "n": 12
+        },
+        "wrongly_flagged_flaky": {
+          "k": 0,
+          "n": 16
+        },
+        "precision": {
+          "k": 4,
+          "n": 4,
+          "value": 1.0,
+          "ci95_wilson": [
+            0.5101,
+            1.0
+          ]
+        },
+        "recall": {
+          "k": 4,
+          "n": 12,
+          "value": 0.3333,
+          "ci95_wilson": [
+            0.1381,
+            0.6094
+          ]
+        },
+        "f1": {
+          "value": 0.5,
+          "ci95_bootstrap": [
+            0.1429,
+            0.7619
+          ],
+          "resamples": 2000,
+          "n": 28
+        },
+        "real_failures_called_flaky": {
+          "k": 0,
+          "n": 6,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.3903
+          ]
+        },
+        "flaky_called_real": {
+          "k": 5,
+          "n": 12,
+          "value": 0.4167,
+          "ci95_wilson": [
+            0.1933,
+            0.6805
+          ]
+        },
+        "confusion_actual_by_predicted": {
+          "flaky": {
+            "flaky": 4,
+            "real": 5,
+            "none_seen": 3
+          },
+          "real": {
+            "flaky": 0,
+            "real": 6,
+            "none_seen": 0
+          },
+          "stable": {
+            "flaky": 0,
+            "real": 0,
+            "none_seen": 10
+          }
+        },
+        "by_root_cause": {
+          "order_dep": {
+            "found_flaky": 0,
+            "n": 3
+          },
+          "randomness": {
+            "found_flaky": 3,
+            "n": 3
+          },
+          "shared_state": {
+            "found_flaky": 0,
+            "n": 3
+          },
+          "timing": {
+            "found_flaky": 1,
+            "n": 3
+          }
+        }
+      },
+      "per_test": {
+        "synthetic/tests/test_suite_01.py::test_case_01": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_01.py::test_case_02": {
+          "label": "flaky",
+          "root_cause": "order_dep",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_01.py::test_case_03": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_01.py::test_case_04": {
+          "label": "flaky",
+          "root_cause": "order_dep",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_01.py::test_case_05": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_01.py::test_case_06": {
+          "label": "flaky",
+          "root_cause": "order_dep",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_01.py::test_case_07": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_01.py::test_case_08": {
+          "label": "flaky",
+          "root_cause": "shared_state",
+          "called": "real",
+          "failed_in": 20,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_01.py::test_case_09": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_01.py::test_case_10": {
+          "label": "flaky",
+          "root_cause": "shared_state",
+          "called": "real",
+          "failed_in": 20,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_02.py::test_case_11": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_02.py::test_case_12": {
+          "label": "flaky",
+          "root_cause": "shared_state",
+          "called": "real",
+          "failed_in": 20,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_02.py::test_case_13": {
+          "label": "flaky",
+          "root_cause": "timing",
+          "called": "flaky",
+          "failed_in": 15,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_02.py::test_case_14": {
+          "label": "flaky",
+          "root_cause": "timing",
+          "called": "real",
+          "failed_in": 20,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_02.py::test_case_15": {
+          "label": "flaky",
+          "root_cause": "timing",
+          "called": "real",
+          "failed_in": 20,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_02.py::test_case_16": {
+          "label": "flaky",
+          "root_cause": "randomness",
+          "called": "flaky",
+          "failed_in": 6,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_02.py::test_case_17": {
+          "label": "flaky",
+          "root_cause": "randomness",
+          "called": "flaky",
+          "failed_in": 1,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_02.py::test_case_18": {
+          "label": "flaky",
+          "root_cause": "randomness",
+          "called": "flaky",
+          "failed_in": 5,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_02.py::test_case_19": {
+          "label": "flaky",
+          "root_cause": "time_tz",
+          "called": "real",
+          "failed_in": 20,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_02.py::test_case_20": {
+          "label": "flaky",
+          "root_cause": "time_tz",
+          "called": "real",
+          "failed_in": 20,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_03.py::test_case_21": {
+          "label": "flaky",
+          "root_cause": "time_tz",
+          "called": "real",
+          "failed_in": 20,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_03.py::test_case_22": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 20,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_03.py::test_case_23": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 20,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_03.py::test_case_24": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 20,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_03.py::test_case_25": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 20,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_03.py::test_case_26": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 20,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_03.py::test_case_27": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 20,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_03.py::test_case_28": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_03.py::test_case_29": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_03.py::test_case_30": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_03.py::test_case_31": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 20
+        }
+      }
+    },
+    {
+      "method": "perturbation",
+      "full_suite_runs": 5,
+      "minutes_measured": 0.375,
+      "within_budget": true,
+      "all_tests": {
+        "n_tests": 31,
+        "flaky_found": {
+          "k": 9,
+          "n": 15
+        },
+        "wrongly_flagged_flaky": {
+          "k": 0,
+          "n": 16
+        },
+        "precision": {
+          "k": 9,
+          "n": 9,
+          "value": 1.0,
+          "ci95_wilson": [
+            0.7008,
+            1.0
+          ]
+        },
+        "recall": {
+          "k": 9,
+          "n": 15,
+          "value": 0.6,
+          "ci95_wilson": [
+            0.3575,
+            0.8018
+          ]
+        },
+        "f1": {
+          "value": 0.75,
+          "ci95_bootstrap": [
+            0.5,
+            0.9091
+          ],
+          "resamples": 2000,
+          "n": 31
+        },
+        "real_failures_called_flaky": {
+          "k": 0,
+          "n": 6,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.3903
+          ]
+        },
+        "flaky_called_real": {
+          "k": 5,
+          "n": 15,
+          "value": 0.3333,
+          "ci95_wilson": [
+            0.1518,
+            0.5829
+          ]
+        },
+        "confusion_actual_by_predicted": {
+          "flaky": {
+            "flaky": 9,
+            "real": 5,
+            "none_seen": 1
+          },
+          "real": {
+            "flaky": 0,
+            "real": 6,
+            "none_seen": 0
+          },
+          "stable": {
+            "flaky": 0,
+            "real": 0,
+            "none_seen": 10
+          }
+        },
+        "by_root_cause": {
+          "order_dep": {
+            "found_flaky": 3,
+            "n": 3
+          },
+          "randomness": {
+            "found_flaky": 2,
+            "n": 3
+          },
+          "shared_state": {
+            "found_flaky": 3,
+            "n": 3
+          },
+          "time_tz": {
+            "found_flaky": 0,
+            "n": 3
+          },
+          "timing": {
+            "found_flaky": 1,
+            "n": 3
+          }
+        }
+      },
+      "without_clock_dependent_tests": {
+        "n_tests": 28,
+        "flaky_found": {
+          "k": 9,
+          "n": 12
+        },
+        "wrongly_flagged_flaky": {
+          "k": 0,
+          "n": 16
+        },
+        "precision": {
+          "k": 9,
+          "n": 9,
+          "value": 1.0,
+          "ci95_wilson": [
+            0.7008,
+            1.0
+          ]
+        },
+        "recall": {
+          "k": 9,
+          "n": 12,
+          "value": 0.75,
+          "ci95_wilson": [
+            0.4677,
+            0.9111
+          ]
+        },
+        "f1": {
+          "value": 0.8571,
+          "ci95_bootstrap": [
+            0.6364,
+            1.0
+          ],
+          "resamples": 2000,
+          "n": 28
+        },
+        "real_failures_called_flaky": {
+          "k": 0,
+          "n": 6,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.3903
+          ]
+        },
+        "flaky_called_real": {
+          "k": 2,
+          "n": 12,
+          "value": 0.1667,
+          "ci95_wilson": [
+            0.047,
+            0.448
+          ]
+        },
+        "confusion_actual_by_predicted": {
+          "flaky": {
+            "flaky": 9,
+            "real": 2,
+            "none_seen": 1
+          },
+          "real": {
+            "flaky": 0,
+            "real": 6,
+            "none_seen": 0
+          },
+          "stable": {
+            "flaky": 0,
+            "real": 0,
+            "none_seen": 10
+          }
+        },
+        "by_root_cause": {
+          "order_dep": {
+            "found_flaky": 3,
+            "n": 3
+          },
+          "randomness": {
+            "found_flaky": 2,
+            "n": 3
+          },
+          "shared_state": {
+            "found_flaky": 3,
+            "n": 3
+          },
+          "timing": {
+            "found_flaky": 1,
+            "n": 3
+          }
+        }
+      },
+      "per_test": {
+        "synthetic/tests/test_suite_01.py::test_case_01": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_01.py::test_case_02": {
+          "label": "flaky",
+          "root_cause": "order_dep",
+          "called": "flaky",
+          "failed_in": 4,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_01.py::test_case_03": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_01.py::test_case_04": {
+          "label": "flaky",
+          "root_cause": "order_dep",
+          "called": "flaky",
+          "failed_in": 1,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_01.py::test_case_05": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_01.py::test_case_06": {
+          "label": "flaky",
+          "root_cause": "order_dep",
+          "called": "flaky",
+          "failed_in": 4,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_01.py::test_case_07": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_01.py::test_case_08": {
+          "label": "flaky",
+          "root_cause": "shared_state",
+          "called": "flaky",
+          "failed_in": 4,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_01.py::test_case_09": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_01.py::test_case_10": {
+          "label": "flaky",
+          "root_cause": "shared_state",
+          "called": "flaky",
+          "failed_in": 2,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_02.py::test_case_11": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_02.py::test_case_12": {
+          "label": "flaky",
+          "root_cause": "shared_state",
+          "called": "flaky",
+          "failed_in": 4,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_02.py::test_case_13": {
+          "label": "flaky",
+          "root_cause": "timing",
+          "called": "flaky",
+          "failed_in": 3,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_02.py::test_case_14": {
+          "label": "flaky",
+          "root_cause": "timing",
+          "called": "real",
+          "failed_in": 5,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_02.py::test_case_15": {
+          "label": "flaky",
+          "root_cause": "timing",
+          "called": "real",
+          "failed_in": 5,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_02.py::test_case_16": {
+          "label": "flaky",
+          "root_cause": "randomness",
+          "called": "flaky",
+          "failed_in": 1,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_02.py::test_case_17": {
+          "label": "flaky",
+          "root_cause": "randomness",
+          "called": "flaky",
+          "failed_in": 1,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_02.py::test_case_18": {
+          "label": "flaky",
+          "root_cause": "randomness",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_02.py::test_case_19": {
+          "label": "flaky",
+          "root_cause": "time_tz",
+          "called": "real",
+          "failed_in": 5,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_02.py::test_case_20": {
+          "label": "flaky",
+          "root_cause": "time_tz",
+          "called": "real",
+          "failed_in": 5,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_03.py::test_case_21": {
+          "label": "flaky",
+          "root_cause": "time_tz",
+          "called": "real",
+          "failed_in": 5,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_03.py::test_case_22": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 5,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_03.py::test_case_23": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 5,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_03.py::test_case_24": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 5,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_03.py::test_case_25": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 5,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_03.py::test_case_26": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 5,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_03.py::test_case_27": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 5,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_03.py::test_case_28": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_03.py::test_case_29": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_03.py::test_case_30": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 5
+        },
+        "synthetic/tests/test_suite_03.py::test_case_31": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 5
+        }
+      }
+    },
+    {
+      "method": "perturbation",
+      "full_suite_runs": 10,
+      "minutes_measured": 0.653,
+      "within_budget": true,
+      "all_tests": {
+        "n_tests": 31,
+        "flaky_found": {
+          "k": 9,
+          "n": 15
+        },
+        "wrongly_flagged_flaky": {
+          "k": 0,
+          "n": 16
+        },
+        "precision": {
+          "k": 9,
+          "n": 9,
+          "value": 1.0,
+          "ci95_wilson": [
+            0.7008,
+            1.0
+          ]
+        },
+        "recall": {
+          "k": 9,
+          "n": 15,
+          "value": 0.6,
+          "ci95_wilson": [
+            0.3575,
+            0.8018
+          ]
+        },
+        "f1": {
+          "value": 0.75,
+          "ci95_bootstrap": [
+            0.5,
+            0.9091
+          ],
+          "resamples": 2000,
+          "n": 31
+        },
+        "real_failures_called_flaky": {
+          "k": 0,
+          "n": 6,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.3903
+          ]
+        },
+        "flaky_called_real": {
+          "k": 5,
+          "n": 15,
+          "value": 0.3333,
+          "ci95_wilson": [
+            0.1518,
+            0.5829
+          ]
+        },
+        "confusion_actual_by_predicted": {
+          "flaky": {
+            "flaky": 9,
+            "real": 5,
+            "none_seen": 1
+          },
+          "real": {
+            "flaky": 0,
+            "real": 6,
+            "none_seen": 0
+          },
+          "stable": {
+            "flaky": 0,
+            "real": 0,
+            "none_seen": 10
+          }
+        },
+        "by_root_cause": {
+          "order_dep": {
+            "found_flaky": 3,
+            "n": 3
+          },
+          "randomness": {
+            "found_flaky": 2,
+            "n": 3
+          },
+          "shared_state": {
+            "found_flaky": 3,
+            "n": 3
+          },
+          "time_tz": {
+            "found_flaky": 0,
+            "n": 3
+          },
+          "timing": {
+            "found_flaky": 1,
+            "n": 3
+          }
+        }
+      },
+      "without_clock_dependent_tests": {
+        "n_tests": 28,
+        "flaky_found": {
+          "k": 9,
+          "n": 12
+        },
+        "wrongly_flagged_flaky": {
+          "k": 0,
+          "n": 16
+        },
+        "precision": {
+          "k": 9,
+          "n": 9,
+          "value": 1.0,
+          "ci95_wilson": [
+            0.7008,
+            1.0
+          ]
+        },
+        "recall": {
+          "k": 9,
+          "n": 12,
+          "value": 0.75,
+          "ci95_wilson": [
+            0.4677,
+            0.9111
+          ]
+        },
+        "f1": {
+          "value": 0.8571,
+          "ci95_bootstrap": [
+            0.6364,
+            1.0
+          ],
+          "resamples": 2000,
+          "n": 28
+        },
+        "real_failures_called_flaky": {
+          "k": 0,
+          "n": 6,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.3903
+          ]
+        },
+        "flaky_called_real": {
+          "k": 2,
+          "n": 12,
+          "value": 0.1667,
+          "ci95_wilson": [
+            0.047,
+            0.448
+          ]
+        },
+        "confusion_actual_by_predicted": {
+          "flaky": {
+            "flaky": 9,
+            "real": 2,
+            "none_seen": 1
+          },
+          "real": {
+            "flaky": 0,
+            "real": 6,
+            "none_seen": 0
+          },
+          "stable": {
+            "flaky": 0,
+            "real": 0,
+            "none_seen": 10
+          }
+        },
+        "by_root_cause": {
+          "order_dep": {
+            "found_flaky": 3,
+            "n": 3
+          },
+          "randomness": {
+            "found_flaky": 2,
+            "n": 3
+          },
+          "shared_state": {
+            "found_flaky": 3,
+            "n": 3
+          },
+          "timing": {
+            "found_flaky": 1,
+            "n": 3
+          }
+        }
+      },
+      "per_test": {
+        "synthetic/tests/test_suite_01.py::test_case_01": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_01.py::test_case_02": {
+          "label": "flaky",
+          "root_cause": "order_dep",
+          "called": "flaky",
+          "failed_in": 4,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_01.py::test_case_03": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_01.py::test_case_04": {
+          "label": "flaky",
+          "root_cause": "order_dep",
+          "called": "flaky",
+          "failed_in": 6,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_01.py::test_case_05": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_01.py::test_case_06": {
+          "label": "flaky",
+          "root_cause": "order_dep",
+          "called": "flaky",
+          "failed_in": 4,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_01.py::test_case_07": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_01.py::test_case_08": {
+          "label": "flaky",
+          "root_cause": "shared_state",
+          "called": "flaky",
+          "failed_in": 4,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_01.py::test_case_09": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_01.py::test_case_10": {
+          "label": "flaky",
+          "root_cause": "shared_state",
+          "called": "flaky",
+          "failed_in": 5,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_02.py::test_case_11": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_02.py::test_case_12": {
+          "label": "flaky",
+          "root_cause": "shared_state",
+          "called": "flaky",
+          "failed_in": 4,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_02.py::test_case_13": {
+          "label": "flaky",
+          "root_cause": "timing",
+          "called": "flaky",
+          "failed_in": 5,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_02.py::test_case_14": {
+          "label": "flaky",
+          "root_cause": "timing",
+          "called": "real",
+          "failed_in": 10,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_02.py::test_case_15": {
+          "label": "flaky",
+          "root_cause": "timing",
+          "called": "real",
+          "failed_in": 10,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_02.py::test_case_16": {
+          "label": "flaky",
+          "root_cause": "randomness",
+          "called": "flaky",
+          "failed_in": 2,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_02.py::test_case_17": {
+          "label": "flaky",
+          "root_cause": "randomness",
+          "called": "flaky",
+          "failed_in": 1,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_02.py::test_case_18": {
+          "label": "flaky",
+          "root_cause": "randomness",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_02.py::test_case_19": {
+          "label": "flaky",
+          "root_cause": "time_tz",
+          "called": "real",
+          "failed_in": 10,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_02.py::test_case_20": {
+          "label": "flaky",
+          "root_cause": "time_tz",
+          "called": "real",
+          "failed_in": 10,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_03.py::test_case_21": {
+          "label": "flaky",
+          "root_cause": "time_tz",
+          "called": "real",
+          "failed_in": 10,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_03.py::test_case_22": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 10,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_03.py::test_case_23": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 10,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_03.py::test_case_24": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 10,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_03.py::test_case_25": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 10,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_03.py::test_case_26": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 10,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_03.py::test_case_27": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 10,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_03.py::test_case_28": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_03.py::test_case_29": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_03.py::test_case_30": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 10
+        },
+        "synthetic/tests/test_suite_03.py::test_case_31": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 10
+        }
+      }
+    },
+    {
+      "method": "perturbation",
+      "full_suite_runs": 20,
+      "minutes_measured": 1.189,
+      "within_budget": true,
+      "all_tests": {
+        "n_tests": 31,
+        "flaky_found": {
+          "k": 10,
+          "n": 15
+        },
+        "wrongly_flagged_flaky": {
+          "k": 0,
+          "n": 16
+        },
+        "precision": {
+          "k": 10,
+          "n": 10,
+          "value": 1.0,
+          "ci95_wilson": [
+            0.7225,
+            1.0
+          ]
+        },
+        "recall": {
+          "k": 10,
+          "n": 15,
+          "value": 0.6667,
+          "ci95_wilson": [
+            0.4171,
+            0.8482
+          ]
+        },
+        "f1": {
+          "value": 0.8,
+          "ci95_bootstrap": [
+            0.5882,
+            0.9375
+          ],
+          "resamples": 2000,
+          "n": 31
+        },
+        "real_failures_called_flaky": {
+          "k": 0,
+          "n": 6,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.3903
+          ]
+        },
+        "flaky_called_real": {
+          "k": 5,
+          "n": 15,
+          "value": 0.3333,
+          "ci95_wilson": [
+            0.1518,
+            0.5829
+          ]
+        },
+        "confusion_actual_by_predicted": {
+          "flaky": {
+            "flaky": 10,
+            "real": 5,
+            "none_seen": 0
+          },
+          "real": {
+            "flaky": 0,
+            "real": 6,
+            "none_seen": 0
+          },
+          "stable": {
+            "flaky": 0,
+            "real": 0,
+            "none_seen": 10
+          }
+        },
+        "by_root_cause": {
+          "order_dep": {
+            "found_flaky": 3,
+            "n": 3
+          },
+          "randomness": {
+            "found_flaky": 3,
+            "n": 3
+          },
+          "shared_state": {
+            "found_flaky": 3,
+            "n": 3
+          },
+          "time_tz": {
+            "found_flaky": 0,
+            "n": 3
+          },
+          "timing": {
+            "found_flaky": 1,
+            "n": 3
+          }
+        }
+      },
+      "without_clock_dependent_tests": {
+        "n_tests": 28,
+        "flaky_found": {
+          "k": 10,
+          "n": 12
+        },
+        "wrongly_flagged_flaky": {
+          "k": 0,
+          "n": 16
+        },
+        "precision": {
+          "k": 10,
+          "n": 10,
+          "value": 1.0,
+          "ci95_wilson": [
+            0.7225,
+            1.0
+          ]
+        },
+        "recall": {
+          "k": 10,
+          "n": 12,
+          "value": 0.8333,
+          "ci95_wilson": [
+            0.552,
+            0.953
+          ]
+        },
+        "f1": {
+          "value": 0.9091,
+          "ci95_bootstrap": [
+            0.7407,
+            1.0
+          ],
+          "resamples": 2000,
+          "n": 28
+        },
+        "real_failures_called_flaky": {
+          "k": 0,
+          "n": 6,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.3903
+          ]
+        },
+        "flaky_called_real": {
+          "k": 2,
+          "n": 12,
+          "value": 0.1667,
+          "ci95_wilson": [
+            0.047,
+            0.448
+          ]
+        },
+        "confusion_actual_by_predicted": {
+          "flaky": {
+            "flaky": 10,
+            "real": 2,
+            "none_seen": 0
+          },
+          "real": {
+            "flaky": 0,
+            "real": 6,
+            "none_seen": 0
+          },
+          "stable": {
+            "flaky": 0,
+            "real": 0,
+            "none_seen": 10
+          }
+        },
+        "by_root_cause": {
+          "order_dep": {
+            "found_flaky": 3,
+            "n": 3
+          },
+          "randomness": {
+            "found_flaky": 3,
+            "n": 3
+          },
+          "shared_state": {
+            "found_flaky": 3,
+            "n": 3
+          },
+          "timing": {
+            "found_flaky": 1,
+            "n": 3
+          }
+        }
+      },
+      "per_test": {
+        "synthetic/tests/test_suite_01.py::test_case_01": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_01.py::test_case_02": {
+          "label": "flaky",
+          "root_cause": "order_dep",
+          "called": "flaky",
+          "failed_in": 8,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_01.py::test_case_03": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_01.py::test_case_04": {
+          "label": "flaky",
+          "root_cause": "order_dep",
+          "called": "flaky",
+          "failed_in": 12,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_01.py::test_case_05": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_01.py::test_case_06": {
+          "label": "flaky",
+          "root_cause": "order_dep",
+          "called": "flaky",
+          "failed_in": 8,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_01.py::test_case_07": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_01.py::test_case_08": {
+          "label": "flaky",
+          "root_cause": "shared_state",
+          "called": "flaky",
+          "failed_in": 8,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_01.py::test_case_09": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_01.py::test_case_10": {
+          "label": "flaky",
+          "root_cause": "shared_state",
+          "called": "flaky",
+          "failed_in": 10,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_02.py::test_case_11": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_02.py::test_case_12": {
+          "label": "flaky",
+          "root_cause": "shared_state",
+          "called": "flaky",
+          "failed_in": 8,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_02.py::test_case_13": {
+          "label": "flaky",
+          "root_cause": "timing",
+          "called": "flaky",
+          "failed_in": 12,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_02.py::test_case_14": {
+          "label": "flaky",
+          "root_cause": "timing",
+          "called": "real",
+          "failed_in": 20,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_02.py::test_case_15": {
+          "label": "flaky",
+          "root_cause": "timing",
+          "called": "real",
+          "failed_in": 20,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_02.py::test_case_16": {
+          "label": "flaky",
+          "root_cause": "randomness",
+          "called": "flaky",
+          "failed_in": 4,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_02.py::test_case_17": {
+          "label": "flaky",
+          "root_cause": "randomness",
+          "called": "flaky",
+          "failed_in": 2,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_02.py::test_case_18": {
+          "label": "flaky",
+          "root_cause": "randomness",
+          "called": "flaky",
+          "failed_in": 1,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_02.py::test_case_19": {
+          "label": "flaky",
+          "root_cause": "time_tz",
+          "called": "real",
+          "failed_in": 20,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_02.py::test_case_20": {
+          "label": "flaky",
+          "root_cause": "time_tz",
+          "called": "real",
+          "failed_in": 20,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_03.py::test_case_21": {
+          "label": "flaky",
+          "root_cause": "time_tz",
+          "called": "real",
+          "failed_in": 20,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_03.py::test_case_22": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 20,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_03.py::test_case_23": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 20,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_03.py::test_case_24": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 20,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_03.py::test_case_25": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 20,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_03.py::test_case_26": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 20,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_03.py::test_case_27": {
+          "label": "real",
+          "root_cause": "none",
+          "called": "real",
+          "failed_in": 20,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_03.py::test_case_28": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_03.py::test_case_29": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_03.py::test_case_30": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 20
+        },
+        "synthetic/tests/test_suite_03.py::test_case_31": {
+          "label": "stable",
+          "root_cause": "none",
+          "called": "none_seen",
+          "failed_in": 0,
+          "of": 20
+        }
+      }
+    }
+  ]
+}

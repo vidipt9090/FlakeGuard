@@ -133,8 +133,8 @@
       "name": "LLM beats the baseline",
       "stage": "evaluate",
       "status": "pass",
-      "detail": "LLM F1 0.833 vs rerun baseline 0.800",
-      "why": "if the rerun baseline wins, the LLM is not earning its cost",
+      "detail": "LLM F1 0.833 vs perturbation baseline 0.800",
+      "why": "if the perturbation baseline wins, the LLM is not earning its cost",
       "measured": 0.8333,
       "threshold": 0.8,
       "source": "results/baseline_metrics.csv"

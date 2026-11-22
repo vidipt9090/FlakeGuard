@@ -421,9 +421,9 @@ def run_checks(gate: Gate) -> None:
                     stage="evaluate",
                     status=PASS if best_llm_f1 > baseline_f1 else FAIL,
                     detail=(
-                        f"LLM F1 {best_llm_f1:.3f} vs rerun baseline {baseline_f1:.3f}"
+                        f"LLM F1 {best_llm_f1:.3f} vs perturbation baseline {baseline_f1:.3f}"
                     ),
-                    why="if the rerun baseline wins, the LLM is not earning its cost",
+                    why="if the perturbation baseline wins, the LLM is not earning its cost",
                     measured=best_llm_f1,
                     threshold=baseline_f1,
                     source=source,

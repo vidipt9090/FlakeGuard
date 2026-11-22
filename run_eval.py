@@ -28,7 +28,7 @@ def main():
     run_command("20-Run Shuffled Benchmark", ["scripts/run_benchmark_runs.py"])
 
     # Step 3: Rerun Baselines Evaluation
-    run_command("Rerun Baselines Evaluation", ["-m", "flakeguard.eval.run_baselines"])
+    run_command("Perturbation (shuffled runs) Baseline Evaluation", ["-m", "flakeguard.eval.run_baselines"])
 
     # Step 4: LLM Prompts Evaluation
     run_command("LLM Prompts Evaluation (v1, v2, v3)", ["-m", "flakeguard.llm.run_prompts"])

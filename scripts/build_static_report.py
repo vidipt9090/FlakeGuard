@@ -213,14 +213,14 @@ def section_results(llm: list[dict], baselines: list[dict]) -> str:
     rows = []
     for row in baselines:
         rows.append(
-            (f"rerun baseline (N={row.get('N')})", row, "baseline")
+            (f"perturbation baseline (shuffled runs) (N={row.get('N')})", row, "baseline")
         )
     for row in llm:
         rows.append((f"prompt {row.get('prompt_version')}", row, "llm"))
 
     body = "".join(
         f"<tr><td><b>{esc(name)}</b></td>"
-        f"<td>{esc(row.get('model', 'rerun'))}</td>"
+        f"<td>{esc(row.get('model', 'perturbation'))}</td>"
         f"<td>{float(row.get('precision') or 0):.3f}</td>"
         f"<td>{float(row.get('recall') or 0):.3f}</td>"
         f"<td><b>{float(row.get('f1') or 0):.3f}</b> "
@@ -247,7 +247,7 @@ def section_results(llm: list[dict], baselines: list[dict]) -> str:
           <b>Read the last column before the F1 column.</b> The best prompt
           reaches its recall by calling almost everything flaky, and its
           false-quarantine rate of {worst_fq:.2f} means it mislabels the real
-          bugs in the benchmark as flaky. The rerun baseline's rate is 0.00.
+          bugs in the benchmark as flaky. The perturbation baseline (shuffled runs)'s rate is 0.00.
           F1 alone makes the LLM look strictly better; on the one error that
           costs more than a flake does, it is worse. This is why v1 never
           quarantines on its own — a person approves every quarantine.
@@ -256,7 +256,7 @@ def section_results(llm: list[dict], baselines: list[dict]) -> str:
     return f"""
     <h2>Detection results</h2>
     <p class="lede">Precision, recall and F1 for calling a test flaky, with
-    bootstrap confidence intervals, against the rerun baseline.</p>
+    bootstrap confidence intervals, against the perturbation baseline (shuffled runs).</p>
     {bar_svg(f1_bars, hue=GOLD[3])}
     <table><thead><tr><th>method</th><th>model</th><th>precision</th>
     <th>recall</th><th>F1 [95% CI]</th><th>root-cause acc</th>

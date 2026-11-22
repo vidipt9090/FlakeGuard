@@ -125,7 +125,7 @@ stages uploaded and checks measured thresholds:
 | external trees reach hop 2 | ≥ 8 trees | all 10 do. cachetools' API *is* its class hierarchy, so this is the real check that the expansion hop works — the synthetic set is too flat to notice |
 | best prompt F1 | ≥ 0.70 | the charter's target. v3 measures 0.833 |
 | parse failures, best prompt | ≤ 0 | v3 parses all 31 cleanly; any failure means the JSON contract with the model broke |
-| LLM beats the baseline | strict | if the rerun baseline wins, the LLM is not earning its cost |
+| LLM beats the baseline | strict | if the perturbation baseline (shuffled runs) wins, the LLM is not earning its cost |
 | benchmark size | ≥ 31 cases | shrinking the benchmark would make every rate above look better than it is |
 | root-cause coverage | ≥ 5 families | fewer means a whole failure class left the benchmark |
 | false quarantine rate | ≤ 0.10 | **warns, does not block — see below** |
@@ -143,7 +143,7 @@ in a log, an unreachable job.
 `false_quarantine_rate` is **1.00** for all three prompt versions. The metric
 is `(real failures labelled flaky) / (total real failures)`, and the benchmark
 has six real bugs, so the best prompt calls **every real bug flaky**. The
-rerun baseline's rate is 0.00.
+perturbation baseline (shuffled runs)'s rate is 0.00.
 
 This is not a measurement error; it is the direct cost of recall being 1.00.
 The prompt reaches "catches every flake" by calling almost everything flaky.

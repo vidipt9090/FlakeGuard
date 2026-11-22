@@ -6,7 +6,7 @@ import sys
 # Support running either directly or as package module
 sys.path.insert(0, ".")
 
-from flakeguard.eval.baseline_rerun import evaluate_rerun_baseline
+from flakeguard.eval.baseline_perturbation import evaluate_perturbation_baseline
 from flakeguard.eval.metrics import (
     bootstrap_ci,
     compute_confusion_matrix,
@@ -48,11 +48,11 @@ def run_baselines(
     metrics_rows = []
 
     print("=" * 90)
-    print("FLAKEGUARD BASELINE EVALUATION (Rerun Baseline @ N=5, 10, 20)")
+    print("FLAKEGUARD BASELINE EVALUATION (Perturbation: shuffled runs @ N=5, 10, 20)")
     print("=" * 90)
 
     for N in n_values:
-        predictions = evaluate_rerun_baseline(runs_csv, N)
+        predictions = evaluate_perturbation_baseline(runs_csv, N)
 
         dataset = []
         for tid, gt in ground_truth.items():
@@ -113,7 +113,7 @@ def run_baselines(
         )
 
         row = {
-            "baseline": "rerun",
+            "baseline": "perturbation",
             "N": N,
             "precision": round(prf["precision"], 4),
             "precision_ci_lower": round(p_ci["ci_lower"], 4),

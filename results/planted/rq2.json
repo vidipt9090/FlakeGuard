@@ -1,0 +1,508 @@
+{
+  "provenance": {
+    "label_type": "planted",
+    "dataset": {
+      "suite": "synthetic/tests",
+      "labels_file": "labels/labels.json",
+      "labels_sha256": "89a10867c7d8154e1955bdf071b8ecbcb3e34eab587b11b2ed29964f19d01b5d",
+      "how_labelled": "by construction: each fault was written into the test or the code by hand, so its label is known",
+      "n_tests": 31,
+      "n_by_label": {
+        "stable": 10,
+        "flaky": 15,
+        "real": 6
+      }
+    },
+    "command": "python scripts/run_eval.py planted",
+    "date_utc": "2026-11-22T05:25:20Z",
+    "clock": {
+      "local": "2026-11-22 10:55:20 India Standard Time+0530",
+      "weekday": "Sunday"
+    },
+    "commit": "ac0649386b8c06dd52ed75fa58e009de517de61a",
+    "tracked_files_modified": false,
+    "environment": {
+      "python": "3.12.13",
+      "pytest": "9.2.0",
+      "platform": "Windows-11-10.0.26300-SP0"
+    },
+    "budget_minutes": 6.0,
+    "limitations": [
+      "Planted faults only. Results on planted faults are partly circular: the faults were written to be the kinds that shuffled runs and the AST analysis are built to find. Read them as a check that the methods work, not as a measure of how often they find real-world flakes.",
+      "No natural flakes (flakes found in real projects) were available. Natural results are not reported and stay dashes.",
+      "Faults that depend on the clock (root cause time_tz) cannot be made to fail on demand on this machine. Whether they fail depends on the weekday and time at which the command is run (recorded under provenance.clock). They are reported in their own rows and the headline table is also given without them.",
+      "Small N: 15 flaky and 16 other tests. Intervals are wide and a difference between methods of a few tests is not evidence of a difference."
+    ]
+  },
+  "source": "outcomes of the perturbation runs recorded in perturbation.json (seeds 1 to 20), fed one run at a time to flakeguard.stats.adaptive.AdaptiveStoppingPolicy(min_runs=3, max_runs=20, confidence=0.95, threshold_p=0.15)",
+  "runs_to_decision_adaptive": {
+    "n_tests": 31,
+    "mean": 6.097,
+    "median": 5,
+    "mean_ci95_bootstrap": [
+      5.032,
+      7.194
+    ],
+    "total_test_runs": 189
+  },
+  "runs_to_decision_fixed": {
+    "N=5": {
+      "n_tests": 31,
+      "mean": 5.0,
+      "median": 5,
+      "mean_ci95_bootstrap": [
+        5.0,
+        5.0
+      ],
+      "total_test_runs": 155
+    },
+    "N=10": {
+      "n_tests": 31,
+      "mean": 10.0,
+      "median": 10,
+      "mean_ci95_bootstrap": [
+        10.0,
+        10.0
+      ],
+      "total_test_runs": 310
+    },
+    "N=20": {
+      "n_tests": 31,
+      "mean": 20.0,
+      "median": 20,
+      "mean_ci95_bootstrap": [
+        20.0,
+        20.0
+      ],
+      "total_test_runs": 620
+    }
+  },
+  "suite_runs_until_every_test_decided_adaptive": 10,
+  "decisions_adaptive": {
+    "flaky": 9,
+    "real": 11,
+    "none_seen": 11,
+    "undecided": 0
+  },
+  "decisions_fixed_20": {
+    "flaky": 10,
+    "real": 11,
+    "none_seen": 10
+  },
+  "tests_where_adaptive_differs_from_fixed_20": {
+    "k": 1,
+    "n": 31,
+    "ids": [
+      "synthetic/tests/test_suite_02.py::test_case_18"
+    ]
+  },
+  "flaky_tests_adaptive_misses": [
+    "synthetic/tests/test_suite_02.py::test_case_18"
+  ],
+  "note": "The adaptive count is per test. One whole-suite run executes every test, so the suite stops only after the last test is decided (suite_runs_until_every_test_decided_adaptive); the per-test saving is not a wall-clock saving unless that number is below 20.",
+  "per_test": {
+    "synthetic/tests/test_suite_01.py::test_case_01": {
+      "label": "stable",
+      "root_cause": "none",
+      "failures_in_20": 0,
+      "fixed_20": "none_seen",
+      "adaptive": {
+        "runs_used": 10,
+        "failures": 0,
+        "decision": "none_seen",
+        "policy_verdict": "no evidence in 10 runs",
+        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
+      }
+    },
+    "synthetic/tests/test_suite_01.py::test_case_02": {
+      "label": "flaky",
+      "root_cause": "order_dep",
+      "failures_in_20": 8,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 2,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "synthetic/tests/test_suite_01.py::test_case_03": {
+      "label": "stable",
+      "root_cause": "none",
+      "failures_in_20": 0,
+      "fixed_20": "none_seen",
+      "adaptive": {
+        "runs_used": 10,
+        "failures": 0,
+        "decision": "none_seen",
+        "policy_verdict": "no evidence in 10 runs",
+        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
+      }
+    },
+    "synthetic/tests/test_suite_01.py::test_case_04": {
+      "label": "flaky",
+      "root_cause": "order_dep",
+      "failures_in_20": 12,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 2,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "synthetic/tests/test_suite_01.py::test_case_05": {
+      "label": "stable",
+      "root_cause": "none",
+      "failures_in_20": 0,
+      "fixed_20": "none_seen",
+      "adaptive": {
+        "runs_used": 10,
+        "failures": 0,
+        "decision": "none_seen",
+        "policy_verdict": "no evidence in 10 runs",
+        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
+      }
+    },
+    "synthetic/tests/test_suite_01.py::test_case_06": {
+      "label": "flaky",
+      "root_cause": "order_dep",
+      "failures_in_20": 8,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 2,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "synthetic/tests/test_suite_01.py::test_case_07": {
+      "label": "stable",
+      "root_cause": "none",
+      "failures_in_20": 0,
+      "fixed_20": "none_seen",
+      "adaptive": {
+        "runs_used": 10,
+        "failures": 0,
+        "decision": "none_seen",
+        "policy_verdict": "no evidence in 10 runs",
+        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
+      }
+    },
+    "synthetic/tests/test_suite_01.py::test_case_08": {
+      "label": "flaky",
+      "root_cause": "shared_state",
+      "failures_in_20": 8,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 2,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "synthetic/tests/test_suite_01.py::test_case_09": {
+      "label": "stable",
+      "root_cause": "none",
+      "failures_in_20": 0,
+      "fixed_20": "none_seen",
+      "adaptive": {
+        "runs_used": 10,
+        "failures": 0,
+        "decision": "none_seen",
+        "policy_verdict": "no evidence in 10 runs",
+        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
+      }
+    },
+    "synthetic/tests/test_suite_01.py::test_case_10": {
+      "label": "flaky",
+      "root_cause": "shared_state",
+      "failures_in_20": 10,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 2,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "synthetic/tests/test_suite_02.py::test_case_11": {
+      "label": "stable",
+      "root_cause": "none",
+      "failures_in_20": 0,
+      "fixed_20": "none_seen",
+      "adaptive": {
+        "runs_used": 10,
+        "failures": 0,
+        "decision": "none_seen",
+        "policy_verdict": "no evidence in 10 runs",
+        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
+      }
+    },
+    "synthetic/tests/test_suite_02.py::test_case_12": {
+      "label": "flaky",
+      "root_cause": "shared_state",
+      "failures_in_20": 8,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 2,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "synthetic/tests/test_suite_02.py::test_case_13": {
+      "label": "flaky",
+      "root_cause": "timing",
+      "failures_in_20": 12,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 3,
+        "failures": 2,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "synthetic/tests/test_suite_02.py::test_case_14": {
+      "label": "flaky",
+      "root_cause": "timing",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "synthetic/tests/test_suite_02.py::test_case_15": {
+      "label": "flaky",
+      "root_cause": "timing",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "synthetic/tests/test_suite_02.py::test_case_16": {
+      "label": "flaky",
+      "root_cause": "randomness",
+      "failures_in_20": 4,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 4,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "synthetic/tests/test_suite_02.py::test_case_17": {
+      "label": "flaky",
+      "root_cause": "randomness",
+      "failures_in_20": 2,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "synthetic/tests/test_suite_02.py::test_case_18": {
+      "label": "flaky",
+      "root_cause": "randomness",
+      "failures_in_20": 1,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 10,
+        "failures": 0,
+        "decision": "none_seen",
+        "policy_verdict": "no evidence in 10 runs",
+        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
+      }
+    },
+    "synthetic/tests/test_suite_02.py::test_case_19": {
+      "label": "flaky",
+      "root_cause": "time_tz",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "synthetic/tests/test_suite_02.py::test_case_20": {
+      "label": "flaky",
+      "root_cause": "time_tz",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "synthetic/tests/test_suite_03.py::test_case_21": {
+      "label": "flaky",
+      "root_cause": "time_tz",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "synthetic/tests/test_suite_03.py::test_case_22": {
+      "label": "real",
+      "root_cause": "none",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "synthetic/tests/test_suite_03.py::test_case_23": {
+      "label": "real",
+      "root_cause": "none",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "synthetic/tests/test_suite_03.py::test_case_24": {
+      "label": "real",
+      "root_cause": "none",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "synthetic/tests/test_suite_03.py::test_case_25": {
+      "label": "real",
+      "root_cause": "none",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "synthetic/tests/test_suite_03.py::test_case_26": {
+      "label": "real",
+      "root_cause": "none",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "synthetic/tests/test_suite_03.py::test_case_27": {
+      "label": "real",
+      "root_cause": "none",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "synthetic/tests/test_suite_03.py::test_case_28": {
+      "label": "stable",
+      "root_cause": "none",
+      "failures_in_20": 0,
+      "fixed_20": "none_seen",
+      "adaptive": {
+        "runs_used": 10,
+        "failures": 0,
+        "decision": "none_seen",
+        "policy_verdict": "no evidence in 10 runs",
+        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
+      }
+    },
+    "synthetic/tests/test_suite_03.py::test_case_29": {
+      "label": "stable",
+      "root_cause": "none",
+      "failures_in_20": 0,
+      "fixed_20": "none_seen",
+      "adaptive": {
+        "runs_used": 10,
+        "failures": 0,
+        "decision": "none_seen",
+        "policy_verdict": "no evidence in 10 runs",
+        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
+      }
+    },
+    "synthetic/tests/test_suite_03.py::test_case_30": {
+      "label": "stable",
+      "root_cause": "none",
+      "failures_in_20": 0,
+      "fixed_20": "none_seen",
+      "adaptive": {
+        "runs_used": 10,
+        "failures": 0,
+        "decision": "none_seen",
+        "policy_verdict": "no evidence in 10 runs",
+        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
+      }
+    },
+    "synthetic/tests/test_suite_03.py::test_case_31": {
+      "label": "stable",
+      "root_cause": "none",
+      "failures_in_20": 0,
+      "fixed_20": "none_seen",
+      "adaptive": {
+        "runs_used": 10,
+        "failures": 0,
+        "decision": "none_seen",
+        "policy_verdict": "no evidence in 10 runs",
+        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
+      }
+    }
+  }
+}

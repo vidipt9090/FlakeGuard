@@ -2,8 +2,11 @@ import csv
 from collections import defaultdict
 
 
-def evaluate_rerun_baseline(runs_csv_path, N):
-    """Evaluates the N-run rerun baseline classifier on runs.csv for runs 1..N.
+def evaluate_perturbation_baseline(runs_csv_path, N):
+    """Evaluates the N-run perturbation baseline (shuffled whole-suite runs, one seed per run) on runs.csv for runs 1..N.
+
+    This is not a plain rerun: every run in runs.csv has a different test order. The fixed-order rerun (B1) is
+    produced by scripts/run_eval.py.
 
     Logic:
     - Collect outcomes for run_id <= N per test_id.
