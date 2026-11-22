@@ -151,3 +151,17 @@ def test_quarantine_issue_names_the_requester_and_changes_no_test(findings):
     url = forge.open_quarantine_issue(gh(handler), "o/r", flaky, requester="maint", run_url="https://x/run/1")
     assert url.endswith("/issues/9") and seen["title"] == "Flaky test: test_report_total"
     assert "@maint" in seen["body"] and "No test was skipped, marked or deleted" in seen["body"]
+
+
+def test_a_mistyped_command_from_someone_without_write_access_is_declined_not_answered(tmp_path, monkeypatch):
+    monkeypatch.setenv("COMMENT_BODY", "/flakeguard merge")
+    monkeypatch.setenv("ACTOR", "stranger")
+    monkeypatch.setenv("REPO", "o/r")
+    monkeypatch.setenv("GH_TOKEN", "t")
+    monkeypatch.delenv("GITHUB_OUTPUT", raising=False)
+    client = gh(lambda r: httpx.Response(200, json={"permission": "read"}))
+    monkeypatch.setattr(forge, "GitHub", lambda token: client)
+    reply = tmp_path / "reply.md"
+    assert commands.main(["authorize", "--reply", str(reply)]) == 0
+    text = reply.read_text(encoding="utf-8")
+    assert "does not have write access" in text and "usage" not in text.lower()

@@ -70,6 +70,13 @@ def test_the_commands_block_lists_only_commands_that_can_act():
     assert "/flakeguard ask" in bt.commands_block(real_only)
 
 
+def test_the_fix_command_is_described_as_showing_a_diff_not_opening_a_pull_request():
+    flaky = [f for f in FINDINGS if f["verdict"] == "flaky"]
+    block = bt.commands_block([{**flaky[0], "fix": {"summary": "x"}}])
+    assert "shows the diff in a reply" in block and "does not open a pull request" in block
+    assert "does not open a pull request" not in bt.commands_block(flaky)  # no fix offered, so no note
+
+
 def test_no_findings_and_post_merge_comments_offer_no_commands():
     for name in ("pr_comment_no_findings", "post_merge_no_findings", "post_merge_findings", "pr_comment_did_not_finish"):
         assert "/flakeguard " not in CASES[name](), name  # the trailing space skips the repository name in links

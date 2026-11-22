@@ -129,24 +129,29 @@ def _output(name: str, value: str) -> None:
 
 def cmd_authorize(args: argparse.Namespace) -> int:
     body, actor, repo = os.environ["COMMENT_BODY"], os.environ["ACTOR"], os.environ["REPO"]
+    unknown = ""
     try:
         cmd = parse_command(body)
     except ValueError as e:
-        Path(args.reply).write_text(bot_templates.unknown_command_reply(command=str(e)), encoding="utf-8")
-        _output("command", "unknown")
-        _output("allowed", "true")  # an unknown command changes nothing; the usage reply is safe for anyone with access
-        return 0
-    if cmd is None:
+        cmd, unknown = None, str(e)
+    if cmd is None and not unknown:
         _output("command", "")
         _output("allowed", "false")
         return 0
-    _output("command", cmd.name)
+    # The permission is checked through the API before anything else, including the usage reply for a mistyped command.
     gh = forge.GitHub(os.environ["GH_TOKEN"])
-    if forge.can_write(gh, repo, actor):
-        _output("allowed", "true")
+    typed = unknown or (cmd.text if cmd else "")
+    if not forge.can_write(gh, repo, actor):
+        _output("command", cmd.name if cmd else "unknown")
+        Path(args.reply).write_text(bot_templates.declined_no_write_access(login=actor, command=typed), encoding="utf-8")
+        _output("allowed", "declined")
         return 0
-    Path(args.reply).write_text(bot_templates.declined_no_write_access(login=actor, command=cmd.text), encoding="utf-8")
-    _output("allowed", "declined")
+    if cmd is None:
+        Path(args.reply).write_text(bot_templates.unknown_command_reply(command=unknown), encoding="utf-8")
+        _output("command", "unknown")
+    else:
+        _output("command", cmd.name)
+    _output("allowed", "true")
     return 0
 
 

@@ -128,7 +128,11 @@ def commands_block(findings: list[dict]) -> str:
     quarantinable = [f for f in findings if f["quarantine"]["allowed"]]
     if quarantinable:
         lines.append(f"/flakeguard quarantine {quarantinable[0]['test']}")
-    return "**Reply to this comment with**\n\n```\n" + "\n".join(lines) + "\n```"
+    note = ""
+    if lines[0] == "/flakeguard fix":
+        note = ("\n\n`fix` checks the fix again and shows the diff in a reply. It does not open a pull request; "
+                "the console's Propose fix PR button does.")
+    return "**Reply to this comment with**\n\n```\n" + "\n".join(lines) + "\n```" + note
 
 
 def did_not_finish(*, run_url: str | None, reason: str | None = None, post_merge: bool = False) -> str:

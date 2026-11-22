@@ -115,3 +115,10 @@ All spike runs: `vidipt9090/flakeguard-demo`, throwaway branch `spike/m4` (+ `sp
 | M6-11 | Post-merge, observed | Throwaway PR #11 (base `m6-throwaway-base`, a branch I created from `main`; **merged into that throwaway branch, never into `main`**). `flakeguard-post-merge` run 44986555205, success in 70 s. The comment on the PR: "No evidence of flakiness in 10 runs after this change." with the rule-of-three note and the scanned commit. The did-not-finish wording is covered by snapshot tests only, not by a real failed run. The three throwaway branches were deleted afterwards. |
 | M6-12 | Bot comment | The "Reply to this comment with" block is back, as a fenced block listing only commands that can act: `fix` only if a finding has a validated fix, `quarantine <test>` only for a test that may be quarantined, `ask` always. It is not on no-findings, post-merge or did-not-finish comments. Observed on PR #8's real comment. The old test `test_reply_with_commands_are_not_promised` was replaced. |
 | M6-13 | Not done or not verified | Slash commands live (needs the caller on the demo repo's `main`). A comment from an account without write access, declined live (needs a second account; using `priyalkhullar` to comment on the upstream repo is outside the credential scope). Re-verify live. `recorded/run-2026-11-21-002` has no fix preview (recorded before M6), so Propose fix PR is disabled on the recorded fallback; re-record in M9 if wanted. |
+
+## Action log
+
+Every external write: date, account, target, result.
+
+| Date | Account | Target | Result |
+|---|---|---|---|
