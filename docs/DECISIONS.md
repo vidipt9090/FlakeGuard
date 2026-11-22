@@ -137,3 +137,9 @@ Every external write: date, account, target, result.
 | 2026-11-22 | vidipt9090 | demo PR #12 | closed with a comment |
 | 2026-11-22 | vidipt9090 | demo branch m6-cmd-probe | deleted |
 | 2026-11-22 | n/a (local) | FlakeGuard .git/config | per-repo credential helper pinned to vidipt9090 (token fetched at use, never stored); git credential fill resolves to vidipt9090. Token-pattern scan: 0 hits. |
+
+## 2026-11-22 (M8 step 0: audit, no code)
+
+| ID | Item | Result |
+|---|---|---|
+| M8-0 | Audit of what exists | **Do not reuse `results/eval3/*` or `scripts/generate_eval3_assets.py`:** every number in them is a literal in the script, with `command` strings that do not exist (`flakeguard.baselines.b1_rerun`, `run_eval.py --condition ...`) and a fallback git sha. **Real data:** `labels/labels.json` (31 tests of `synthetic/`: 10 stable, 6 real, 15 flaky = 3 each of order_dep, shared_state, timing, randomness, time_tz) and `results/runs.csv` (20 shuffled runs, seeds 1 to 20, 620 rows) giving `results/baseline_metrics.csv` and `results/llm_metrics.csv`. All of it is **planted**. **Injected:** operators exist (`flakeguard/injector/operators.py`: timing, shared_state, randomness, time_tz) but no injected dataset has been generated. **Natural:** none labelled; `results/cachetools` has navigation traces only. Circular and mislabelled items are listed in the M8 audit report. |
