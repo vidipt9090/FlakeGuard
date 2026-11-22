@@ -173,14 +173,46 @@ def test_unknown_run_is_a_readable_404(client):
     assert client.get("/api/runs/not-a-run/findings").status_code == 404
 
 
-def test_results_are_dashes_until_a_run_exists(client):
+def test_results_are_dashes_when_there_is_no_recorded_run(tmp_path):
+    from flakeguard.console.results import load_results
+
     for label in ("injected", "natural", "planted"):
-        data = m.ResultsData.model_validate(client.get(f"/api/results?label={label}").json())
+        data = load_results(label, tmp_path)  # an empty results folder
         assert data.ablation.provenance.labelType == label
-        assert data.ablation.table.rows == [] and data.baselines.table.rows == []
+        assert all(cell is None for row in data.ablation.table.rows for cell in row[1:])  # the four settings, dashes
+        assert data.baselines.table.rows == [] and data.triageTable.table.rows == []
         assert data.ablation.provenance.command is None and data.baselines.provenance.commit is None
         assert data.runsToDecision.fixed is None and data.triage.realQuarantined is None
-    assert client.get("/api/results?label=made-up").status_code == 422
+        assert data.status == "not run"
+
+
+def test_natural_is_always_dashes_and_says_why(client):
+    data = m.ResultsData.model_validate(client.get("/api/results?label=natural").json())
+    assert data.baselines.table.rows == [] and data.runsToDecision.adaptive is None
+    assert data.status == "not run" and "No natural dataset" in data.notes[0]
+
+
+def test_results_for_planted_and_injected_come_from_the_recorded_files(client):
+    for label, n in (("planted", 31), ("injected", 476)):
+        data = m.ResultsData.model_validate(client.get(f"/api/results?label={label}").json())
+        p = data.baselines.provenance
+        assert p.labelType == label and p.n == n and p.command.startswith("python scripts/run_eval.py") and p.commit
+        assert data.status == "run" and data.baselines.table.rows
+        assert all(row[1] is None or "of" in row[1] for row in data.baselines.table.rows)  # counts come with their N
+        assert any("varies by about 1 test" in (row[1] or "") for row in data.baselines.table.rows)  # B1 tolerance
+        assert f"N={n} tests" in data.runsToDecision.adaptive
+    notes = m.ResultsData.model_validate(client.get("/api/results?label=injected").json()).notes
+    assert any("08:00 to 18:00" in x for x in notes) and any("same fault classes" in x for x in notes)
+
+
+def test_the_superseded_eval3_numbers_are_never_served(client, tmp_path):
+    from flakeguard.console.results import load_results
+
+    (tmp_path / "eval3").mkdir()
+    (tmp_path / "eval3" / "rq1.json").write_text("{}", encoding="utf-8")
+    assert client.get("/api/results?label=eval3").status_code == 422
+    with pytest.raises(ValueError):
+        load_results("eval3", tmp_path)  # a folder that exists but is not one of the three label types is not read
 
 
 @pytest.fixture

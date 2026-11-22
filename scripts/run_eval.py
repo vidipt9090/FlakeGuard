@@ -103,6 +103,9 @@ SENSITIVITY = {
     },
 }
 B1_TOLERANCE = "B1 found-flaky counts vary by about 1 test between executions (unseeded randomness tests)."
+B3_TOLERANCE = ("B3 is not stable between executions. Its inputs (failure counts and test durations of runs that are made again each time) change a little, "
+                "and a forest trained on 31 tests reacts strongly: trained on planted at N=20 it wrongly flagged 28 of 450 stable injected tests in one execution "
+                "and 152 in the next. Read a B3 row as a range, not a point.")
 
 
 # ------------------------------------------------------------------------------------- provenance
@@ -148,7 +151,7 @@ def provenance(label: str, labels: list[dict], command: str) -> dict:
         "tracked_files_modified": bool(_git("status", "--porcelain", "--untracked-files=no")),
         "environment": {"python": platform.python_version(), "pytest": pytest.__version__, "platform": platform.platform()},
         "budget_minutes": BUDGET_MINUTES,
-        "tolerances": {"b1_fixed_order": B1_TOLERANCE,
+        "tolerances": {"b1_fixed_order": B1_TOLERANCE, "b3": B3_TOLERANCE,
                        "perturbation": "exact on the same commit and environment: seeds fix the order and reseed random (timing faults can differ)",
                        "minutes": "about 0.1 minute between executions on the planted suite; the injected suite takes longer per run",
                        **({"time_tz": "depends on the local hour at which the runs are made; valid for runs between 08:00 and 18:00"} if label == "injected" else {})},

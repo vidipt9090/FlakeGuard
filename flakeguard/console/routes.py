@@ -32,6 +32,7 @@ from flakeguard.console.actions import (
     is_actions_id,
 )
 from flakeguard.console.ask import answer_question, clear_indexes
+from flakeguard.console.results import load_results
 from flakeguard.console.runs import DEMO_REPOS, Refused, is_live_id, manager, seed_start_from_env
 from flakeguard.console.store import FINDING_SEPARATOR, NotFound, RecordedStore, empty_no_tests_plan
 from flakeguard.runner.matrix import DEFAULT_SEED_START
@@ -245,19 +246,7 @@ async def get_results(request: Request) -> Response:
     label = request.query_params.get("label", "injected")
     if label not in RESULTS_LABELS:
         return detail("Pick one of injected, natural or planted.", 422)
-    empty = m.Provenance(dataset=None, labelType=label, n=None, command=None, date=None, commit=None)  # type: ignore[arg-type]
-    return respond(m.ResultsData(
-        ablation=m.TableWithProvenance(
-            table=m.ResultsTable(columns=[
-                "Context given to the model", "Diagnosis matches the known cause",
-                "Fix passes validation under shuffle", "Code sent to the model"], rows=[]),
-            provenance=empty),
-        baselines=m.TableWithProvenance(
-            table=m.ResultsTable(columns=["Method", "Flaky tests found", "Wrongly flagged", "CI minutes used"], rows=[]),
-            provenance=empty),
-        runsToDecision=m.RunsToDecision(fixed=None, adaptive=None),
-        triage=m.TriageNumbers(redPrsCleared=None, realQuarantined=None),
-    ))
+    return respond(await run_in_threadpool(load_results, label))
 
 
 # --------------------------------------------------------------------------- actions

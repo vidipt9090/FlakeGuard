@@ -154,6 +154,9 @@ export interface ResultsData {
   baselines: { table: ResultsTable; provenance: Provenance };
   runsToDecision: { fixed: string | null; adaptive: string | null };
   triage: { redPrsCleared: string | null; realQuarantined: string | null };
+  triageTable?: { table: ResultsTable; provenance: Provenance } | null;
+  notes?: string[];
+  status?: string;
 }
 
 export interface RiskySpot {

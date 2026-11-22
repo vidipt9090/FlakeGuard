@@ -190,6 +190,9 @@ export const MOCK_RESULTS: ResultsData = {
   },
   runsToDecision: { fixed: null, adaptive: null },
   triage: { redPrsCleared: null, realQuarantined: null },
+  triageTable: null,
+  notes: [],
+  status: 'not run',
 };
 
 export const MOCK_NOTESTS: NoTestsPlan = {

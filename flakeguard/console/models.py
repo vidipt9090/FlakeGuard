@@ -223,6 +223,9 @@ class ResultsData(_Model):
     baselines: TableWithProvenance
     runsToDecision: RunsToDecision
     triage: TriageNumbers
+    triageTable: TableWithProvenance | None = None  # RQ3, a simulation; None until a run exists
+    notes: list[str] = []  # limitations that belong next to the figures
+    status: str = "not run"  # "run" when a recorded run exists for this label type
 
 
 class RiskySpot(_Model):

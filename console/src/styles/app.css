@@ -177,3 +177,6 @@ table.tbl { width: 100%; border-collapse: collapse; margin-top: 12px; }
 .demo-badge { background: #FFF3C4; color: #5C4500; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
 .cell svg{display:block}
 .linklike { background: none; border: 0; padding: 0; font: inherit; color: var(--blue); text-decoration: underline; cursor: pointer; }
+
+.notes { margin: 8px 0 0; padding-left: 20px; line-height: 1.5; }
+.notes li { margin-bottom: 6px; }

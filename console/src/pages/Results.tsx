@@ -36,7 +36,7 @@ export default function Results() {
       <main className="main">
         <div>
           <h1>Results</h1>
-          <p className="lead">These tables are static by design. They come from recorded runs made offline, and every table says where its numbers came from. Cells show a dash until that run has been done.</p>
+          <p className="lead">These tables are static by design. They come from recorded runs made offline, and every table says where its numbers came from. Cells show a dash until that run has been done. Sample sizes and 95% intervals sit next to every figure.</p>
         </div>
         <div className="seg" role="group" aria-label="Label type">
           <span style={{ fontWeight: 600, fontSize: 13 }}>Show flakes that are</span>
@@ -46,6 +46,12 @@ export default function Results() {
           <span className="footnote">Kept separate: planted flakes alone would be circular evidence.</span>
         </div>
 
+        {data && label === 'natural' && (
+          <section className="card" role="note">
+            <h2>No natural dataset</h2>
+            <p className="lead">{(data.notes ?? [])[0] ?? 'No flakes from real projects were available.'} Natural flakes: none.</p>
+          </section>
+        )}
         {data && (
           <>
             <section className="card">
@@ -58,6 +64,13 @@ export default function Results() {
               <p className="lead">Compared with plain reruns, a coverage-based check, and a trained classifier.</p>
               <Table t={data.baselines.table} /><Prov p={{ ...data.baselines.provenance, labelType: label }} />
             </section>
+            {data.triageTable && (
+              <section className="card">
+                <h2>Triage compared with a plain CI run <span className="footnote">RQ3, a simulation over labelled tests</span></h2>
+                <p className="lead">Each labelled test is treated as the one new test of a pull request. No pull request was opened.</p>
+                <Table t={data.triageTable.table} /><Prov p={{ ...data.triageTable.provenance, labelType: label }} />
+              </section>
+            )}
             <div className="row">
               <section className="card grow">
                 <h2>How many runs does a decision take? <span className="footnote">RQ2</span></h2>
@@ -76,6 +89,12 @@ export default function Results() {
                 </div>
               </section>
             </div>
+            {(data.notes ?? []).length > 0 && label !== 'natural' && (
+              <section className="card" aria-label="Limitations">
+                <h2>Read these before the numbers</h2>
+                <ul className="notes">{(data.notes ?? []).map((n) => <li key={n}>{n}</li>)}</ul>
+              </section>
+            )}
           </>
         )}
       </main>
