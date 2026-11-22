@@ -177,3 +177,14 @@ def test_d23_false_quarantine_rate_resolution():
     )
     assert fq_rate_resolved == 0.0
 
+
+
+def test_b3_fit_without_scikit_learn_raises_instead_of_ignoring_the_training():
+    import pytest
+
+    clf = B3FeatureClassifier()
+    clf._sklearn_model = None  # what the classifier holds when scikit-learn cannot be imported
+    feat = extract_features_from_runs("t", ["PASS", "FAIL"])
+    with pytest.raises(RuntimeError, match="scikit-learn"):
+        clf.fit([feat], ["flaky"])
+    assert clf.is_trained is False

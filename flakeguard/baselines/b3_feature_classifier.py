@@ -125,11 +125,14 @@ class B3FeatureClassifier:
 
     def fit(self, X: list[TestFeatureVector], y: list[str]) -> None:
         """Fit classifier on extracted feature vectors and ground truth labels."""
+        if self._sklearn_model is None:
+            raise RuntimeError(
+                "B3FeatureClassifier.fit needs scikit-learn, which is not installed, so the training would be ignored. "
+                "Install it with: pip install 'flakeguard[eval]' (or pip install scikit-learn)."
+            )
         X_mat = np.array([f.to_array() for f in X])
         y_arr = np.array(y)
-
-        if self._sklearn_model is not None:
-            self._sklearn_model.fit(X_mat, y_arr)
+        self._sklearn_model.fit(X_mat, y_arr)
         self.is_trained = True
 
     def predict(self, feature: TestFeatureVector) -> tuple[Literal["flaky", "real_fail", "no_evidence"], float]:
