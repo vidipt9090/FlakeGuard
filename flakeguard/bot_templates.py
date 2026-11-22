@@ -124,7 +124,8 @@ def commands_block(findings: list[dict]) -> str:
     lines = []
     if any(f.get("fix") for f in flaky):
         lines.append("/flakeguard fix")
-    lines.append("/flakeguard ask why is this order-dependent?")
+    asked = (flaky or findings or [{"test": "this_test"}])[0]["test"]
+    lines.append(f"/flakeguard ask why does {asked} fail?")
     quarantinable = [f for f in findings if f["quarantine"]["allowed"]]
     if quarantinable:
         lines.append(f"/flakeguard quarantine {quarantinable[0]['test']}")

@@ -26,7 +26,7 @@
 **Reply to this comment with**
 
 ```
-/flakeguard ask why is this order-dependent?
+/flakeguard ask why does test_report_total fail?
 /flakeguard quarantine test_report_total
 ```
 

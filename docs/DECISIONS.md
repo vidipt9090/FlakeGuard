@@ -122,3 +122,8 @@ Every external write: date, account, target, result.
 
 | Date | Account | Target | Result |
 |---|---|---|---|
+| 2026-11-22 | vidipt9090 | FlakeGuard c/eval3-console | pushed 7a5df2d (authorize checks permission first; commands block wording) |
+| 2026-11-22 | priyalkhullar (unintended, git's cached credential) | vidipt9090/flakeguard-demo main | **my mistake**: the first `git push` of the caller used the credential helper's cached priyalkhullar login. GitHub answered 403, nothing was written. Not retried with that login. |
+| 2026-11-22 | vidipt9090 (token via GIT_CONFIG env, not printed) | vidipt9090/flakeguard-demo main | pushed `1e5bb2f` "Add the FlakeGuard slash-command caller", one file `.github/workflows/flakeguard-commands.yml`, fast-forward from `12d2da3`, no force |
+| 2026-11-22 | vidipt9090 | vidipt9090/flakeguard-demo branch m6-cmd-probe + PR #12 | created from act2-seeded-faults plus PROBE.txt (throwaway for slash-command test) |
+| 2026-11-22 | vidipt9090 | demo PR #12 | comment `/flakeguard ask why is this order-dependent?` |
