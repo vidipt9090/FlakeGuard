@@ -128,6 +128,14 @@ def test_run_status_validates_and_is_a_labelled_replay(client, run_id):
     ]
 
 
+def test_run_source_comes_from_the_recorded_meta_and_is_null_when_unknown(client):
+    meta = json.loads((RECORDED_DIR / "run-2026-11-21-002" / "meta.json").read_text(encoding="utf-8"))
+    run = m.RunStatus.model_validate(client.get("/api/runs/run-2026-11-21-002").json())
+    assert run.source == m.SourceRef(repo=meta["source_repo"], ref=meta["source_commit"])
+    fixture = m.RunStatus.model_validate(client.get("/api/runs/run-2026-11-18-001").json())
+    assert fixture.source is None  # a local fixture is not on GitHub, so nothing may link to it
+
+
 def test_findings_tree_and_no_tests_validate(client, run_id):
     findings = [m.Finding.model_validate(x) for x in client.get(f"/api/runs/{run_id}/findings").json()]
     tree = m.TreeData.model_validate(client.get(f"/api/runs/{run_id}/tree").json())

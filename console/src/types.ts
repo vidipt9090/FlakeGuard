@@ -49,6 +49,10 @@ export interface PrInfo {
   runUrl: string | null;
 }
 
+export interface SourceRef {
+  repo: string; // "owner/name" on github.com
+  ref: string; // the scanned commit
+}
 export interface RunStatus {
   id: string;
   target: string;
@@ -60,6 +64,7 @@ export interface RunStatus {
   counters: { runsDone: number; runsTotal: number; failures: number; flagged: number };
   matrix: MatrixRow[];
   notice: { kind: ScreenState; detail?: string } | null; // drives the banners
+  source?: SourceRef | null; // lets file:line references link to GitHub; absent when unknown
 }
 
 export interface CodeLine {

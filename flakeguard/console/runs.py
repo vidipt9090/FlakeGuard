@@ -41,6 +41,7 @@ class RunManager:
     def __init__(self, root: Path | None = None) -> None:
         self.root = root if root is not None else RUNS_DIR
         self.processes: dict[str, subprocess.Popen] = {}
+        self._sources: dict[str, m.SourceRef | None] = {}
 
     # ----------------------------------------------------------------- queries
 
@@ -61,6 +62,27 @@ class RunManager:
         return f"live-{day}-{len(taken) + 1:03d}"
 
     def status(self, run_id: str) -> m.RunStatus:
+        run = self._status(run_id)
+        source = self._source(run_id)
+        return run.model_copy(update={"source": source}) if source else run
+
+    def _source(self, run_id: str) -> m.SourceRef | None:
+        """The GitHub repository and commit of a cloned target. A local folder has none."""
+        if run_id not in self._sources:
+            clone = self.dir(run_id) / "repo"
+            ref = None
+            if clone.is_dir():
+                def git(*args: str) -> str | None:
+                    p = subprocess.run(["git", "-C", str(clone), *args], capture_output=True, text=True, timeout=20)
+                    return p.stdout.strip() if p.returncode == 0 else None
+                url, sha = git("remote", "get-url", "origin"), git("rev-parse", "HEAD")
+                found = re.match(r"https://github\.com/([\w.-]+/[\w.-]+?)(?:\.git)?/?$", url or "")
+                if found and sha:
+                    ref = m.SourceRef(repo=found.group(1), ref=sha)
+            self._sources[run_id] = ref
+        return self._sources[run_id]
+
+    def _status(self, run_id: str) -> m.RunStatus:
         """The run's progress, with a dead process turned into 'stopped early'."""
         path = self.dir(run_id) / "progress.json"
         if not path.is_file():

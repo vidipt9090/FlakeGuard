@@ -107,6 +107,7 @@ def test_a_finished_run_maps_to_the_contract_with_real_step_times_and_engine_cou
     run = source.status(f"actions-{RUN}")
     m.RunStatus.model_validate(run.model_dump())  # valid against the contract
     assert run.status == "complete" and run.mode == "actions" and run.notice is None and run.current is None
+    assert run.source == m.SourceRef(repo=REPO, ref=json.loads((FIX / "run.json").read_text())["head_sha"])
     assert run.pr is not None
     assert run.pr.prUrl.endswith("/pull/2") and run.pr.runUrl.endswith(f"/actions/runs/{RUN}")
     assert run.pr.state == "open" and run.pr.checkState == "complete" and run.pr.postMergeState == "waiting for merge"

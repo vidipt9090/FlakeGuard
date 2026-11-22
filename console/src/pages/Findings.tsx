@@ -4,6 +4,7 @@ import { api } from '../api/client';
 import { Banner } from '../components/Banner';
 import { CodePane } from '../components/CodePane';
 import { Header } from '../components/Header';
+import { RefText } from '../components/RefText';
 import { RunNotice } from '../components/RunNotice';
 import { SeverityChip, VerdictChip } from '../components/StatusChip';
 import { usePolling } from '../hooks/usePolling';
@@ -31,6 +32,7 @@ export default function Findings() {
     if (findings && !selId) setSelId(findings.find((f) => f.verdict === 'flaky')?.id ?? findings[0]?.id ?? null);
   }, [findings, selId]);
 
+  const src = scanRun?.source;
   const sel = useMemo(() => findings?.find((f) => f.id === selId) ?? null, [findings, selId]);
 
   async function run(label: string, fn: () => Promise<unknown>) {
@@ -76,10 +78,10 @@ export default function Findings() {
                   <VerdictChip verdict={sel.verdict} subtype={sel.subtype} />
                   <span className="chip blue">Evidence: {sel.evidenceTier}</span>
                 </div>
-                <p className="mono footnote" style={{ marginTop: 4 }}>{sel.file}:{sel.line}</p>
+                <p className="mono footnote" style={{ marginTop: 4 }}><RefText text={`${sel.file}:${sel.line}`} source={src} /></p>
                 <dl className="dl">
-                  <dt>Why</dt><dd>{sel.why}</dd>
-                  <dt>Evidence</dt><dd><ul>{sel.evidence.map((e) => <li key={e}>{e}</li>)}</ul></dd>
+                  <dt>Why</dt><dd><RefText text={sel.why} source={src} /></dd>
+                  <dt>Evidence</dt><dd><ul>{sel.evidence.map((e) => <li key={e}><RefText text={e} source={src} /></li>)}</ul></dd>
                   <dt>Where it lives</dt>
                   <dd>
                     <div className="lives">
@@ -92,8 +94,8 @@ export default function Findings() {
                     </div>
                     <p style={{ marginTop: 8 }}><Link to="/repo-map">Open in Repo map →</Link></p>
                   </dd>
-                  <dt>Did</dt><dd>{sel.did}</dd>
-                  <dt>Limits</dt><dd>{sel.limits}</dd>
+                  <dt>Did</dt><dd><RefText text={sel.did} source={src} /></dd>
+                  <dt>Limits</dt><dd><RefText text={sel.limits} source={src} /></dd>
                 </dl>
               </section>
 

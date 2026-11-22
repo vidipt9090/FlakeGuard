@@ -135,6 +135,7 @@
     "mode",
     "notice",
     "pr",
+    "source",
     "stages",
     "status",
     "target"
@@ -150,6 +151,10 @@
     "path",
     "readers",
     "writers"
+  ],
+  "SourceRef": [
+    "ref",
+    "repo"
   ],
   "Stage": [
     "detail",

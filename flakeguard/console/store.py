@@ -64,7 +64,13 @@ class RecordedStore:
         return path.read_text(encoding="utf-8")
 
     def run(self, run_id: str) -> m.RunStatus:
-        return m.RunStatus.model_validate_json(self._read(run_id, "run.json"))
+        run = m.RunStatus.model_validate_json(self._read(run_id, "run.json"))
+        meta = self._dir(run_id) / "meta.json"
+        if meta.is_file():
+            info = json.loads(meta.read_text(encoding="utf-8"))
+            if info.get("source_repo") and info.get("source_commit"):
+                run = run.model_copy(update={"source": m.SourceRef(repo=info["source_repo"], ref=info["source_commit"])})
+        return run
 
     def findings(self, run_id: str) -> list[m.Finding]:
         return _FINDINGS.validate_json(self._read(run_id, "findings.json"))

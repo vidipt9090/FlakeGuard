@@ -215,6 +215,7 @@ class ActionsRunSource:
         self.root = root
         self._final: dict[str, m.RunStatus] = {}
         self._last: dict[str, m.RunStatus] = {}
+        self._head: dict[str, str] = {}
         self._files: dict[str, dict[str, bytes]] = {}
 
     # ----------------------------------------------------------------- attach
@@ -249,6 +250,13 @@ class ActionsRunSource:
     # ----------------------------------------------------------------- status
 
     def status(self, run_id: str) -> m.RunStatus:
+        run = self._status(run_id)
+        head = self._head.get(run_id)
+        if head is None:
+            return run
+        return run.model_copy(update={"source": m.SourceRef(repo=self._meta(run_id)["repo"], ref=head)})
+
+    def _status(self, run_id: str) -> m.RunStatus:
         if run_id in self._final:
             return self._final[run_id]
         meta = self._meta(run_id)
@@ -268,6 +276,7 @@ class ActionsRunSource:
     def _build(self, run_id: str, meta: dict) -> m.RunStatus:
         repo, rid = meta["repo"], meta["run_id"]
         run = self.api.get(f"/repos/{repo}/actions/runs/{rid}")
+        self._head[run_id] = run["head_sha"]  # the pull request's head commit, which GitHub can show
         jobs = self.api.get(f"/repos/{repo}/actions/runs/{rid}/jobs?per_page=100")["jobs"]
         pr = self.api.get(f"/repos/{repo}/pulls/{meta['pr_number']}", ttl=PR_CACHE_SECONDS)
         finished = run["status"] == "completed"

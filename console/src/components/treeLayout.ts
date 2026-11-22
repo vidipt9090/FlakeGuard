@@ -68,22 +68,37 @@ export function layoutTree(data: TreeData, opts: LayoutOpts): TreeLayout {
   const arrows: Arrow[] = [];
   const states: PlacedState[] = [];
   for (const s of data.sharedState) {
-    const ys = [...s.writers, ...s.readers].map((id) => testCenter.get(id)).filter((v): v is number => v !== undefined);
-    if (ys.length === 0) continue;
-    const top = Math.min(...ys) - 32;
-    const h = Math.max(H.state, Math.max(...ys) - Math.min(...ys) + 64);
-    states.push({ state: s, x: COL.state, y: top, w: W.state, h });
+    const wy = s.writers.map((id) => testCenter.get(id)).filter((v): v is number => v !== undefined);
+    const ry = s.readers.map((id) => testCenter.get(id)).filter((v): v is number => v !== undefined);
+    const all = [...wy, ...ry];
+    if (all.length === 0) continue;
+    // Fixed card height, centred on the readers (or on every linked test when there is no reader),
+    // so a far-away writer never stretches the card. Its arrow bends instead.
+    const anchor = ry.length ? ry : all;
+    const mid = Math.round(anchor.reduce((a, b) => a + b, 0) / anchor.length);
+    const top = Math.max(TOP, mid - H.state / 2);
+    states.push({ state: s, x: COL.state, y: top, w: W.state, h: H.state });
+    const onCard = (cy: number) => Math.min(Math.max(cy, top + 24), top + H.state - 24);
+    const xm = Math.round((COL.test + W.test + COL.state) / 2);
     s.writers.forEach((id) => {
       const cy = testCenter.get(id);
       if (cy === undefined) return;
+      const ey = onCard(cy);
+      const d = ey === cy
+        ? `M ${COL.test + W.test} ${cy} H ${COL.state - 4}`
+        : `M ${COL.test + W.test} ${cy} H ${xm} V ${ey} H ${COL.state - 4}`;
       arrows.push({ id: `${s.id}-w-${id}`, kind: 'writes', label: 'writes', color: '#8F1D14',
-        d: `M ${COL.test + W.test} ${cy} H ${COL.state - 4}`, lx: COL.test + W.test + 30, ly: cy - 28 });
+        d, lx: COL.test + W.test + 30, ly: cy - 28 });
     });
     s.readers.forEach((id) => {
       const cy = testCenter.get(id);
       if (cy === undefined) return;
+      const ey = onCard(cy);
+      const d = ey === cy
+        ? `M ${COL.state} ${cy} H ${COL.test + W.test + 4}`
+        : `M ${COL.state} ${ey} H ${xm} V ${cy} H ${COL.test + W.test + 4}`;
       arrows.push({ id: `${s.id}-r-${id}`, kind: 'reads', label: 'reads', color: '#8A3A0B',
-        d: `M ${COL.state} ${cy} H ${COL.test + W.test + 4}`, lx: COL.test + W.test + 30, ly: cy + 12 });
+        d, lx: COL.test + W.test + 30, ly: cy + 12 });
     });
   }
 

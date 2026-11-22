@@ -89,6 +89,13 @@ class Notice(_OptionalKeys):
     detail: str | None = None
 
 
+class SourceRef(_Model):
+    """A GitHub repository and the commit that was scanned, so file:line references can link to it."""
+
+    repo: str
+    ref: str
+
+
 class RunStatus(_Model):
     id: str
     target: str
@@ -100,6 +107,7 @@ class RunStatus(_Model):
     counters: Counters
     matrix: list[MatrixRow]
     notice: Notice | None
+    source: SourceRef | None = None
 
 
 class CodeLine(_OptionalKeys):
