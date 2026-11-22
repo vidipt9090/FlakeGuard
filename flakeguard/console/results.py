@@ -79,8 +79,8 @@ def baselines_table(label: str, doc: dict | None) -> m.TableWithProvenance:
         name = METHOD_NAMES.get(r["method"], r["method"].replace("_", " "))
         extra = r.get("variant")
         found = f"{a['flaky_found']['k']} of {a['flaky_found']['n']} flaky (recall {a['recall']['value']:.2f}, 95% CI {a['recall']['ci95_wilson'][0]:.2f} to {a['recall']['ci95_wilson'][1]:.2f})"
-        if r["method"] == "b1_fixed_order":
-            found += "; varies by about 1 test between executions"
+        if r["method"] in ("b1_fixed_order", "b2_coverage_diff"):
+            found += "; varies by 1 to 2 tests between executions (see the notes)"
         if r["method"].startswith("b3"):
             found += "; varies a lot between executions (see the notes)"
         wrong = f"{a['wrongly_flagged_flaky']['k']} of {a['wrongly_flagged_flaky']['n']} not flaky"
@@ -132,8 +132,10 @@ def load_results(label: str, root: Path | None = None) -> m.ResultsData:
     notes: list[str] = []
     if label == "natural":
         notes.append(NO_NATURAL)
+    if label == "planted":
+        notes.append("RQ4 (context ablation) is evaluated on the injected set only. The planted set was used to tune the prompt, so its RQ4 cells are dashes here; the tuning scores are in docs/EVAL.md and are not a result.")
     if rq1 is not None:
-        notes += [*rq1["provenance"]["limitations"], rq1["provenance"]["tolerances"]["b1_fixed_order"]]
+        notes += [*rq1["provenance"]["limitations"], "B1 (and B2, which is built from the same fixed-order runs) found-flaky counts vary between executions by about 1 test, and by up to 2 at N=5 and N=10 in the clean re-run (unseeded randomness tests)."]
         if label == "injected" and "b3" in rq1["provenance"]["tolerances"]:
             notes.append(rq1["provenance"]["tolerances"]["b3"])
     if label == "injected":

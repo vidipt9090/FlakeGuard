@@ -36,12 +36,12 @@
       ]
     },
     "command": "python scripts/run_rq4.py injected",
-    "date_utc": "2026-11-22T10:21:47Z",
+    "date_utc": "2026-11-22T11:55:14Z",
     "clock": {
-      "local": "2026-11-22 15:51:47 India Standard Time+0530",
+      "local": "2026-11-22 17:25:14 India Standard Time+0530",
       "weekday": "Sunday"
     },
-    "commit": "568ba6d8da47acb889d3c05f10e32bc2c3784b60",
+    "commit": "cf4187f56dceab9f22ee03766f546e9e89f15038",
     "tracked_files_modified": false,
     "environment": {
       "python": "3.12.13",
@@ -99,6 +99,17 @@
         ]
       },
       "unreadable_replies_counted_as_failures": 0,
+      "sensitivity_if_random_were_accepted_as_randomness": {
+        "note": "NOT the result. The model sometimes wrote 'random' instead of the listed word 'randomness'. The registered rule counts that as a failure and the figure above does. This is what the count would be if it were accepted.",
+        "replies_saying_random": 0,
+        "k": 5,
+        "n": 26,
+        "value": 0.1923,
+        "ci95_wilson": [
+          0.0851,
+          0.3788
+        ]
+      },
       "answers": {
         "order_dependence": 0,
         "shared_state": 0,
@@ -176,6 +187,17 @@
         ]
       },
       "unreadable_replies_counted_as_failures": 0,
+      "sensitivity_if_random_were_accepted_as_randomness": {
+        "note": "NOT the result. The model sometimes wrote 'random' instead of the listed word 'randomness'. The registered rule counts that as a failure and the figure above does. This is what the count would be if it were accepted.",
+        "replies_saying_random": 0,
+        "k": 5,
+        "n": 26,
+        "value": 0.1923,
+        "ci95_wilson": [
+          0.0851,
+          0.3788
+        ]
+      },
       "answers": {
         "order_dependence": 3,
         "shared_state": 0,
@@ -253,6 +275,17 @@
         ]
       },
       "unreadable_replies_counted_as_failures": 4,
+      "sensitivity_if_random_were_accepted_as_randomness": {
+        "note": "NOT the result. The model sometimes wrote 'random' instead of the listed word 'randomness'. The registered rule counts that as a failure and the figure above does. This is what the count would be if it were accepted.",
+        "replies_saying_random": 4,
+        "k": 13,
+        "n": 26,
+        "value": 0.5,
+        "ci95_wilson": [
+          0.3206,
+          0.6794
+        ]
+      },
       "answers": {
         "order_dependence": 3,
         "shared_state": 0,
@@ -330,6 +363,17 @@
         ]
       },
       "unreadable_replies_counted_as_failures": 1,
+      "sensitivity_if_random_were_accepted_as_randomness": {
+        "note": "NOT the result. The model sometimes wrote 'random' instead of the listed word 'randomness'. The registered rule counts that as a failure and the figure above does. This is what the count would be if it were accepted.",
+        "replies_saying_random": 1,
+        "k": 14,
+        "n": 26,
+        "value": 0.5385,
+        "ci95_wilson": [
+          0.3546,
+          0.7124
+        ]
+      },
       "answers": {
         "order_dependence": 12,
         "shared_state": 0,

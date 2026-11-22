@@ -199,7 +199,7 @@ def test_results_for_planted_and_injected_come_from_the_recorded_files(client):
         assert p.labelType == label and p.n == n and p.command.startswith("python scripts/run_eval.py") and p.commit
         assert data.status == "run" and data.baselines.table.rows
         assert all(row[1] is None or "of" in row[1] for row in data.baselines.table.rows)  # counts come with their N
-        assert any("varies by about 1 test" in (row[1] or "") for row in data.baselines.table.rows)  # B1 tolerance
+        assert any("tests between executions" in (row[1] or "") for row in data.baselines.table.rows)  # B1 tolerance
         assert f"N={n} tests" in data.runsToDecision.adaptive
     notes = m.ResultsData.model_validate(client.get("/api/results?label=injected").json()).notes
     assert any("08:00 to 18:00" in x for x in notes) and any("same fault classes" in x for x in notes)

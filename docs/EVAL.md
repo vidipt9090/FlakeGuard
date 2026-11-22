@@ -118,7 +118,7 @@ new test in a PR whose other changes are fine, and the pipelines are applied to 
 * *Real failure wrongly quarantined*: a test labelled real that triage calls flaky (it would be quarantined and the bug hidden). Also shown: real failures called real.
 * *Stable test wrongly flagged*: a test labelled stable that triage calls flaky.
 Labelled `flaky` tests that never fail in any run (the injected `time_tz` ones) cannot be red and are listed apart.
-Planted and injected are separate tables. Natural: not run, dashes. The two real pull requests of the demo repo (#3, a clean change, and #4, a change that exposes order dependence)
+Planted and injected are separate tables. Natural: not run, dashes. The two real pull requests of the demo repo (#3, a clean change; #4, a revert that brings four faulty tests back)
 are mentioned as anecdotes about what the bot did; they are not data for any figure here.
 
 ### RQ4 prompt tuning (planted set only; frozen before any injected call)

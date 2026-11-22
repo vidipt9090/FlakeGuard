@@ -102,7 +102,7 @@ SENSITIVITY = {
         "synthetic/tests/test_suite_03.py::test_case_21": "freeze_time sets 12:00 and it asserts check_timezone_offset(now) == 5, but that function is (now.hour - utcnow().hour) % 24 and both come from the same frozen instant, so it is always 0",
     },
 }
-B1_TOLERANCE = "B1 found-flaky counts vary by about 1 test between executions (unseeded randomness tests)."
+B1_TOLERANCE = "B1 found-flaky counts vary by about 1 test between executions, up to 2 at N=5 and N=10 (unseeded randomness tests)."
 B3_TOLERANCE = ("B3 is not stable between executions. Its inputs (failure counts and test durations of runs that are made again each time) change a little, "
                 "and a forest trained on 31 tests reacts strongly: trained on planted at N=20 it wrongly flagged 28, 152 and 2 of 450 stable injected tests in three executions of the same command. "
                 "Read a B3 row as a range, not a point.")
