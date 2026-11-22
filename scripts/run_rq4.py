@@ -78,6 +78,26 @@ Choose the single most likely cause from this list:
 Reply with JSON only, in this form: {{"cause": "<one word from the list>", "reason": "<one sentence>"}}
 """,
 }
+PROMPTS["v2"] = """\
+You are diagnosing a flaky test. A flaky test sometimes passes and sometimes fails although nobody changed the code.
+
+Test: {test_id}
+This test was flagged flaky.
+{summary}
+
+{code}
+
+Choose the single most likely cause from this list, using the clues given for each:
+- order_dependence: the test only passes if some other test ran before it and left something set up (a flag, a value, a file), so it fails when it runs first or alone. Clue: it asserts on something that this test never creates itself.
+- shared_state: this test changes a module-level or global variable, cache, counter or class attribute and nothing puts it back, so later tests or later runs see the changed value. Clue: the test itself assigns to a global or class attribute, or increments a global counter.
+- timing: a thread, sleep, wait or timeout: the result depends on how fast something finishes. Clue: sleep, Thread, join, wait, timeout.
+- randomness: a random value that is not seeded decides the result. Clue: random, uuid, secrets, a value drawn from a range or compared with a threshold.
+- time_or_timezone: the result depends on the current clock, date, hour, weekday or timezone. Clue: datetime.now, time.time, utcnow, freeze_time, hour, timezone.
+- other: none of the above.
+Do not choose shared_state only because the code uses a global name. Pick the clue that matches what the test does.
+
+Reply with JSON only, in this form: {{"cause": "<one word from the list>", "reason": "<one sentence>"}}
+"""
 FIX_PROMPT = """\
 You are fixing a flaky test.
 
@@ -91,7 +111,7 @@ Rewrite the test function so that it no longer depends on another test having ru
 
 Reply with JSON only, in this form: {{"fixed_test": "<the complete source of the test function, def line included>"}}
 """
-DEFAULT_PROMPT = "v1"
+DEFAULT_PROMPT = "v2"
 
 
 # ------------------------------------------------------------------------------------- what the model is shown

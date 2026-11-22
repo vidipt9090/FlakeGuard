@@ -120,3 +120,14 @@ new test in a PR whose other changes are fine, and the pipelines are applied to 
 Labelled `flaky` tests that never fail in any run (the injected `time_tz` ones) cannot be red and are listed apart.
 Planted and injected are separate tables. Natural: not run, dashes. The two real pull requests of the demo repo (#3, a clean change, and #4, a change that exposes order dependence)
 are mentioned as anecdotes about what the bot did; they are not data for any figure here.
+
+### RQ4 prompt tuning (planted set only; frozen before any injected call)
+
+Two prompt versions were tried, both scored on the 15 planted flaky tests in all four settings, with the same decoding. Nothing was tuned on injected tests, and no third version was tried.
+
+| Prompt | none | file | ast | ast_jedi | What changed |
+|---|---|---|---|---|---|
+| v1 | 5/15 | 6/15 | 7/15 | 7/15 | one-line description of each cause |
+| v2 | 3/15 | 4/15 | 9/15 | 10/15 | a clue for each cause (words and patterns to look for) and a warning not to answer `shared_state` just because a global name appears |
+
+v2 is the frozen prompt. The v1 and v2 logs are `results/planted/rq4_tuning_v1.json` and `rq4_tuning_v2.json`. These are tuning scores on the set the prompt was tuned on; they are not a result.
