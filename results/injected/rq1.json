@@ -35,14 +35,14 @@
         "test_threading.py"
       ]
     },
-    "command": "python scripts/run_eval.py injected",
-    "date_utc": "2026-11-22T08:27:50Z",
+    "command": "python scripts/run_eval.py injected --steps rq1,rq2",
+    "date_utc": "2026-11-22T08:41:45Z",
     "clock": {
-      "local": "2026-11-22 13:57:50 India Standard Time+0530",
+      "local": "2026-11-22 14:11:45 India Standard Time+0530",
       "weekday": "Sunday"
     },
-    "commit": "5c38c6b9bf675a7d51e894f0949a56d3f24a4aea",
-    "tracked_files_modified": true,
+    "commit": "421fcb955b83d2ffbe9cb55207497e6dfc485c99",
+    "tracked_files_modified": false,
     "environment": {
       "python": "3.12.13",
       "pytest": "9.2.0",
@@ -4235,7 +4235,7 @@
     {
       "method": "b3_trained_on_planted",
       "full_suite_runs": 5,
-      "minutes_measured": 0.426,
+      "minutes_measured": 0.425,
       "within_budget": true,
       "all_tests": {
         "n_tests": 476,
@@ -4244,7 +4244,7 @@
           "n": 26
         },
         "wrongly_flagged_flaky": {
-          "k": 102,
+          "k": 103,
           "n": 450
         },
         "wrongly_flagged_ids": [
@@ -4345,6 +4345,7 @@
           "tests/test_ttl.py::TTLCacheTest::test_popitem_exception_context",
           "tests/test_ttl.py::TTLCacheTest::test_ttl",
           "tests/test_ttl.py::TTLCacheTest::test_ttl_datetime",
+          "tests/test_ttl.py::TTLCacheTest::test_ttl_datetime_overflow",
           "tests/test_ttl.py::TTLCacheTest::test_ttl_default_timer_stubs",
           "tests/test_ttl.py::TTLCacheTest::test_ttl_iter_expired",
           "tests/test_ttl.py::TTLCacheTest::test_ttl_timer",
@@ -4353,11 +4354,11 @@
         ],
         "precision": {
           "k": 10,
-          "n": 112,
-          "value": 0.0893,
+          "n": 113,
+          "value": 0.0885,
           "ci95_wilson": [
-            0.0492,
-            0.1566
+            0.0488,
+            0.1553
           ]
         },
         "recall": {
@@ -4370,21 +4371,21 @@
           ]
         },
         "f1": {
-          "value": 0.1449,
+          "value": 0.1439,
           "ci95_bootstrap": [
-            0.0671,
-            0.2239
+            0.0667,
+            0.2222
           ],
           "resamples": 2000,
           "n": 476
         },
         "real_failures_called_flaky": {
-          "k": 0,
+          "k": 1,
           "n": 5,
-          "value": 0.0,
+          "value": 0.2,
           "ci95_wilson": [
-            0.0,
-            0.4345
+            0.0362,
+            0.6245
           ]
         },
         "flaky_called_real": {
@@ -4403,8 +4404,8 @@
             "none_seen": 12
           },
           "real": {
-            "flaky": 0,
-            "real": 5,
+            "flaky": 1,
+            "real": 4,
             "none_seen": 0
           },
           "stable": {
@@ -4443,7 +4444,7 @@
           "n": 21
         },
         "wrongly_flagged_flaky": {
-          "k": 102,
+          "k": 103,
           "n": 450
         },
         "wrongly_flagged_ids": [
@@ -4544,6 +4545,7 @@
           "tests/test_ttl.py::TTLCacheTest::test_popitem_exception_context",
           "tests/test_ttl.py::TTLCacheTest::test_ttl",
           "tests/test_ttl.py::TTLCacheTest::test_ttl_datetime",
+          "tests/test_ttl.py::TTLCacheTest::test_ttl_datetime_overflow",
           "tests/test_ttl.py::TTLCacheTest::test_ttl_default_timer_stubs",
           "tests/test_ttl.py::TTLCacheTest::test_ttl_iter_expired",
           "tests/test_ttl.py::TTLCacheTest::test_ttl_timer",
@@ -4552,11 +4554,11 @@
         ],
         "precision": {
           "k": 8,
-          "n": 110,
-          "value": 0.0727,
+          "n": 111,
+          "value": 0.0721,
           "ci95_wilson": [
-            0.0373,
-            0.137
+            0.037,
+            0.1358
           ]
         },
         "recall": {
@@ -4569,21 +4571,21 @@
           ]
         },
         "f1": {
-          "value": 0.1221,
+          "value": 0.1212,
           "ci95_bootstrap": [
-            0.0472,
-            0.2041
+            0.0469,
+            0.2034
           ],
           "resamples": 2000,
           "n": 471
         },
         "real_failures_called_flaky": {
-          "k": 0,
+          "k": 1,
           "n": 5,
-          "value": 0.0,
+          "value": 0.2,
           "ci95_wilson": [
-            0.0,
-            0.4345
+            0.0362,
+            0.6245
           ]
         },
         "flaky_called_real": {
@@ -4602,8 +4604,8 @@
             "none_seen": 9
           },
           "real": {
-            "flaky": 0,
-            "real": 5,
+            "flaky": 1,
+            "real": 4,
             "none_seen": 0
           },
           "stable": {
@@ -4775,7 +4777,7 @@
         "tests/test_ttl.py::TTLCacheTest::test_ttl_datetime_overflow": {
           "label": "real",
           "root_cause": "none",
-          "called": "real"
+          "called": "flaky"
         },
         "tests/test_ttl.py::TTLCacheTest::test_ttl_deepcopy_timer": {
           "label": "flaky",
@@ -4801,82 +4803,70 @@
       "all_tests": {
         "n_tests": 476,
         "flaky_found": {
-          "k": 13,
+          "k": 12,
           "n": 26
         },
         "wrongly_flagged_flaky": {
-          "k": 33,
+          "k": 21,
           "n": 450
         },
         "wrongly_flagged_ids": [
           "tests/test_cache.py::CacheTest::test_deepcopy",
-          "tests/test_cached.py::CacheWrapperTest::test_decorator",
-          "tests/test_cached.py::CacheWrapperTest::test_decorator_method",
-          "tests/test_cachedmethod.py::CacheMethodTest::test_decorator_cond",
           "tests/test_cachedmethod.py::DictMethodTest::test_decorator_deepcopy_super",
           "tests/test_cachedmethod.py::DictMethodTest::test_decorator_immutable_dict",
-          "tests/test_cachedmethod.py::UnboundMethodTest::test_class_call",
           "tests/test_fifo.py::FIFOCacheTest::test_copy_maxsize",
           "tests/test_func.py::LRUDecoratorTest::test_decorator",
-          "tests/test_func.py::TTLDecoratorTest::test_decorator_typed",
-          "tests/test_lfu.py::LFUCacheTest::test_pop",
           "tests/test_lru.py::LRUCacheTest::test_maxsize_infinite",
-          "tests/test_lru.py::LRUCacheTest::test_missing",
           "tests/test_rr.py::RRCacheTest::test_pickle_maxsize",
           "tests/test_threading.py::ThreadingTest::test_cached_unrelated_lock_cond",
           "tests/test_tlru.py::TLRUCacheTest::test_copy",
-          "tests/test_tlru.py::TLRUCacheTest::test_defaults",
           "tests/test_tlru.py::TLRUCacheTest::test_getsizeof_subclass",
           "tests/test_tlru.py::TLRUCacheTest::test_maxsize_infinite",
           "tests/test_tlru.py::TLRUCacheTest::test_missing",
-          "tests/test_tlru.py::TLRUCacheTest::test_missing_getsizeof",
           "tests/test_tlru.py::TLRUCacheTest::test_pickle",
           "tests/test_tlru.py::TLRUCacheTest::test_pop",
           "tests/test_tlru.py::TLRUCacheTest::test_ttu",
-          "tests/test_ttl.py::TTLCacheTest::test_copy_attributes",
           "tests/test_ttl.py::TTLCacheTest::test_defaults",
           "tests/test_ttl.py::TTLCacheTest::test_delete",
           "tests/test_ttl.py::TTLCacheTest::test_missing_getsizeof",
           "tests/test_ttl.py::TTLCacheTest::test_ttl",
-          "tests/test_ttl.py::TTLCacheTest::test_ttl_iter_expired",
-          "tests/test_ttl.py::TTLCacheTest::test_ttl_iter_modify",
-          "tests/test_ttl.py::TTLCacheTest::test_ttl_lru",
-          "tests/test_ttl.py::TTLCacheTest::test_update"
+          "tests/test_ttl.py::TTLCacheTest::test_ttl_datetime_overflow",
+          "tests/test_ttl.py::TTLCacheTest::test_ttl_iter_expired"
         ],
         "precision": {
-          "k": 13,
-          "n": 46,
-          "value": 0.2826,
+          "k": 12,
+          "n": 33,
+          "value": 0.3636,
           "ci95_wilson": [
-            0.1732,
-            0.4255
+            0.2219,
+            0.5338
           ]
         },
         "recall": {
-          "k": 13,
+          "k": 12,
           "n": 26,
-          "value": 0.5,
+          "value": 0.4615,
           "ci95_wilson": [
-            0.3206,
-            0.6794
+            0.2876,
+            0.6454
           ]
         },
         "f1": {
-          "value": 0.3611,
+          "value": 0.4068,
           "ci95_bootstrap": [
-            0.209,
-            0.5
+            0.2353,
+            0.5538
           ],
           "resamples": 2000,
           "n": 476
         },
         "real_failures_called_flaky": {
-          "k": 0,
+          "k": 1,
           "n": 5,
-          "value": 0.0,
+          "value": 0.2,
           "ci95_wilson": [
-            0.0,
-            0.4345
+            0.0362,
+            0.6245
           ]
         },
         "flaky_called_real": {
@@ -4890,19 +4880,19 @@
         },
         "confusion_actual_by_predicted": {
           "flaky": {
-            "flaky": 13,
+            "flaky": 12,
             "real": 4,
-            "none_seen": 9
+            "none_seen": 10
           },
           "real": {
-            "flaky": 0,
-            "real": 5,
+            "flaky": 1,
+            "real": 4,
             "none_seen": 0
           },
           "stable": {
-            "flaky": 33,
+            "flaky": 20,
             "real": 0,
-            "none_seen": 412
+            "none_seen": 425
           }
         },
         "by_root_cause": {
@@ -4919,7 +4909,7 @@
             "n": 6
           },
           "time_tz": {
-            "found_flaky": 2,
+            "found_flaky": 1,
             "n": 5
           },
           "timing": {
@@ -4935,51 +4925,39 @@
           "n": 21
         },
         "wrongly_flagged_flaky": {
-          "k": 33,
+          "k": 21,
           "n": 450
         },
         "wrongly_flagged_ids": [
           "tests/test_cache.py::CacheTest::test_deepcopy",
-          "tests/test_cached.py::CacheWrapperTest::test_decorator",
-          "tests/test_cached.py::CacheWrapperTest::test_decorator_method",
-          "tests/test_cachedmethod.py::CacheMethodTest::test_decorator_cond",
           "tests/test_cachedmethod.py::DictMethodTest::test_decorator_deepcopy_super",
           "tests/test_cachedmethod.py::DictMethodTest::test_decorator_immutable_dict",
-          "tests/test_cachedmethod.py::UnboundMethodTest::test_class_call",
           "tests/test_fifo.py::FIFOCacheTest::test_copy_maxsize",
           "tests/test_func.py::LRUDecoratorTest::test_decorator",
-          "tests/test_func.py::TTLDecoratorTest::test_decorator_typed",
-          "tests/test_lfu.py::LFUCacheTest::test_pop",
           "tests/test_lru.py::LRUCacheTest::test_maxsize_infinite",
-          "tests/test_lru.py::LRUCacheTest::test_missing",
           "tests/test_rr.py::RRCacheTest::test_pickle_maxsize",
           "tests/test_threading.py::ThreadingTest::test_cached_unrelated_lock_cond",
           "tests/test_tlru.py::TLRUCacheTest::test_copy",
-          "tests/test_tlru.py::TLRUCacheTest::test_defaults",
           "tests/test_tlru.py::TLRUCacheTest::test_getsizeof_subclass",
           "tests/test_tlru.py::TLRUCacheTest::test_maxsize_infinite",
           "tests/test_tlru.py::TLRUCacheTest::test_missing",
-          "tests/test_tlru.py::TLRUCacheTest::test_missing_getsizeof",
           "tests/test_tlru.py::TLRUCacheTest::test_pickle",
           "tests/test_tlru.py::TLRUCacheTest::test_pop",
           "tests/test_tlru.py::TLRUCacheTest::test_ttu",
-          "tests/test_ttl.py::TTLCacheTest::test_copy_attributes",
           "tests/test_ttl.py::TTLCacheTest::test_defaults",
           "tests/test_ttl.py::TTLCacheTest::test_delete",
           "tests/test_ttl.py::TTLCacheTest::test_missing_getsizeof",
           "tests/test_ttl.py::TTLCacheTest::test_ttl",
-          "tests/test_ttl.py::TTLCacheTest::test_ttl_iter_expired",
-          "tests/test_ttl.py::TTLCacheTest::test_ttl_iter_modify",
-          "tests/test_ttl.py::TTLCacheTest::test_ttl_lru",
-          "tests/test_ttl.py::TTLCacheTest::test_update"
+          "tests/test_ttl.py::TTLCacheTest::test_ttl_datetime_overflow",
+          "tests/test_ttl.py::TTLCacheTest::test_ttl_iter_expired"
         ],
         "precision": {
           "k": 11,
-          "n": 44,
-          "value": 0.25,
+          "n": 32,
+          "value": 0.3438,
           "ci95_wilson": [
-            0.1457,
-            0.3944
+            0.2041,
+            0.5169
           ]
         },
         "recall": {
@@ -4992,21 +4970,21 @@
           ]
         },
         "f1": {
-          "value": 0.3385,
+          "value": 0.4151,
           "ci95_bootstrap": [
-            0.1778,
-            0.4857
+            0.2381,
+            0.5769
           ],
           "resamples": 2000,
           "n": 471
         },
         "real_failures_called_flaky": {
-          "k": 0,
+          "k": 1,
           "n": 5,
-          "value": 0.0,
+          "value": 0.2,
           "ci95_wilson": [
-            0.0,
-            0.4345
+            0.0362,
+            0.6245
           ]
         },
         "flaky_called_real": {
@@ -5025,14 +5003,14 @@
             "none_seen": 6
           },
           "real": {
-            "flaky": 0,
-            "real": 5,
+            "flaky": 1,
+            "real": 4,
             "none_seen": 0
           },
           "stable": {
-            "flaky": 33,
+            "flaky": 20,
             "real": 0,
-            "none_seen": 412
+            "none_seen": 425
           }
         },
         "by_root_cause": {
@@ -5193,12 +5171,12 @@
         "tests/test_ttl.py::TTLCacheTest::test_ttl_copy": {
           "label": "flaky",
           "root_cause": "time_tz",
-          "called": "flaky"
+          "called": "none_seen"
         },
         "tests/test_ttl.py::TTLCacheTest::test_ttl_datetime_overflow": {
           "label": "real",
           "root_cause": "none",
-          "called": "real"
+          "called": "flaky"
         },
         "tests/test_ttl.py::TTLCacheTest::test_ttl_deepcopy_timer": {
           "label": "flaky",
@@ -5219,7 +5197,7 @@
     {
       "method": "b3_trained_on_planted",
       "full_suite_runs": 20,
-      "minutes_measured": 1.263,
+      "minutes_measured": 1.265,
       "within_budget": true,
       "all_tests": {
         "n_tests": 476,
@@ -6193,7 +6171,7 @@
     {
       "method": "b3_run_features_only_trained_on_planted",
       "full_suite_runs": 10,
-      "minutes_measured": 0.666,
+      "minutes_measured": 0.668,
       "within_budget": true,
       "all_tests": {
         "n_tests": 476,
@@ -6616,7 +6594,7 @@
     {
       "method": "b3_run_features_only_trained_on_planted",
       "full_suite_runs": 20,
-      "minutes_measured": 1.261,
+      "minutes_measured": 1.263,
       "within_budget": true,
       "all_tests": {
         "n_tests": 476,
@@ -7029,7 +7007,7 @@
     {
       "method": "b3_leave_one_out_injected",
       "full_suite_runs": 5,
-      "minutes_measured": 1.007,
+      "minutes_measured": 1.026,
       "within_budget": true,
       "all_tests": {
         "n_tests": 476,
@@ -7393,7 +7371,7 @@
     {
       "method": "b3_leave_one_out_injected",
       "full_suite_runs": 10,
-      "minutes_measured": 1.317,
+      "minutes_measured": 1.335,
       "within_budget": true,
       "all_tests": {
         "n_tests": 476,
@@ -7761,7 +7739,7 @@
     {
       "method": "b3_leave_one_out_injected",
       "full_suite_runs": 20,
-      "minutes_measured": 2.0,
+      "minutes_measured": 1.926,
       "within_budget": true,
       "all_tests": {
         "n_tests": 476,
@@ -8123,7 +8101,7 @@
     {
       "method": "b3_run_features_only_leave_one_out_injected",
       "full_suite_runs": 5,
-      "minutes_measured": 1.015,
+      "minutes_measured": 1.016,
       "within_budget": true,
       "all_tests": {
         "n_tests": 476,
@@ -8485,7 +8463,7 @@
     {
       "method": "b3_run_features_only_leave_one_out_injected",
       "full_suite_runs": 10,
-      "minutes_measured": 1.365,
+      "minutes_measured": 1.335,
       "within_budget": true,
       "all_tests": {
         "n_tests": 476,
@@ -8849,7 +8827,7 @@
     {
       "method": "b3_run_features_only_leave_one_out_injected",
       "full_suite_runs": 20,
-      "minutes_measured": 1.914,
+      "minutes_measured": 1.925,
       "within_budget": true,
       "all_tests": {
         "n_tests": 476,
