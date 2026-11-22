@@ -36,6 +36,13 @@ def _load(label: str, name: str, root: Path) -> dict | None:
         return None
 
 
+def _load_file(path: Path) -> dict | None:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
 def _prov(label: str, doc: dict | None) -> m.Provenance:
     if doc is None:
         return m.Provenance(dataset=None, labelType=label, n=None, command=None, date=None, commit=None)  # type: ignore[arg-type]
@@ -91,7 +98,9 @@ def ablation_table(label: str, rq4: dict | None) -> m.TableWithProvenance:
         for s, r in rq4["results"].items():
             fx = r.get("fix")
             rows.append([SETTING_NAMES.get(s, s), _rate(r["diagnosis_matches"], " flaky tests")
-                         + (f"; {r['unreadable_replies_counted_as_failures']} unreadable replies counted as failures" if r["unreadable_replies_counted_as_failures"] else ""),
+                         + (f"; {r['unreadable_replies_counted_as_failures']} unreadable replies counted as failures" if r["unreadable_replies_counted_as_failures"] else "")
+                         + (f" (if the word 'random' were accepted as randomness: {r['sensitivity_if_random_were_accepted_as_randomness']['k']} of {r['sensitivity_if_random_were_accepted_as_randomness']['n']}; not the result)"
+                            if r.get("sensitivity_if_random_were_accepted_as_randomness", {}).get("replies_saying_random") else ""),
                          f"{fx['validated']} of {fx['n']} (N={fx['n']}, counts not rates)" if fx else None,
                          f"mean {r['code_chars_sent']['mean']:.0f} characters, {r['prompt_tokens']['mean']:.0f} tokens per prompt"
                          if r["prompt_tokens"]["mean"] is not None else None])
@@ -129,6 +138,13 @@ def load_results(label: str, root: Path | None = None) -> m.ResultsData:
             notes.append(rq1["provenance"]["tolerances"]["b3"])
     if label == "injected":
         notes += [TIME_TZ_NOTE] if TIME_TZ_NOTE not in notes else []
+    again = _load_file(root / "clean_rerun_comparison.json")
+    if again is not None and rq1 is not None:
+        mine = next((d for d in again["labels"] if d["label"] == label), None)
+        if mine:
+            g = mine["max_found_difference_by_family"]
+            notes.append(f"Observed on a re-run from a clean checkout: found-flaky counts differed by at most {g.get('b1', 0)} for B1, {g.get('b2', 0)} for B2 and "
+                         f"{g.get('b3', 0)} for B3 (B3's wrongly-flagged counts differed much more); shuffled-run (perturbation) calls differed by {g.get('perturbation', 0)}.")
     if rq3 is not None:
         notes.append("RQ3 is a simulation over labelled tests. No pull request was opened and FlakeGuard's PR flow was not run.")
     if rq4 is not None:

@@ -381,6 +381,10 @@ def run(label: str, prompt_version: str, settings: tuple[str, ...], use_cache: b
         results[setting] = {
             "diagnosis_matches": run_eval.rate(k, len(rows)),
             "unreadable_replies_counted_as_failures": sum(not r["readable"] for r in rows),
+            "sensitivity_if_random_were_accepted_as_randomness": {
+                "note": "NOT the result. The model sometimes wrote 'random' instead of the listed word 'randomness'. The registered rule counts that as a failure and the figure above does. This is what the count would be if it were accepted.",
+                "replies_saying_random": sum(r["model_cause"] == "random" for r in rows),
+                **run_eval.rate(k + sum(r["model_cause"] == "random" and r["known_cause"] == "randomness" for r in rows), len(rows))},
             "answers": {w: sum(r["model_cause"] == w for r in rows) for w in VOCAB},
             "by_known_cause": {c: {"k": sum(r["match"] for r in rows if r["known_cause"] == c), "n": sum(r["known_cause"] == c for r in rows)}
                                for c in CAUSE_WORD.values()},
