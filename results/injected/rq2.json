@@ -1,0 +1,587 @@
+{
+  "provenance": {
+    "label_type": "injected",
+    "dataset": {
+      "suite": "tests",
+      "labels_file": ".eval_cache/injected/labels.json",
+      "labels_sha256": "490a62cd5a14865fb4e4a19dbd6f8090a3790f78beb0d46858274db735831ac6",
+      "how_labelled": "by construction: operators in flakeguard/injector insert each fault into a passing published test suite (cachetools); untouched tests are stable by observation (pristine suite passed in every pristine run)",
+      "n_tests": 476,
+      "n_by_label": {
+        "stable": 445,
+        "flaky": 26,
+        "real": 5
+      },
+      "base": "cachetools 8.0.2 (source archive sha256 30ac523adfc118b51d2b2e7bad8a0ddb31370dfe2700c7f10ca224f36ccf81e0)",
+      "seed": 20261122,
+      "manifest_sha256": "16ed17a63fe7bd5ca1d2296b24bca4e9c9e759508c385785bdfad3c5c70df741",
+      "injections_by_category": {
+        "order_dep": 10,
+        "randomness": 5,
+        "real_fail": 5,
+        "shared_state": 6,
+        "time_tz": 5,
+        "timing": 5
+      },
+      "pristine_runs": [
+        "476 passed, 24 subtests passed in 1.22s",
+        "476 passed, 24 subtests passed in 1.23s",
+        "476 passed, 24 subtests passed in 1.28s",
+        "476 passed, 24 subtests passed in 1.28s",
+        "476 passed, 24 subtests passed in 1.30s",
+        "476 passed, 24 subtests passed in 1.36s"
+      ],
+      "excluded_from_injection": [
+        "test_threading.py"
+      ]
+    },
+    "command": "python scripts/run_eval.py injected",
+    "date_utc": "2026-11-22T08:27:50Z",
+    "clock": {
+      "local": "2026-11-22 13:57:50 India Standard Time+0530",
+      "weekday": "Sunday"
+    },
+    "commit": "5c38c6b9bf675a7d51e894f0949a56d3f24a4aea",
+    "tracked_files_modified": true,
+    "environment": {
+      "python": "3.12.13",
+      "pytest": "9.2.0",
+      "platform": "Windows-11-10.0.26300-SP0"
+    },
+    "budget_minutes": 6.0,
+    "tolerances": {
+      "b1_fixed_order": "B1 found-flaky counts vary by about 1 test between executions (unseeded randomness tests).",
+      "perturbation": "exact on the same commit and environment: seeds fix the order and reseed random (timing faults can differ)",
+      "minutes": "about 0.1 minute between executions on the planted suite; the injected suite takes longer per run",
+      "time_tz": "depends on the local hour at which the runs are made; valid for runs between 08:00 and 18:00"
+    },
+    "natural_flakes": "none available: shown as a dash on the Results screen",
+    "limitations": [
+      "No natural flakes (flakes found in real projects) were available. Natural results are not reported and stay dashes.",
+      "The injection operators produce the same fault classes the detector looks for (order, shared state, timing, randomness, clock), so injected results are only partly independent of the methods being evaluated.",
+      "B1 (fixed order) cannot see a fault that only an unusual order triggers, and the order-dependence pairs are built so that the setup test comes first in the default order (as a real order dependence usually does, or it would be found at once).",
+      "The time_tz faults fail only when the local hour is outside 8 to 17. Runs were made in the daytime, so those faults cannot fail in these runs by construction. The sensitivity table removes them; the primary table keeps them as flaky.",
+      "Tests no operator touched are labelled stable because the untouched suite passed in every one of its recorded runs. That is evidence, not proof; a rare flake in the library's own tests would be counted as a wrong flag.",
+      "26 flaky and 5 real tests among 476: small N for the flaky class. Intervals are wide.",
+      "B3's code features (the words sleep, random, datetime in the test source) read the text the operators insert, so B3 with them is partly circular; the run-features-only variant is reported next to it."
+    ],
+    "runs_recorded": {
+      "b1_fixed_order": {
+        "command": "python scripts/run_eval.py injected",
+        "date_utc": "2026-11-22T08:27:50Z",
+        "commit": "5c38c6b9bf675a7d51e894f0949a56d3f24a4aea",
+        "tracked_files_modified": true
+      },
+      "perturbation": {
+        "command": "python scripts/run_eval.py injected",
+        "date_utc": "2026-11-22T08:27:50Z",
+        "commit": "5c38c6b9bf675a7d51e894f0949a56d3f24a4aea",
+        "tracked_files_modified": true
+      }
+    }
+  },
+  "source": "outcomes of the perturbation runs recorded in perturbation.json (seeds 1 to 20), fed one run at a time to flakeguard.stats.adaptive.AdaptiveStoppingPolicy(min_runs=3, max_runs=20, confidence=0.95, threshold_p=0.15)",
+  "runs_to_decision_adaptive": {
+    "n_tests": 476,
+    "mean": 9.7,
+    "median": 10.0,
+    "mean_ci95_bootstrap": [
+      9.571,
+      9.811
+    ],
+    "total_test_runs": 4617
+  },
+  "runs_to_decision_fixed": {
+    "N=5": {
+      "n_tests": 476,
+      "mean": 5.0,
+      "median": 5.0,
+      "mean_ci95_bootstrap": [
+        5.0,
+        5.0
+      ],
+      "total_test_runs": 2380
+    },
+    "N=10": {
+      "n_tests": 476,
+      "mean": 10.0,
+      "median": 10.0,
+      "mean_ci95_bootstrap": [
+        10.0,
+        10.0
+      ],
+      "total_test_runs": 4760
+    },
+    "N=20": {
+      "n_tests": 476,
+      "mean": 20.0,
+      "median": 20.0,
+      "mean_ci95_bootstrap": [
+        20.0,
+        20.0
+      ],
+      "total_test_runs": 9520
+    }
+  },
+  "suite_runs_until_every_test_decided_adaptive": 10,
+  "decisions_adaptive": {
+    "flaky": 15,
+    "real": 9,
+    "none_seen": 452,
+    "undecided": 0
+  },
+  "decisions_fixed_20": {
+    "flaky": 21,
+    "real": 5,
+    "none_seen": 450
+  },
+  "tests_where_adaptive_differs_from_fixed_20": {
+    "k": 6,
+    "n": 476,
+    "ids": [
+      "tests/test_cachedmethod.py::UnboundMethodTest::test_class_call_after_delete",
+      "tests/test_fifo.py::FIFOCacheTest::test_fifo",
+      "tests/test_lru.py::LRUCacheTest::test_lru_clear",
+      "tests/test_rr.py::RRCacheTest::test_rr_copy",
+      "tests/test_rr.py::RRCacheTest::test_rr_default_choice",
+      "tests/test_ttl.py::TTLCacheTest::test_ttl_deepcopy_timer"
+    ]
+  },
+  "flaky_tests_adaptive_misses": [
+    "tests/test_cachedmethod.py::UnboundMethodTest::test_class_call_after_delete",
+    "tests/test_fifo.py::FIFOCacheTest::test_fifo",
+    "tests/test_lru.py::LRUCacheTest::test_lru_clear",
+    "tests/test_rr.py::RRCacheTest::test_rr_copy",
+    "tests/test_rr.py::RRCacheTest::test_rr_default_choice",
+    "tests/test_ttl.py::TTLCacheTest::test_ttl_deepcopy_timer"
+  ],
+  "tradeoff": {
+    "whole_suite_runs_saved": {
+      "k": 10,
+      "n": 20
+    },
+    "flaky_found_adaptive": {
+      "k": 15,
+      "n": 26
+    },
+    "flaky_found_fixed_20": {
+      "k": 21,
+      "n": 26
+    },
+    "missed_by_adaptive_but_found_by_fixed_20": [
+      "tests/test_cachedmethod.py::UnboundMethodTest::test_class_call_after_delete",
+      "tests/test_fifo.py::FIFOCacheTest::test_fifo",
+      "tests/test_lru.py::LRUCacheTest::test_lru_clear",
+      "tests/test_rr.py::RRCacheTest::test_rr_copy",
+      "tests/test_rr.py::RRCacheTest::test_rr_default_choice",
+      "tests/test_ttl.py::TTLCacheTest::test_ttl_deepcopy_timer"
+    ],
+    "stop_rule_disclosure": "The stop rule (a test with no failure is declared 'no evidence' once runs >= 10, whether or not the credible-interval bound is met) is existing code in flakeguard/stats/adaptive.py. It was not tuned on this data or by us for this evaluation."
+  },
+  "note": "The adaptive count is per test. One whole-suite run executes every test, so the suite stops only after the last test is decided (suite_runs_until_every_test_decided_adaptive); the per-test saving is not a wall-clock saving unless that number is below 20. per_test lists the tests that are not labelled stable and every test where adaptive and fixed differ.",
+  "per_test": {
+    "tests/test_cached.py::CacheWrapperTest::test_decorator_lock_cond_info": {
+      "label": "flaky",
+      "root_cause": "order_dep",
+      "failures_in_20": 7,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "tests/test_cached.py::CacheWrapperTest::test_zero_size_cache_decorator": {
+      "label": "flaky",
+      "root_cause": "order_dep",
+      "failures_in_20": 6,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "tests/test_cached.py::PickleTest::test_pickle": {
+      "label": "flaky",
+      "root_cause": "randomness",
+      "failures_in_20": 4,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 4,
+        "failures": 3,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "tests/test_cachedmethod.py::CacheMethodTest::test_value_too_large": {
+      "label": "flaky",
+      "root_cause": "order_dep",
+      "failures_in_20": 12,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 3,
+        "failures": 2,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "tests/test_cachedmethod.py::NoneMethodTest::test_none_info": {
+      "label": "flaky",
+      "root_cause": "time_tz",
+      "failures_in_20": 0,
+      "fixed_20": "none_seen",
+      "adaptive": {
+        "runs_used": 10,
+        "failures": 0,
+        "decision": "none_seen",
+        "policy_verdict": "no evidence in 10 runs",
+        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
+      }
+    },
+    "tests/test_cachedmethod.py::UnboundMethodTest::test_autospec": {
+      "label": "real",
+      "root_cause": "none",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "tests/test_cachedmethod.py::UnboundMethodTest::test_class_access_copy": {
+      "label": "flaky",
+      "root_cause": "timing",
+      "failures_in_20": 12,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 2,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "tests/test_cachedmethod.py::UnboundMethodTest::test_class_call_after_delete": {
+      "label": "flaky",
+      "root_cause": "randomness",
+      "failures_in_20": 1,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 10,
+        "failures": 0,
+        "decision": "none_seen",
+        "policy_verdict": "no evidence in 10 runs",
+        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
+      }
+    },
+    "tests/test_cachedmethod.py::UnboundMethodTest::test_class_call_keyword_receiver": {
+      "label": "real",
+      "root_cause": "none",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "tests/test_fifo.py::FIFOCacheTest::test_fifo": {
+      "label": "flaky",
+      "root_cause": "randomness",
+      "failures_in_20": 4,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 10,
+        "failures": 0,
+        "decision": "none_seen",
+        "policy_verdict": "no evidence in 10 runs",
+        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
+      }
+    },
+    "tests/test_func.py::TTLDecoratorTest::test_ttl_expire_unbound": {
+      "label": "flaky",
+      "root_cause": "randomness",
+      "failures_in_20": 3,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 2,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "tests/test_keys.py::CacheKeysTest::test_addkeys": {
+      "label": "flaky",
+      "root_cause": "time_tz",
+      "failures_in_20": 0,
+      "fixed_20": "none_seen",
+      "adaptive": {
+        "runs_used": 10,
+        "failures": 0,
+        "decision": "none_seen",
+        "policy_verdict": "no evidence in 10 runs",
+        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
+      }
+    },
+    "tests/test_lfu.py::LFUCacheTest::test_lfu_copy_use_counts": {
+      "label": "flaky",
+      "root_cause": "timing",
+      "failures_in_20": 15,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 2,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "tests/test_lfu.py::LFUCacheTest::test_lfu_getsizeof": {
+      "label": "flaky",
+      "root_cause": "time_tz",
+      "failures_in_20": 0,
+      "fixed_20": "none_seen",
+      "adaptive": {
+        "runs_used": 10,
+        "failures": 0,
+        "decision": "none_seen",
+        "policy_verdict": "no evidence in 10 runs",
+        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
+      }
+    },
+    "tests/test_lru.py::LRUCacheTest::test_lru": {
+      "label": "flaky",
+      "root_cause": "shared_state",
+      "failures_in_20": 14,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 2,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "tests/test_lru.py::LRUCacheTest::test_lru_clear": {
+      "label": "flaky",
+      "root_cause": "shared_state",
+      "failures_in_20": 13,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "tests/test_lru.py::LRUCacheTest::test_lru_update_existing": {
+      "label": "flaky",
+      "root_cause": "shared_state",
+      "failures_in_20": 13,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 2,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "tests/test_rr.py::RRCacheTest::test_rr": {
+      "label": "flaky",
+      "root_cause": "timing",
+      "failures_in_20": 13,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 4,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "tests/test_rr.py::RRCacheTest::test_rr_copy": {
+      "label": "flaky",
+      "root_cause": "shared_state",
+      "failures_in_20": 17,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "tests/test_rr.py::RRCacheTest::test_rr_default_choice": {
+      "label": "flaky",
+      "root_cause": "shared_state",
+      "failures_in_20": 10,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "tests/test_rr.py::RRCacheTest::test_rr_popitem_empty_custom_choice": {
+      "label": "flaky",
+      "root_cause": "order_dep",
+      "failures_in_20": 9,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 2,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "tests/test_rr.py::RRCacheTest::test_rr_update_existing": {
+      "label": "flaky",
+      "root_cause": "shared_state",
+      "failures_in_20": 13,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 7,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "tests/test_tlru.py::TLRUCacheTest::test_tlru_clear": {
+      "label": "flaky",
+      "root_cause": "randomness",
+      "failures_in_20": 2,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 7,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "tests/test_tlru.py::TLRUCacheTest::test_tlru_iter_modify": {
+      "label": "real",
+      "root_cause": "none",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "tests/test_tlru.py::TLRUCacheTest::test_ttu_lru": {
+      "label": "real",
+      "root_cause": "none",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "tests/test_ttl.py::TTLCacheTest::test_ttl_atomic": {
+      "label": "flaky",
+      "root_cause": "order_dep",
+      "failures_in_20": 11,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 2,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "tests/test_ttl.py::TTLCacheTest::test_ttl_clear": {
+      "label": "flaky",
+      "root_cause": "time_tz",
+      "failures_in_20": 0,
+      "fixed_20": "none_seen",
+      "adaptive": {
+        "runs_used": 10,
+        "failures": 0,
+        "decision": "none_seen",
+        "policy_verdict": "no evidence in 10 runs",
+        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
+      }
+    },
+    "tests/test_ttl.py::TTLCacheTest::test_ttl_copy": {
+      "label": "flaky",
+      "root_cause": "time_tz",
+      "failures_in_20": 0,
+      "fixed_20": "none_seen",
+      "adaptive": {
+        "runs_used": 10,
+        "failures": 0,
+        "decision": "none_seen",
+        "policy_verdict": "no evidence in 10 runs",
+        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
+      }
+    },
+    "tests/test_ttl.py::TTLCacheTest::test_ttl_datetime_overflow": {
+      "label": "real",
+      "root_cause": "none",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "tests/test_ttl.py::TTLCacheTest::test_ttl_deepcopy_timer": {
+      "label": "flaky",
+      "root_cause": "timing",
+      "failures_in_20": 17,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "tests/test_ttl.py::TTLCacheTest::test_ttl_expire": {
+      "label": "flaky",
+      "root_cause": "timing",
+      "failures_in_20": 10,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 2,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    }
+  }
+}

@@ -14,12 +14,12 @@
       }
     },
     "command": "python scripts/run_eval.py planted",
-    "date_utc": "2026-11-22T08:21:00Z",
+    "date_utc": "2026-11-22T08:25:38Z",
     "clock": {
-      "local": "2026-11-22 13:51:00 India Standard Time+0530",
+      "local": "2026-11-22 13:55:38 India Standard Time+0530",
       "weekday": "Sunday"
     },
-    "commit": "ca0ea720ca1140a7d1d7ae37539d576ff2b0dbc5",
+    "commit": "5c38c6b9bf675a7d51e894f0949a56d3f24a4aea",
     "tracked_files_modified": false,
     "environment": {
       "python": "3.12.13",
@@ -43,14 +43,14 @@
     "runs_recorded": {
       "b1_fixed_order": {
         "command": "python scripts/run_eval.py planted",
-        "date_utc": "2026-11-22T08:21:00Z",
-        "commit": "ca0ea720ca1140a7d1d7ae37539d576ff2b0dbc5",
+        "date_utc": "2026-11-22T08:25:38Z",
+        "commit": "5c38c6b9bf675a7d51e894f0949a56d3f24a4aea",
         "tracked_files_modified": false
       },
       "perturbation": {
         "command": "python scripts/run_eval.py planted",
-        "date_utc": "2026-11-22T08:21:00Z",
-        "commit": "ca0ea720ca1140a7d1d7ae37539d576ff2b0dbc5",
+        "date_utc": "2026-11-22T08:25:38Z",
+        "commit": "5c38c6b9bf675a7d51e894f0949a56d3f24a4aea",
         "tracked_files_modified": false
       }
     }

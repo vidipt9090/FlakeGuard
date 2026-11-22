@@ -467,13 +467,13 @@ def _test_sources(label: str) -> dict[str, str]:
     """Source text of every test function or method, by test id."""
     import ast
 
-    root, _, _ = _suite_root_and_env(label)
-    prefix = DATASETS[label]["id_prefix"]
-    suite_dir = root / DATASETS[label]["suite"]
+    ds = DATASETS[label]
+    rootdir = (REPO / ds.get("rootdir", ds["root"])).resolve()  # the directory pytest reports test paths from
+    suite_dir = (REPO / ds["root"]).resolve() / ds["suite"]
     out: dict[str, str] = {}
     for path in sorted(suite_dir.glob("test_*.py")):
         text = path.read_text(encoding="utf-8")
-        rel = f"{prefix}{path.relative_to(root).as_posix()}"
+        rel = f"{ds['id_prefix']}{path.relative_to(rootdir).as_posix()}"
         for node in ast.parse(text).body:
             if isinstance(node, ast.FunctionDef):
                 out[f"{rel}::{node.name}"] = ast.get_source_segment(text, node) or ""
