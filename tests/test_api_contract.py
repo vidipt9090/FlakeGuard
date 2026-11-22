@@ -276,6 +276,21 @@ def test_ask_cites_real_lines_and_says_nothing_when_nothing_matches(client, run_
     assert empty.chunks == 0 and empty.citations == [] and empty.text == ""
 
 
+def test_the_default_console_question_gets_an_answer_scoped_to_the_order_dependent_finding(client, run_id):
+    """The question the Findings screen starts with has no identifier in it; the finding supplies the search terms."""
+    finding = next(f for f in client.get(f"/api/runs/{run_id}/findings").json() if f["verdict"] == "flaky")
+    answer = m.AskAnswer.model_validate(
+        client.post(f"/api/findings/{finding['id']}/ask", json={"question": "Why is this test order-dependent?"}).json()
+    )
+    assert answer.chunks > 0 and answer.citations
+    cited = {c.label for c in answer.citations}
+    assert {"tests/test_report.py:4", "tests/test_warmup.py:4", "src/inventory/cache.py:3"} <= cited  # victim, polluter, CACHE
+    for c in answer.citations:
+        lines = (recorded_target(run_id) / c.file).read_text(encoding="utf-8").splitlines()
+        assert 1 <= c.line <= len(lines)
+    assert "Code behind this finding" in answer.text
+
+
 def test_recorded_counts_match_the_raw_junit_files(run_id):
     """Every count in the evidence bullets is recomputed from raw/artifacts/junit_*.xml."""
     from flakeguard.console.builder import collect_stats, load_runs
