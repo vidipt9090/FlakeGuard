@@ -127,3 +127,9 @@ Every external write: date, account, target, result.
 | 2026-11-22 | vidipt9090 (token via GIT_CONFIG env, not printed) | vidipt9090/flakeguard-demo main | pushed `1e5bb2f` "Add the FlakeGuard slash-command caller", one file `.github/workflows/flakeguard-commands.yml`, fast-forward from `12d2da3`, no force |
 | 2026-11-22 | vidipt9090 | vidipt9090/flakeguard-demo branch m6-cmd-probe + PR #12 | created from act2-seeded-faults plus PROBE.txt (throwaway for slash-command test) |
 | 2026-11-22 | vidipt9090 | demo PR #12 | comment `/flakeguard ask why is this order-dependent?` |
+| 2026-11-22 | vidipt9090 | FlakeGuard c/eval3-console | pushed f7e7e66 (ask example names the test) |
+| 2026-11-22 | vidipt9090 | demo PR #12 | comment `/flakeguard ask why does test_report_total fail?` |
+| 2026-11-22 | vidipt9090 | demo PR #12 | comment `/flakeguard fix` |
+| 2026-11-22 | vidipt9090 | demo PR #12 | the previous `fix` comment was mangled by Git Bash path conversion (body read `C:/Program Files/Git/flakeguard fix`); the workflow run was skipped. Re-posted with MSYS_NO_PATHCONV=1. |
+| 2026-11-22 | vidipt9090 | demo PR #12 | comment `/flakeguard fix` (re-post) |
+| 2026-11-22 | vidipt9090 | demo PR #12 | comment `/flakeguard quarantine test_reserve_negative` (a real failure, so refused; no issue) |
