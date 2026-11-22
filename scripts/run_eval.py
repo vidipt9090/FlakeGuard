@@ -52,7 +52,7 @@ DAYTIME = (8, 18)  # local hours in which the injected time_tz faults cannot fai
 CACHE = ".eval_cache"
 DATASETS = {
     "planted": {
-        "root": ".", "suite": "synthetic/tests", "id_prefix": "synthetic/", "labels": "labels/labels.json",
+        "root": ".", "rootdir": "synthetic", "suite": "synthetic/tests", "id_prefix": "synthetic/", "labels": "labels/labels.json",
         "how_labelled": "by construction: each fault was written into the test or the code by hand, so its label is known",
     },
     "injected": {
@@ -182,12 +182,16 @@ def _suite_root_and_env(label: str) -> tuple[Path, dict, list[str]]:
 
 
 def _case_id(label: str, case: ET.Element) -> str:
-    file = case.get("file", "").replace("\\", "/")
-    module = file[:-3].replace("/", ".")
-    classname = case.get("classname", "")
-    cls = classname[len(module) + 1:] if classname.startswith(module + ".") else None
-    name = case.get("name", "")
-    return f"{DATASETS[label]['id_prefix']}{file}" + (f"::{cls}" if cls else "") + f"::{name}"
+    """``tests/test_fifo.py::FIFOCacheTest::test_fifo``. The file comes from the classname (the JUnit ``file`` attribute names the
+    file that defines an inherited test, not the one it runs from), checked against the files that exist."""
+    ds = DATASETS[label]
+    rootdir = REPO / ds.get("rootdir", ds["root"])
+    parts = case.get("classname", "").split(".")
+    for cut in range(len(parts), 0, -1):
+        if (rootdir / ("/".join(parts[:cut]) + ".py")).is_file():
+            file, cls = "/".join(parts[:cut]) + ".py", parts[cut:]
+            return f"{ds['id_prefix']}{file}" + "".join(f"::{c}" for c in cls) + f"::{case.get('name', '')}"
+    raise RuntimeError(f"no test file found for classname {case.get('classname')!r}")
 
 
 def run_suite(label: str, *, seed: int | None, coverage_rc: Path | None = None) -> dict:

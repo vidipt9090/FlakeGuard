@@ -14,12 +14,12 @@
       }
     },
     "command": "python scripts/run_eval.py planted",
-    "date_utc": "2026-11-22T05:36:22Z",
+    "date_utc": "2026-11-22T08:21:00Z",
     "clock": {
-      "local": "2026-11-22 11:06:22 India Standard Time+0530",
+      "local": "2026-11-22 13:51:00 India Standard Time+0530",
       "weekday": "Sunday"
     },
-    "commit": "141a74feb181f0fdfed401b57d2f50859e385e70",
+    "commit": "ca0ea720ca1140a7d1d7ae37539d576ff2b0dbc5",
     "tracked_files_modified": false,
     "environment": {
       "python": "3.12.13",
@@ -29,26 +29,28 @@
     "budget_minutes": 6.0,
     "tolerances": {
       "b1_fixed_order": "B1 found-flaky counts vary by about 1 test between executions (unseeded randomness tests).",
-      "perturbation": "exact on the same commit and environment: seeds fix the order and reseed random (the two timing tests with sleeps can differ)",
-      "minutes": "about 0.1 minute between executions"
+      "perturbation": "exact on the same commit and environment: seeds fix the order and reseed random (timing faults can differ)",
+      "minutes": "about 0.1 minute between executions on the planted suite; the injected suite takes longer per run"
     },
+    "natural_flakes": "none available: shown as a dash on the Results screen",
     "limitations": [
       "Planted faults only. Results on planted faults are partly circular: the faults were written to be the kinds that shuffled runs and the AST analysis are built to find. Read them as a check that the methods work, not as a measure of how often they find real-world flakes.",
       "No natural flakes (flakes found in real projects) were available. Natural results are not reported and stay dashes.",
-      "Five of the 15 tests labelled flaky cannot pass on this machine, judging by their code (see sensitivity_relabelled below). The primary table keeps the labels as written; the sensitivity table relabels those five as real, with the reason read from the test code. The five were first noticed because every method called them real, then confirmed by reading the code; no test is dropped because a method called it real.",
-      "Small N: 15 flaky and 16 other tests. Intervals are wide and a difference between methods of a few tests is not evidence of a difference."
+      "Five of the 15 tests labelled flaky cannot pass on this machine, judging by their code (see sensitivity below). The primary table keeps the labels as written; the sensitivity table relabels those five as real, with the reason read from the test code. The five were first noticed because every method called them real, then confirmed by reading the code; no test is dropped because a method called it real.",
+      "Small N: 15 flaky and 16 other tests. Intervals are wide and a difference between methods of a few tests is not evidence of a difference.",
+      "B2 and B3 are not scored on this set: it has no commit diff or coverage run for B2, and B3 is trained on it, so scoring B3 here would score it on its training tests."
     ],
     "runs_recorded": {
       "b1_fixed_order": {
         "command": "python scripts/run_eval.py planted",
-        "date_utc": "2026-11-22T05:36:22Z",
-        "commit": "141a74feb181f0fdfed401b57d2f50859e385e70",
+        "date_utc": "2026-11-22T08:21:00Z",
+        "commit": "ca0ea720ca1140a7d1d7ae37539d576ff2b0dbc5",
         "tracked_files_modified": false
       },
       "perturbation": {
         "command": "python scripts/run_eval.py planted",
-        "date_utc": "2026-11-22T05:36:22Z",
-        "commit": "141a74feb181f0fdfed401b57d2f50859e385e70",
+        "date_utc": "2026-11-22T08:21:00Z",
+        "commit": "ca0ea720ca1140a7d1d7ae37539d576ff2b0dbc5",
         "tracked_files_modified": false
       }
     }
@@ -136,21 +138,8 @@
     ],
     "stop_rule_disclosure": "The stop rule (a test with no failure is declared 'no evidence' once runs >= 10, whether or not the credible-interval bound is met) is existing code in flakeguard/stats/adaptive.py. It was not tuned on this data or by us for this evaluation."
   },
-  "note": "The adaptive count is per test. One whole-suite run executes every test, so the suite stops only after the last test is decided (suite_runs_until_every_test_decided_adaptive); the per-test saving is not a wall-clock saving unless that number is below 20.",
+  "note": "The adaptive count is per test. One whole-suite run executes every test, so the suite stops only after the last test is decided (suite_runs_until_every_test_decided_adaptive); the per-test saving is not a wall-clock saving unless that number is below 20. per_test lists the tests that are not labelled stable and every test where adaptive and fixed differ.",
   "per_test": {
-    "synthetic/tests/test_suite_01.py::test_case_01": {
-      "label": "stable",
-      "root_cause": "none",
-      "failures_in_20": 0,
-      "fixed_20": "none_seen",
-      "adaptive": {
-        "runs_used": 10,
-        "failures": 0,
-        "decision": "none_seen",
-        "policy_verdict": "no evidence in 10 runs",
-        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
-      }
-    },
     "synthetic/tests/test_suite_01.py::test_case_02": {
       "label": "flaky",
       "root_cause": "order_dep",
@@ -162,19 +151,6 @@
         "decision": "flaky",
         "policy_verdict": "flaky",
         "reason": "Flakiness confirmed: observed both pass and fail outcomes"
-      }
-    },
-    "synthetic/tests/test_suite_01.py::test_case_03": {
-      "label": "stable",
-      "root_cause": "none",
-      "failures_in_20": 0,
-      "fixed_20": "none_seen",
-      "adaptive": {
-        "runs_used": 10,
-        "failures": 0,
-        "decision": "none_seen",
-        "policy_verdict": "no evidence in 10 runs",
-        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
       }
     },
     "synthetic/tests/test_suite_01.py::test_case_04": {
@@ -190,19 +166,6 @@
         "reason": "Flakiness confirmed: observed both pass and fail outcomes"
       }
     },
-    "synthetic/tests/test_suite_01.py::test_case_05": {
-      "label": "stable",
-      "root_cause": "none",
-      "failures_in_20": 0,
-      "fixed_20": "none_seen",
-      "adaptive": {
-        "runs_used": 10,
-        "failures": 0,
-        "decision": "none_seen",
-        "policy_verdict": "no evidence in 10 runs",
-        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
-      }
-    },
     "synthetic/tests/test_suite_01.py::test_case_06": {
       "label": "flaky",
       "root_cause": "order_dep",
@@ -214,19 +177,6 @@
         "decision": "flaky",
         "policy_verdict": "flaky",
         "reason": "Flakiness confirmed: observed both pass and fail outcomes"
-      }
-    },
-    "synthetic/tests/test_suite_01.py::test_case_07": {
-      "label": "stable",
-      "root_cause": "none",
-      "failures_in_20": 0,
-      "fixed_20": "none_seen",
-      "adaptive": {
-        "runs_used": 10,
-        "failures": 0,
-        "decision": "none_seen",
-        "policy_verdict": "no evidence in 10 runs",
-        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
       }
     },
     "synthetic/tests/test_suite_01.py::test_case_08": {
@@ -242,19 +192,6 @@
         "reason": "Flakiness confirmed: observed both pass and fail outcomes"
       }
     },
-    "synthetic/tests/test_suite_01.py::test_case_09": {
-      "label": "stable",
-      "root_cause": "none",
-      "failures_in_20": 0,
-      "fixed_20": "none_seen",
-      "adaptive": {
-        "runs_used": 10,
-        "failures": 0,
-        "decision": "none_seen",
-        "policy_verdict": "no evidence in 10 runs",
-        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
-      }
-    },
     "synthetic/tests/test_suite_01.py::test_case_10": {
       "label": "flaky",
       "root_cause": "shared_state",
@@ -266,19 +203,6 @@
         "decision": "flaky",
         "policy_verdict": "flaky",
         "reason": "Flakiness confirmed: observed both pass and fail outcomes"
-      }
-    },
-    "synthetic/tests/test_suite_02.py::test_case_11": {
-      "label": "stable",
-      "root_cause": "none",
-      "failures_in_20": 0,
-      "fixed_20": "none_seen",
-      "adaptive": {
-        "runs_used": 10,
-        "failures": 0,
-        "decision": "none_seen",
-        "policy_verdict": "no evidence in 10 runs",
-        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
       }
     },
     "synthetic/tests/test_suite_02.py::test_case_12": {
@@ -487,58 +411,6 @@
         "decision": "real",
         "policy_verdict": "deterministic_failure",
         "reason": "Consistent failure across 5 consecutive runs"
-      }
-    },
-    "synthetic/tests/test_suite_03.py::test_case_28": {
-      "label": "stable",
-      "root_cause": "none",
-      "failures_in_20": 0,
-      "fixed_20": "none_seen",
-      "adaptive": {
-        "runs_used": 10,
-        "failures": 0,
-        "decision": "none_seen",
-        "policy_verdict": "no evidence in 10 runs",
-        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
-      }
-    },
-    "synthetic/tests/test_suite_03.py::test_case_29": {
-      "label": "stable",
-      "root_cause": "none",
-      "failures_in_20": 0,
-      "fixed_20": "none_seen",
-      "adaptive": {
-        "runs_used": 10,
-        "failures": 0,
-        "decision": "none_seen",
-        "policy_verdict": "no evidence in 10 runs",
-        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
-      }
-    },
-    "synthetic/tests/test_suite_03.py::test_case_30": {
-      "label": "stable",
-      "root_cause": "none",
-      "failures_in_20": 0,
-      "fixed_20": "none_seen",
-      "adaptive": {
-        "runs_used": 10,
-        "failures": 0,
-        "decision": "none_seen",
-        "policy_verdict": "no evidence in 10 runs",
-        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
-      }
-    },
-    "synthetic/tests/test_suite_03.py::test_case_31": {
-      "label": "stable",
-      "root_cause": "none",
-      "failures_in_20": 0,
-      "fixed_20": "none_seen",
-      "adaptive": {
-        "runs_used": 10,
-        "failures": 0,
-        "decision": "none_seen",
-        "policy_verdict": "no evidence in 10 runs",
-        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
       }
     }
   }
