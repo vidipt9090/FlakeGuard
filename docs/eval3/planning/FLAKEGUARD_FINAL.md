@@ -1,3 +1,5 @@
+> **SUPERSEDED: these figures were typed into a script, not measured.** The numbers below were written as literals by `scripts/generate_eval3_assets.py` and cite commands that do not exist. They are kept unchanged so earlier claims can be traced. Measured results are in `results/<label>/`, produced by `scripts/run_eval.py` (see `results/eval3/README.md` and `docs/DECISIONS.md` M8-2).
+
 # FlakeGuard Final: connected, verified, demo-ready
 
 One document. Give it to Claude Code and say: "Execute the gates in order. Do not start a gate until the previous one has evidence. After each gate, paste the evidence and ask me before moving on."

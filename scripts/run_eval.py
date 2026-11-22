@@ -51,15 +51,26 @@ LIMITATIONS = {
         "work, not as a measure of how often they find real-world flakes.",
         "No natural flakes (flakes found in real projects) were available. Natural results are not reported "
         "and stay dashes.",
-        "Five of the 15 tests labelled flaky fail in every run on this machine: test_case_19, 20 and 21 (root cause "
-        "time_tz: the clock is frozen at fixed instants inside the test, so the real time of day does not matter and "
-        "they never pass) and test_case_14 and 15 (root cause timing: the test waits 0.02 s for work that takes 0.04 s). "
-        "A method that only sees runs cannot tell them from real failures. They are counted as flaky because that is "
-        "their label, and reported separately as flaky_label_but_fails_every_run.",
+        "Five of the 15 tests labelled flaky cannot pass on this machine, judging by their code (see "
+        "sensitivity_relabelled below). The primary table keeps the labels as written; the sensitivity table relabels "
+        "those five as real, with the reason read from the test code. The five were first noticed because every method "
+        "called them real, then confirmed by reading the code; no test is dropped because a method called it real.",
         "Small N: 15 flaky and 16 other tests. Intervals are wide and a difference between methods of a few tests "
         "is not evidence of a difference.",
     ],
 }
+
+
+SENSITIVITY = {
+    "planted": {
+        "synthetic/tests/test_suite_02.py::test_case_14": "asserts after sleeping 0.02 s that a worker which sleeps 0.04 s before it increments has run, so it fails unless the main thread oversleeps by 20 ms",
+        "synthetic/tests/test_suite_02.py::test_case_15": "asserts after 0.02 s that two threads, each doing 50 steps of sleep(0.0001), have both finished (COUNTER == 100); on this machine's sleep resolution 50 steps take longer than 0.02 s, so it cannot pass (on a faster timer it would be an intermittent lost-update race)",
+        "synthetic/tests/test_suite_02.py::test_case_19": "freeze_time sets 23:30 inside the test and it asserts the greeting is 'Good day', but shop.greeting returns 'Good night' for hour >= 22, so it fails whatever the real clock says",
+        "synthetic/tests/test_suite_02.py::test_case_20": "freeze_time sets 2026-10-04 02:00, a Sunday before 08:00, and it asserts is_business_hours is True, but the function returns False for weekends and hours outside 8 to 17, so it fails whatever the real clock says",
+        "synthetic/tests/test_suite_03.py::test_case_21": "freeze_time sets 12:00 and it asserts check_timezone_offset(now) == 5, but that function is (now.hour - utcnow().hour) % 24 and both come from the same frozen instant, so it is always 0",
+    },
+}
+B1_TOLERANCE = "B1 found-flaky counts vary by about 1 test between executions (unseeded randomness tests)."
 
 
 # ------------------------------------------------------------------------------------- provenance
@@ -94,6 +105,9 @@ def provenance(label: str, labels: list[dict], command: str) -> dict:
         "tracked_files_modified": bool(_git("status", "--porcelain", "--untracked-files=no")),
         "environment": {"python": platform.python_version(), "pytest": pytest.__version__, "platform": platform.platform()},
         "budget_minutes": BUDGET_MINUTES,
+        "tolerances": {"b1_fixed_order": B1_TOLERANCE,
+                       "perturbation": "exact on the same commit and environment: seeds fix the order and reseed random (the two timing tests with sleeps can differ)",
+                       "minutes": "about 0.1 minute between executions"},
         "limitations": LIMITATIONS[label],
     }
 
@@ -189,19 +203,20 @@ def score(labels: list[dict], predictions: dict[str, str]) -> dict:
     }
 
 
-def rq1(label: str, labels: list[dict], series: dict[str, list[dict]]) -> dict:
+def rq1(label: str, labels: list[dict], series: dict[str, list[dict]]) -> dict:  # noqa: C901
     rows = []
     for method, runs in series.items():
         for n in N_VALUES:
             first = runs[:n]
             preds = {x["id"]: classify([r["outcomes"][x["id"]] for r in first if x["id"] in r["outcomes"]]) for x in labels}
-            no_time_tz = [x for x in labels if x["root_cause"] != "time_tz"]
+            relabelled = [{**x, "label": "real", "root_cause": "none"} if x["id"] in SENSITIVITY.get(label, {}) else x for x in labels]
             minutes = sum(r["seconds"] for r in first) / 60
             rows.append({
                 "method": method, "full_suite_runs": n,
                 "minutes_measured": round(minutes, 3), "within_budget": minutes <= BUDGET_MINUTES,
                 "all_tests": score(labels, preds),
-                "without_time_tz_tests": score(no_time_tz, preds),
+                "sensitivity_relabelled": score(relabelled, preds),
+                **({"tolerance": B1_TOLERANCE} if method == "b1_fixed_order" else {}),
                 "per_test": {x["id"]: {"label": x["label"], "root_cause": x["root_cause"], "called": preds[x["id"]],
                                        "failed_in": sum(r["outcomes"].get(x["id"]) == "FAIL" for r in first), "of": len(first)}
                              for x in labels},
@@ -212,6 +227,10 @@ def rq1(label: str, labels: list[dict], series: dict[str, list[dict]]) -> dict:
     return {
         "flaky_label_but_fails_every_run": {"k": len(always_fail), "n": sum(x["label"] == "flaky" for x in labels),
                                             "ids": always_fail, "meaning": "failed in all 20 runs of every method"},
+        "sensitivity_relabelled": {
+            "meaning": "Same predictions, scored with the five tests below relabelled real. The primary scope (all_tests) keeps the labels as written.",
+            "reasons_from_reading_the_code": SENSITIVITY.get(label, {}),
+        },
         "rows": rows,
     }
 
@@ -271,6 +290,15 @@ def rq2(labels: list[dict], perturbation_runs: list[dict]) -> dict:
         "decisions_fixed_20": {k: sum(v == k for v in fixed20.values()) for k in ("flaky", "real", "none_seen")},
         "tests_where_adaptive_differs_from_fixed_20": {"k": len(differs), "n": len(ids), "ids": differs},
         "flaky_tests_adaptive_misses": [i for i in ids if fixed20[i] == "flaky" and adaptive[i]["decision"] != "flaky"],
+        "tradeoff": {
+            "whole_suite_runs_saved": {"k": MAX_RUNS - max(adaptive[i]["runs_used"] for i in ids), "n": MAX_RUNS},
+            "flaky_found_adaptive": {"k": sum(adaptive[i]["decision"] == "flaky" and x["label"] == "flaky" for i, x in zip(ids, labels)),
+                                     "n": sum(x["label"] == "flaky" for x in labels)},
+            "flaky_found_fixed_20": {"k": sum(fixed20[i] == "flaky" and x["label"] == "flaky" for i, x in zip(ids, labels)),
+                                     "n": sum(x["label"] == "flaky" for x in labels)},
+            "missed_by_adaptive_but_found_by_fixed_20": [i for i in ids if fixed20[i] == "flaky" and adaptive[i]["decision"] != "flaky"],
+            "stop_rule_disclosure": "The stop rule (a test with no failure is declared 'no evidence' once runs >= 10, whether or not the credible-interval bound is met) is existing code in flakeguard/stats/adaptive.py. It was not tuned on this data or by us for this evaluation.",
+        },
         "note": "The adaptive count is per test. One whole-suite run executes every test, so the suite stops only after the "
                 "last test is decided (suite_runs_until_every_test_decided_adaptive); the per-test saving is not a wall-clock saving "
                 "unless that number is below 20.",
@@ -303,8 +331,10 @@ def main(argv: list[str] | None = None) -> int:
         for name, shuffled in (("b1_fixed_order", False), ("perturbation", True)):
             runs = run_series(args.label, shuffled, MAX_RUNS)
             write(out / f"{name}.json", {"provenance": prov, "method": name, "runs": runs})
-    series = {name: json.loads((out / f"{name}.json").read_text(encoding="utf-8"))["runs"]
-              for name in ("b1_fixed_order", "perturbation")}
+    recorded = {name: json.loads((out / f"{name}.json").read_text(encoding="utf-8")) for name in ("b1_fixed_order", "perturbation")}
+    series = {name: doc["runs"] for name, doc in recorded.items()}
+    prov["runs_recorded"] = {name: {k: doc["provenance"][k] for k in ("command", "date_utc", "commit", "tracked_files_modified")}
+                             for name, doc in recorded.items()}
     if "rq1" in steps:
         write(out / "rq1.json", {"provenance": prov, **rq1(args.label, labels, series)})
     if "rq2" in steps:

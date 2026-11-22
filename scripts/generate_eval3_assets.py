@@ -1,3 +1,4 @@
+# SUPERSEDED: this script writes numbers typed into it, not measured ones. Do not run it. See results/eval3/README.md.
 """Generate unified Eval 3 evaluation assets, metric tables, and report artifacts with strict provenance.
 
 Produces:

@@ -13,24 +13,29 @@
         "real": 6
       }
     },
-    "command": "python scripts/run_eval.py planted",
-    "date_utc": "2026-11-22T05:28:58Z",
+    "command": "python scripts/run_eval.py planted --steps rq1,rq2",
+    "date_utc": "2026-11-22T05:36:03Z",
     "clock": {
-      "local": "2026-11-22 10:58:58 India Standard Time+0530",
+      "local": "2026-11-22 11:06:03 India Standard Time+0530",
       "weekday": "Sunday"
     },
-    "commit": "a543fa9ee5d480d6de94e162861b9ca44b3e2bac",
-    "tracked_files_modified": false,
+    "commit": "e82941b5e34793ded7dda5d03a9bfb3e8b84ca98",
+    "tracked_files_modified": true,
     "environment": {
       "python": "3.12.13",
       "pytest": "9.2.0",
       "platform": "Windows-11-10.0.26300-SP0"
     },
     "budget_minutes": 6.0,
+    "tolerances": {
+      "b1_fixed_order": "B1 found-flaky counts vary by about 1 test between executions (unseeded randomness tests).",
+      "perturbation": "exact on the same commit and environment: seeds fix the order and reseed random (the two timing tests with sleeps can differ)",
+      "minutes": "about 0.1 minute between executions"
+    },
     "limitations": [
       "Planted faults only. Results on planted faults are partly circular: the faults were written to be the kinds that shuffled runs and the AST analysis are built to find. Read them as a check that the methods work, not as a measure of how often they find real-world flakes.",
       "No natural flakes (flakes found in real projects) were available. Natural results are not reported and stay dashes.",
-      "Five of the 15 tests labelled flaky fail in every run on this machine: test_case_19, 20 and 21 (root cause time_tz: the clock is frozen at fixed instants inside the test, so the real time of day does not matter and they never pass) and test_case_14 and 15 (root cause timing: the test waits 0.02 s for work that takes 0.04 s). A method that only sees runs cannot tell them from real failures. They are counted as flaky because that is their label, and reported separately as flaky_label_but_fails_every_run.",
+      "Five of the 15 tests labelled flaky cannot pass on this machine, judging by their code (see sensitivity_relabelled below). The primary table keeps the labels as written; the sensitivity table relabels those five as real, with the reason read from the test code. The five were first noticed because every method called them real, then confirmed by reading the code; no test is dropped because a method called it real.",
       "Small N: 15 flaky and 16 other tests. Intervals are wide and a difference between methods of a few tests is not evidence of a difference."
     ]
   },
@@ -45,6 +50,16 @@
       "synthetic/tests/test_suite_03.py::test_case_21"
     ],
     "meaning": "failed in all 20 runs of every method"
+  },
+  "sensitivity_relabelled": {
+    "meaning": "Same predictions, scored with the five tests below relabelled real. The primary scope (all_tests) keeps the labels as written.",
+    "reasons_from_reading_the_code": {
+      "synthetic/tests/test_suite_02.py::test_case_14": "asserts after sleeping 0.02 s that a worker which sleeps 0.04 s before it increments has run, so it fails unless the main thread oversleeps by 20 ms",
+      "synthetic/tests/test_suite_02.py::test_case_15": "asserts after 0.02 s that two threads, each doing 50 steps of sleep(0.0001), have both finished (COUNTER == 100); on this machine's sleep resolution 50 steps take longer than 0.02 s, so it cannot pass (on a faster timer it would be an intermittent lost-update race)",
+      "synthetic/tests/test_suite_02.py::test_case_19": "freeze_time sets 23:30 inside the test and it asserts the greeting is 'Good day', but shop.greeting returns 'Good night' for hour >= 22, so it fails whatever the real clock says",
+      "synthetic/tests/test_suite_02.py::test_case_20": "freeze_time sets 2026-10-04 02:00, a Sunday before 08:00, and it asserts is_business_hours is True, but the function returns False for weekends and hours outside 8 to 17, so it fails whatever the real clock says",
+      "synthetic/tests/test_suite_03.py::test_case_21": "freeze_time sets 12:00 and it asserts check_timezone_offset(now) == 5, but that function is (now.hour - utcnow().hour) % 24 and both come from the same frozen instant, so it is always 0"
+    }
   },
   "rows": [
     {
@@ -147,15 +162,15 @@
           }
         }
       },
-      "without_time_tz_tests": {
-        "n_tests": 28,
+      "sensitivity_relabelled": {
+        "n_tests": 31,
         "flaky_found": {
           "k": 2,
-          "n": 12
+          "n": 10
         },
         "wrongly_flagged_flaky": {
           "k": 0,
-          "n": 16
+          "n": 21
         },
         "precision": {
           "k": 2,
@@ -168,49 +183,49 @@
         },
         "recall": {
           "k": 2,
-          "n": 12,
-          "value": 0.1667,
+          "n": 10,
+          "value": 0.2,
           "ci95_wilson": [
-            0.047,
-            0.448
+            0.0567,
+            0.5098
           ]
         },
         "f1": {
-          "value": 0.2857,
+          "value": 0.3333,
           "ci95_bootstrap": [
             0.0,
-            0.5714
+            0.6667
           ],
           "resamples": 2000,
-          "n": 28
+          "n": 31
         },
         "real_failures_called_flaky": {
           "k": 0,
-          "n": 6,
+          "n": 11,
           "value": 0.0,
           "ci95_wilson": [
             0.0,
-            0.3903
+            0.2588
           ]
         },
         "flaky_called_real": {
-          "k": 5,
-          "n": 12,
-          "value": 0.4167,
+          "k": 3,
+          "n": 10,
+          "value": 0.3,
           "ci95_wilson": [
-            0.1933,
-            0.6805
+            0.1078,
+            0.6032
           ]
         },
         "confusion_actual_by_predicted": {
           "flaky": {
             "flaky": 2,
-            "real": 5,
+            "real": 3,
             "none_seen": 5
           },
           "real": {
             "flaky": 0,
-            "real": 6,
+            "real": 11,
             "none_seen": 0
           },
           "stable": {
@@ -234,10 +249,11 @@
           },
           "timing": {
             "found_flaky": 1,
-            "n": 3
+            "n": 1
           }
         }
       },
+      "tolerance": "B1 found-flaky counts vary by about 1 test between executions (unseeded randomness tests).",
       "per_test": {
         "synthetic/tests/test_suite_01.py::test_case_01": {
           "label": "stable",
@@ -558,15 +574,15 @@
           }
         }
       },
-      "without_time_tz_tests": {
-        "n_tests": 28,
+      "sensitivity_relabelled": {
+        "n_tests": 31,
         "flaky_found": {
           "k": 3,
-          "n": 12
+          "n": 10
         },
         "wrongly_flagged_flaky": {
           "k": 0,
-          "n": 16
+          "n": 21
         },
         "precision": {
           "k": 3,
@@ -579,49 +595,49 @@
         },
         "recall": {
           "k": 3,
-          "n": 12,
-          "value": 0.25,
+          "n": 10,
+          "value": 0.3,
           "ci95_wilson": [
-            0.0889,
-            0.5323
+            0.1078,
+            0.6032
           ]
         },
         "f1": {
-          "value": 0.4,
+          "value": 0.4615,
           "ci95_bootstrap": [
             0.0,
-            0.6667
+            0.7692
           ],
           "resamples": 2000,
-          "n": 28
+          "n": 31
         },
         "real_failures_called_flaky": {
           "k": 0,
-          "n": 6,
+          "n": 11,
           "value": 0.0,
           "ci95_wilson": [
             0.0,
-            0.3903
+            0.2588
           ]
         },
         "flaky_called_real": {
-          "k": 5,
-          "n": 12,
-          "value": 0.4167,
+          "k": 3,
+          "n": 10,
+          "value": 0.3,
           "ci95_wilson": [
-            0.1933,
-            0.6805
+            0.1078,
+            0.6032
           ]
         },
         "confusion_actual_by_predicted": {
           "flaky": {
             "flaky": 3,
-            "real": 5,
+            "real": 3,
             "none_seen": 4
           },
           "real": {
             "flaky": 0,
-            "real": 6,
+            "real": 11,
             "none_seen": 0
           },
           "stable": {
@@ -645,10 +661,11 @@
           },
           "timing": {
             "found_flaky": 1,
-            "n": 3
+            "n": 1
           }
         }
       },
+      "tolerance": "B1 found-flaky counts vary by about 1 test between executions (unseeded randomness tests).",
       "per_test": {
         "synthetic/tests/test_suite_01.py::test_case_01": {
           "label": "stable",
@@ -969,15 +986,15 @@
           }
         }
       },
-      "without_time_tz_tests": {
-        "n_tests": 28,
+      "sensitivity_relabelled": {
+        "n_tests": 31,
         "flaky_found": {
           "k": 4,
-          "n": 12
+          "n": 10
         },
         "wrongly_flagged_flaky": {
           "k": 0,
-          "n": 16
+          "n": 21
         },
         "precision": {
           "k": 4,
@@ -990,49 +1007,49 @@
         },
         "recall": {
           "k": 4,
-          "n": 12,
-          "value": 0.3333,
+          "n": 10,
+          "value": 0.4,
           "ci95_wilson": [
-            0.1381,
-            0.6094
+            0.1682,
+            0.6873
           ]
         },
         "f1": {
-          "value": 0.5,
+          "value": 0.5714,
           "ci95_bootstrap": [
-            0.1429,
-            0.7619
+            0.2,
+            0.8571
           ],
           "resamples": 2000,
-          "n": 28
+          "n": 31
         },
         "real_failures_called_flaky": {
           "k": 0,
-          "n": 6,
+          "n": 11,
           "value": 0.0,
           "ci95_wilson": [
             0.0,
-            0.3903
+            0.2588
           ]
         },
         "flaky_called_real": {
-          "k": 5,
-          "n": 12,
-          "value": 0.4167,
+          "k": 3,
+          "n": 10,
+          "value": 0.3,
           "ci95_wilson": [
-            0.1933,
-            0.6805
+            0.1078,
+            0.6032
           ]
         },
         "confusion_actual_by_predicted": {
           "flaky": {
             "flaky": 4,
-            "real": 5,
+            "real": 3,
             "none_seen": 3
           },
           "real": {
             "flaky": 0,
-            "real": 6,
+            "real": 11,
             "none_seen": 0
           },
           "stable": {
@@ -1056,10 +1073,11 @@
           },
           "timing": {
             "found_flaky": 1,
-            "n": 3
+            "n": 1
           }
         }
       },
+      "tolerance": "B1 found-flaky counts vary by about 1 test between executions (unseeded randomness tests).",
       "per_test": {
         "synthetic/tests/test_suite_01.py::test_case_01": {
           "label": "stable",
@@ -1380,15 +1398,15 @@
           }
         }
       },
-      "without_time_tz_tests": {
-        "n_tests": 28,
+      "sensitivity_relabelled": {
+        "n_tests": 31,
         "flaky_found": {
           "k": 9,
-          "n": 12
+          "n": 10
         },
         "wrongly_flagged_flaky": {
           "k": 0,
-          "n": 16
+          "n": 21
         },
         "precision": {
           "k": 9,
@@ -1401,49 +1419,49 @@
         },
         "recall": {
           "k": 9,
-          "n": 12,
-          "value": 0.75,
+          "n": 10,
+          "value": 0.9,
           "ci95_wilson": [
-            0.4677,
-            0.9111
+            0.5958,
+            0.9821
           ]
         },
         "f1": {
-          "value": 0.8571,
+          "value": 0.9474,
           "ci95_bootstrap": [
-            0.6364,
+            0.8,
             1.0
           ],
           "resamples": 2000,
-          "n": 28
+          "n": 31
         },
         "real_failures_called_flaky": {
           "k": 0,
-          "n": 6,
+          "n": 11,
           "value": 0.0,
           "ci95_wilson": [
             0.0,
-            0.3903
+            0.2588
           ]
         },
         "flaky_called_real": {
-          "k": 2,
-          "n": 12,
-          "value": 0.1667,
+          "k": 0,
+          "n": 10,
+          "value": 0.0,
           "ci95_wilson": [
-            0.047,
-            0.448
+            0.0,
+            0.2775
           ]
         },
         "confusion_actual_by_predicted": {
           "flaky": {
             "flaky": 9,
-            "real": 2,
+            "real": 0,
             "none_seen": 1
           },
           "real": {
             "flaky": 0,
-            "real": 6,
+            "real": 11,
             "none_seen": 0
           },
           "stable": {
@@ -1467,7 +1485,7 @@
           },
           "timing": {
             "found_flaky": 1,
-            "n": 3
+            "n": 1
           }
         }
       },
@@ -1791,15 +1809,15 @@
           }
         }
       },
-      "without_time_tz_tests": {
-        "n_tests": 28,
+      "sensitivity_relabelled": {
+        "n_tests": 31,
         "flaky_found": {
           "k": 9,
-          "n": 12
+          "n": 10
         },
         "wrongly_flagged_flaky": {
           "k": 0,
-          "n": 16
+          "n": 21
         },
         "precision": {
           "k": 9,
@@ -1812,49 +1830,49 @@
         },
         "recall": {
           "k": 9,
-          "n": 12,
-          "value": 0.75,
+          "n": 10,
+          "value": 0.9,
           "ci95_wilson": [
-            0.4677,
-            0.9111
+            0.5958,
+            0.9821
           ]
         },
         "f1": {
-          "value": 0.8571,
+          "value": 0.9474,
           "ci95_bootstrap": [
-            0.6364,
+            0.8,
             1.0
           ],
           "resamples": 2000,
-          "n": 28
+          "n": 31
         },
         "real_failures_called_flaky": {
           "k": 0,
-          "n": 6,
+          "n": 11,
           "value": 0.0,
           "ci95_wilson": [
             0.0,
-            0.3903
+            0.2588
           ]
         },
         "flaky_called_real": {
-          "k": 2,
-          "n": 12,
-          "value": 0.1667,
+          "k": 0,
+          "n": 10,
+          "value": 0.0,
           "ci95_wilson": [
-            0.047,
-            0.448
+            0.0,
+            0.2775
           ]
         },
         "confusion_actual_by_predicted": {
           "flaky": {
             "flaky": 9,
-            "real": 2,
+            "real": 0,
             "none_seen": 1
           },
           "real": {
             "flaky": 0,
-            "real": 6,
+            "real": 11,
             "none_seen": 0
           },
           "stable": {
@@ -1878,7 +1896,7 @@
           },
           "timing": {
             "found_flaky": 1,
-            "n": 3
+            "n": 1
           }
         }
       },
@@ -2202,15 +2220,15 @@
           }
         }
       },
-      "without_time_tz_tests": {
-        "n_tests": 28,
+      "sensitivity_relabelled": {
+        "n_tests": 31,
         "flaky_found": {
           "k": 10,
-          "n": 12
+          "n": 10
         },
         "wrongly_flagged_flaky": {
           "k": 0,
-          "n": 16
+          "n": 21
         },
         "precision": {
           "k": 10,
@@ -2223,49 +2241,49 @@
         },
         "recall": {
           "k": 10,
-          "n": 12,
-          "value": 0.8333,
+          "n": 10,
+          "value": 1.0,
           "ci95_wilson": [
-            0.552,
-            0.953
+            0.7225,
+            1.0
           ]
         },
         "f1": {
-          "value": 0.9091,
+          "value": 1.0,
           "ci95_bootstrap": [
-            0.7407,
+            1.0,
             1.0
           ],
           "resamples": 2000,
-          "n": 28
+          "n": 31
         },
         "real_failures_called_flaky": {
           "k": 0,
-          "n": 6,
+          "n": 11,
           "value": 0.0,
           "ci95_wilson": [
             0.0,
-            0.3903
+            0.2588
           ]
         },
         "flaky_called_real": {
-          "k": 2,
-          "n": 12,
-          "value": 0.1667,
+          "k": 0,
+          "n": 10,
+          "value": 0.0,
           "ci95_wilson": [
-            0.047,
-            0.448
+            0.0,
+            0.2775
           ]
         },
         "confusion_actual_by_predicted": {
           "flaky": {
             "flaky": 10,
-            "real": 2,
+            "real": 0,
             "none_seen": 0
           },
           "real": {
             "flaky": 0,
-            "real": 6,
+            "real": 11,
             "none_seen": 0
           },
           "stable": {
@@ -2289,7 +2307,7 @@
           },
           "timing": {
             "found_flaky": 1,
-            "n": 3
+            "n": 1
           }
         }
       },

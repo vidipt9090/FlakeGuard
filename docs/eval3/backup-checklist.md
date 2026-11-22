@@ -1,3 +1,5 @@
+> **SUPERSEDED: these figures were typed into a script, not measured.** The numbers below were written as literals by `scripts/generate_eval3_assets.py` and cite commands that do not exist. They are kept unchanged so earlier claims can be traced. Measured results are in `results/<label>/`, produced by `scripts/run_eval.py` (see `results/eval3/README.md` and `docs/DECISIONS.md` M8-2).
+
 # FlakeGuard Eval 3: Backup Recording & Offline Contingency Checklist
 
 This checklist guarantees a reliable, zero-failure presentation during the **Eval 3 evaluation on 2026-11-20**, even under complete network loss, Docker daemon failures, or API outages.
