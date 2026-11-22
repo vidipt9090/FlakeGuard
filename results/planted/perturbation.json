@@ -14,12 +14,12 @@
       }
     },
     "command": "python scripts/run_eval.py planted",
-    "date_utc": "2026-11-22T05:28:58Z",
+    "date_utc": "2026-11-22T05:36:22Z",
     "clock": {
-      "local": "2026-11-22 10:58:58 India Standard Time+0530",
+      "local": "2026-11-22 11:06:22 India Standard Time+0530",
       "weekday": "Sunday"
     },
-    "commit": "a543fa9ee5d480d6de94e162861b9ca44b3e2bac",
+    "commit": "141a74feb181f0fdfed401b57d2f50859e385e70",
     "tracked_files_modified": false,
     "environment": {
       "python": "3.12.13",
@@ -27,10 +27,15 @@
       "platform": "Windows-11-10.0.26300-SP0"
     },
     "budget_minutes": 6.0,
+    "tolerances": {
+      "b1_fixed_order": "B1 found-flaky counts vary by about 1 test between executions (unseeded randomness tests).",
+      "perturbation": "exact on the same commit and environment: seeds fix the order and reseed random (the two timing tests with sleeps can differ)",
+      "minutes": "about 0.1 minute between executions"
+    },
     "limitations": [
       "Planted faults only. Results on planted faults are partly circular: the faults were written to be the kinds that shuffled runs and the AST analysis are built to find. Read them as a check that the methods work, not as a measure of how often they find real-world flakes.",
       "No natural flakes (flakes found in real projects) were available. Natural results are not reported and stay dashes.",
-      "Five of the 15 tests labelled flaky fail in every run on this machine: test_case_19, 20 and 21 (root cause time_tz: the clock is frozen at fixed instants inside the test, so the real time of day does not matter and they never pass) and test_case_14 and 15 (root cause timing: the test waits 0.02 s for work that takes 0.04 s). A method that only sees runs cannot tell them from real failures. They are counted as flaky because that is their label, and reported separately as flaky_label_but_fails_every_run.",
+      "Five of the 15 tests labelled flaky cannot pass on this machine, judging by their code (see sensitivity_relabelled below). The primary table keeps the labels as written; the sensitivity table relabels those five as real, with the reason read from the test code. The five were first noticed because every method called them real, then confirmed by reading the code; no test is dropped because a method called it real.",
       "Small N: 15 flaky and 16 other tests. Intervals are wide and a difference between methods of a few tests is not evidence of a difference."
     ]
   },
@@ -38,8 +43,8 @@
   "runs": [
     {
       "seed": 1,
-      "seconds": 3.4,
-      "started": "2026-11-22T11:00:01+05:30",
+      "seconds": 3.225,
+      "started": "2026-11-22T11:07:23+05:30",
       "order": [
         "synthetic/tests/test_suite_01.py::test_case_04",
         "synthetic/tests/test_suite_01.py::test_case_08",
@@ -109,8 +114,8 @@
     },
     {
       "seed": 2,
-      "seconds": 3.315,
-      "started": "2026-11-22T11:00:05+05:30",
+      "seconds": 3.249,
+      "started": "2026-11-22T11:07:26+05:30",
       "order": [
         "synthetic/tests/test_suite_01.py::test_case_06",
         "synthetic/tests/test_suite_01.py::test_case_02",
@@ -180,8 +185,8 @@
     },
     {
       "seed": 3,
-      "seconds": 3.066,
-      "started": "2026-11-22T11:00:08+05:30",
+      "seconds": 3.279,
+      "started": "2026-11-22T11:07:29+05:30",
       "order": [
         "synthetic/tests/test_suite_01.py::test_case_07",
         "synthetic/tests/test_suite_01.py::test_case_03",
@@ -251,8 +256,8 @@
     },
     {
       "seed": 4,
-      "seconds": 3.254,
-      "started": "2026-11-22T11:00:11+05:30",
+      "seconds": 3.233,
+      "started": "2026-11-22T11:07:32+05:30",
       "order": [
         "synthetic/tests/test_suite_01.py::test_case_07",
         "synthetic/tests/test_suite_01.py::test_case_03",
@@ -322,8 +327,8 @@
     },
     {
       "seed": 5,
-      "seconds": 3.411,
-      "started": "2026-11-22T11:00:14+05:30",
+      "seconds": 3.474,
+      "started": "2026-11-22T11:07:36+05:30",
       "order": [
         "synthetic/tests/test_suite_01.py::test_case_06",
         "synthetic/tests/test_suite_01.py::test_case_02",
@@ -393,8 +398,8 @@
     },
     {
       "seed": 6,
-      "seconds": 3.209,
-      "started": "2026-11-22T11:00:18+05:30",
+      "seconds": 3.211,
+      "started": "2026-11-22T11:07:39+05:30",
       "order": [
         "synthetic/tests/test_suite_01.py::test_case_10",
         "synthetic/tests/test_suite_01.py::test_case_04",
@@ -464,8 +469,8 @@
     },
     {
       "seed": 7,
-      "seconds": 4.165,
-      "started": "2026-11-22T11:00:22+05:30",
+      "seconds": 3.169,
+      "started": "2026-11-22T11:07:42+05:30",
       "order": [
         "synthetic/tests/test_suite_01.py::test_case_09",
         "synthetic/tests/test_suite_01.py::test_case_01",
@@ -535,8 +540,8 @@
     },
     {
       "seed": 8,
-      "seconds": 3.554,
-      "started": "2026-11-22T11:00:25+05:30",
+      "seconds": 3.223,
+      "started": "2026-11-22T11:07:45+05:30",
       "order": [
         "synthetic/tests/test_suite_02.py::test_case_17",
         "synthetic/tests/test_suite_02.py::test_case_13",
@@ -606,8 +611,8 @@
     },
     {
       "seed": 9,
-      "seconds": 3.257,
-      "started": "2026-11-22T11:00:29+05:30",
+      "seconds": 3.189,
+      "started": "2026-11-22T11:07:49+05:30",
       "order": [
         "synthetic/tests/test_suite_02.py::test_case_16",
         "synthetic/tests/test_suite_02.py::test_case_12",
@@ -677,8 +682,8 @@
     },
     {
       "seed": 10,
-      "seconds": 3.217,
-      "started": "2026-11-22T11:00:32+05:30",
+      "seconds": 3.18,
+      "started": "2026-11-22T11:07:52+05:30",
       "order": [
         "synthetic/tests/test_suite_01.py::test_case_09",
         "synthetic/tests/test_suite_01.py::test_case_01",
@@ -748,8 +753,8 @@
     },
     {
       "seed": 11,
-      "seconds": 3.17,
-      "started": "2026-11-22T11:00:35+05:30",
+      "seconds": 3.194,
+      "started": "2026-11-22T11:07:55+05:30",
       "order": [
         "synthetic/tests/test_suite_01.py::test_case_04",
         "synthetic/tests/test_suite_01.py::test_case_08",
@@ -819,8 +824,8 @@
     },
     {
       "seed": 12,
-      "seconds": 3.136,
-      "started": "2026-11-22T11:00:38+05:30",
+      "seconds": 3.317,
+      "started": "2026-11-22T11:07:58+05:30",
       "order": [
         "synthetic/tests/test_suite_01.py::test_case_06",
         "synthetic/tests/test_suite_01.py::test_case_02",
@@ -890,8 +895,8 @@
     },
     {
       "seed": 13,
-      "seconds": 3.251,
-      "started": "2026-11-22T11:00:42+05:30",
+      "seconds": 3.144,
+      "started": "2026-11-22T11:08:02+05:30",
       "order": [
         "synthetic/tests/test_suite_01.py::test_case_07",
         "synthetic/tests/test_suite_01.py::test_case_03",
@@ -961,8 +966,8 @@
     },
     {
       "seed": 14,
-      "seconds": 3.98,
-      "started": "2026-11-22T11:00:46+05:30",
+      "seconds": 3.144,
+      "started": "2026-11-22T11:08:05+05:30",
       "order": [
         "synthetic/tests/test_suite_01.py::test_case_07",
         "synthetic/tests/test_suite_01.py::test_case_03",
@@ -1032,8 +1037,8 @@
     },
     {
       "seed": 15,
-      "seconds": 4.424,
-      "started": "2026-11-22T11:00:50+05:30",
+      "seconds": 3.099,
+      "started": "2026-11-22T11:08:08+05:30",
       "order": [
         "synthetic/tests/test_suite_01.py::test_case_06",
         "synthetic/tests/test_suite_01.py::test_case_02",
@@ -1103,8 +1108,8 @@
     },
     {
       "seed": 16,
-      "seconds": 4.087,
-      "started": "2026-11-22T11:00:54+05:30",
+      "seconds": 3.195,
+      "started": "2026-11-22T11:08:11+05:30",
       "order": [
         "synthetic/tests/test_suite_01.py::test_case_10",
         "synthetic/tests/test_suite_01.py::test_case_04",
@@ -1174,8 +1179,8 @@
     },
     {
       "seed": 17,
-      "seconds": 3.389,
-      "started": "2026-11-22T11:00:58+05:30",
+      "seconds": 3.281,
+      "started": "2026-11-22T11:08:14+05:30",
       "order": [
         "synthetic/tests/test_suite_01.py::test_case_09",
         "synthetic/tests/test_suite_01.py::test_case_01",
@@ -1245,8 +1250,8 @@
     },
     {
       "seed": 18,
-      "seconds": 3.543,
-      "started": "2026-11-22T11:01:01+05:30",
+      "seconds": 3.226,
+      "started": "2026-11-22T11:08:18+05:30",
       "order": [
         "synthetic/tests/test_suite_03.py::test_case_31",
         "synthetic/tests/test_suite_03.py::test_case_25",
@@ -1316,8 +1321,8 @@
     },
     {
       "seed": 19,
-      "seconds": 3.141,
-      "started": "2026-11-22T11:01:04+05:30",
+      "seconds": 3.237,
+      "started": "2026-11-22T11:08:21+05:30",
       "order": [
         "synthetic/tests/test_suite_03.py::test_case_28",
         "synthetic/tests/test_suite_03.py::test_case_24",
@@ -1387,8 +1392,8 @@
     },
     {
       "seed": 20,
-      "seconds": 3.111,
-      "started": "2026-11-22T11:01:08+05:30",
+      "seconds": 3.146,
+      "started": "2026-11-22T11:08:24+05:30",
       "order": [
         "synthetic/tests/test_suite_01.py::test_case_01",
         "synthetic/tests/test_suite_01.py::test_case_05",

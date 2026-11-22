@@ -13,14 +13,14 @@
         "real": 6
       }
     },
-    "command": "python scripts/run_eval.py planted --steps rq1,rq2",
-    "date_utc": "2026-11-22T05:36:03Z",
+    "command": "python scripts/run_eval.py planted",
+    "date_utc": "2026-11-22T05:36:22Z",
     "clock": {
-      "local": "2026-11-22 11:06:03 India Standard Time+0530",
+      "local": "2026-11-22 11:06:22 India Standard Time+0530",
       "weekday": "Sunday"
     },
-    "commit": "e82941b5e34793ded7dda5d03a9bfb3e8b84ca98",
-    "tracked_files_modified": true,
+    "commit": "141a74feb181f0fdfed401b57d2f50859e385e70",
+    "tracked_files_modified": false,
     "environment": {
       "python": "3.12.13",
       "pytest": "9.2.0",
@@ -37,7 +37,21 @@
       "No natural flakes (flakes found in real projects) were available. Natural results are not reported and stay dashes.",
       "Five of the 15 tests labelled flaky cannot pass on this machine, judging by their code (see sensitivity_relabelled below). The primary table keeps the labels as written; the sensitivity table relabels those five as real, with the reason read from the test code. The five were first noticed because every method called them real, then confirmed by reading the code; no test is dropped because a method called it real.",
       "Small N: 15 flaky and 16 other tests. Intervals are wide and a difference between methods of a few tests is not evidence of a difference."
-    ]
+    ],
+    "runs_recorded": {
+      "b1_fixed_order": {
+        "command": "python scripts/run_eval.py planted",
+        "date_utc": "2026-11-22T05:36:22Z",
+        "commit": "141a74feb181f0fdfed401b57d2f50859e385e70",
+        "tracked_files_modified": false
+      },
+      "perturbation": {
+        "command": "python scripts/run_eval.py planted",
+        "date_utc": "2026-11-22T05:36:22Z",
+        "commit": "141a74feb181f0fdfed401b57d2f50859e385e70",
+        "tracked_files_modified": false
+      }
+    }
   },
   "source": "outcomes of the perturbation runs recorded in perturbation.json (seeds 1 to 20), fed one run at a time to flakeguard.stats.adaptive.AdaptiveStoppingPolicy(min_runs=3, max_runs=20, confidence=0.95, threshold_p=0.15)",
   "runs_to_decision_adaptive": {
