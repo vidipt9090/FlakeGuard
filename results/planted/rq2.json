@@ -14,12 +14,12 @@
       }
     },
     "command": "python scripts/run_eval.py planted",
-    "date_utc": "2026-11-22T05:25:20Z",
+    "date_utc": "2026-11-22T05:28:58Z",
     "clock": {
-      "local": "2026-11-22 10:55:20 India Standard Time+0530",
+      "local": "2026-11-22 10:58:58 India Standard Time+0530",
       "weekday": "Sunday"
     },
-    "commit": "ac0649386b8c06dd52ed75fa58e009de517de61a",
+    "commit": "a543fa9ee5d480d6de94e162861b9ca44b3e2bac",
     "tracked_files_modified": false,
     "environment": {
       "python": "3.12.13",
@@ -30,7 +30,7 @@
     "limitations": [
       "Planted faults only. Results on planted faults are partly circular: the faults were written to be the kinds that shuffled runs and the AST analysis are built to find. Read them as a check that the methods work, not as a measure of how often they find real-world flakes.",
       "No natural flakes (flakes found in real projects) were available. Natural results are not reported and stay dashes.",
-      "Faults that depend on the clock (root cause time_tz) cannot be made to fail on demand on this machine. Whether they fail depends on the weekday and time at which the command is run (recorded under provenance.clock). They are reported in their own rows and the headline table is also given without them.",
+      "Five of the 15 tests labelled flaky fail in every run on this machine: test_case_19, 20 and 21 (root cause time_tz: the clock is frozen at fixed instants inside the test, so the real time of day does not matter and they never pass) and test_case_14 and 15 (root cause timing: the test waits 0.02 s for work that takes 0.04 s). A method that only sees runs cannot tell them from real failures. They are counted as flaky because that is their label, and reported separately as flaky_label_but_fails_every_run.",
       "Small N: 15 flaky and 16 other tests. Intervals are wide and a difference between methods of a few tests is not evidence of a difference."
     ]
   },
