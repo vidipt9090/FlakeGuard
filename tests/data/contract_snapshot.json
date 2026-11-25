@@ -30,6 +30,12 @@
     "condition",
     "test"
   ],
+  "DroppedTest": [
+    "byUser",
+    "reason",
+    "test",
+    "where"
+  ],
   "Finding": [
     "did",
     "evidence",
@@ -76,8 +82,11 @@
     "test"
   ],
   "NoTestsPlan": [
+    "canOpenPr",
     "checks",
+    "dropped",
     "example",
+    "notes",
     "repo",
     "spots",
     "steps"

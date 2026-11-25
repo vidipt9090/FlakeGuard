@@ -119,7 +119,7 @@ class CodeLine(_OptionalKeys):
 
 class CodeSnippet(_Model):
     file: str
-    role: Literal["the polluter", "the victim"]
+    role: Literal["the polluter", "the victim", "the risky spot", "the test FlakeGuard wrote"]
     lines: list[CodeLine]
 
 
@@ -250,12 +250,22 @@ class NoTestsCheck(_Model):
     ok: bool | None
 
 
+class DroppedTest(_Model):
+    test: str
+    where: str
+    reason: str
+    byUser: bool = False
+
+
 class NoTestsPlan(_Model):
     repo: str
     steps: list[NoTestsStep]
     spots: list[RiskySpot]
     example: NoTestsExample | None
     checks: list[NoTestsCheck]
+    dropped: list[DroppedTest] = []  # a test that failed a check, or that the person dropped, with the reason (AC-N2)
+    notes: list[str] = []
+    canOpenPr: bool = False  # the Open PR action is not enabled in this build
 
 
 class StartRunRequest(_Model):

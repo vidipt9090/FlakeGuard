@@ -212,10 +212,12 @@ export const MOCK_NOTESTS: NoTestsPlan = {
       { n: 5, t: '@freeze_time("2026-01-05")', hot: true }, { n: 6, t: 'def test_daily_header():', hot: true }, { n: 7, t: '    assert header() == "Report 2026-01-05"' } ] },
   },
   checks: [
-    { label: 'Runs without errors', ok: true },
-    { label: 'Passes on the current commit', ok: true },
-    { label: 'Same result in 10 shuffled runs', ok: true },
+    { label: 'Runs and passes on the current commit', ok: true },
+    { label: 'Same result in 5 runs with different shuffle seeds', ok: true },
   ],
+  dropped: [],
+  notes: [],
+  canOpenPr: false,
 };
 
 export function mockAsk(q: string): AskAnswer {

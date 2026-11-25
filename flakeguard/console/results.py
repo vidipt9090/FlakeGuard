@@ -102,7 +102,19 @@ def _paired(integrity: dict | None, setting: str) -> str | None:
             f"right only with no code: {pair.get('right_only_in_none')}")
 
 
-def ablation_table(label: str, rq4: dict | None, integrity: dict | None = None) -> m.TableWithProvenance:
+def _masked_paired(analysis: dict | None, setting: str) -> str | None:
+    """Masked run against no code and against the unmasked run of the same setting (both planned), from rq4_masked_analysis.json."""
+    pairs = (analysis or {}).get("mcnemar_exact_paired") or {}
+    a, b = pairs.get(f"masked_{setting}_vs_none"), pairs.get(f"masked_{setting}_vs_unmasked_{setting}")
+    if not a or not b:
+        return None
+    return (f"against no code: p = {a['p_two_sided']:.4f} ({a['kind']}); right only here: {a.get(f'right_only_in_masked_{setting}')}, "
+            f"right only with no code: {a.get('right_only_in_none')}. Against the unmasked setting: p = {b['p_two_sided']:.4f} ({b['kind']}); "
+            f"right only here: {b.get(f'right_only_in_masked_{setting}')}, right only unmasked: {b.get(f'right_only_in_unmasked_{setting}')}")
+
+
+def ablation_table(label: str, rq4: dict | None, integrity: dict | None = None, masked: dict | None = None,
+                   masked_analysis: dict | None = None) -> m.TableWithProvenance:
     cols = ["Context given to the model", "Diagnosis matches the known cause", "Paired exact test against No code (McNemar)",
             "Model-written fix passes validation (not the product's fixer)", "Code sent to the model"]
     if label == "injected" and rq4 is not None:
@@ -117,12 +129,20 @@ def ablation_table(label: str, rq4: dict | None, integrity: dict | None = None) 
                          f"{fx['validated']} of {fx['n']} (N={fx['n']}, counts not rates)" if fx else None,
                          f"mean {r['code_chars_sent']['mean']:.0f} characters, {r['prompt_tokens']['mean']:.0f} tokens per prompt"
                          if r["prompt_tokens"]["mean"] is not None else None])
+            mr = ((masked or {}).get("results") or {}).get(s)
+            if mr:  # the masked rerun (rq4_masked.json) sits under the setting it re-ran
+                rows.append([f"{SETTING_NAMES.get(s, s)}, injector names masked", _rate(mr["diagnosis_matches"], " flaky tests")
+                             + (f"; {mr['unreadable_replies_counted_as_failures']} unreadable replies counted as failures" if mr["unreadable_replies_counted_as_failures"] else "")
+                             + (f" (if the word 'random' were accepted as randomness: {mr['sensitivity_if_random_were_accepted_as_randomness']['k']} of {mr['sensitivity_if_random_were_accepted_as_randomness']['n']}; not the result)"
+                                if mr.get("sensitivity_if_random_were_accepted_as_randomness", {}).get("replies_saying_random") else ""),
+                             _masked_paired(masked_analysis, s), None,
+                             f"mean {mr['code_chars_sent']['mean']:.0f} characters, {mr['prompt_tokens']['mean']:.0f} tokens per prompt"])
         return m.TableWithProvenance(table=m.ResultsTable(columns=cols, rows=rows), provenance=_prov(label, rq4))
     rows = [[SETTING_NAMES[s], None, None, None, None] for s in SETTING_NAMES]
     return m.TableWithProvenance(table=m.ResultsTable(columns=cols, rows=rows), provenance=_prov(label, None))
 
 
-def rq4_notes(rq4: dict, integrity: dict | None, leak: dict | None) -> list[str]:
+def rq4_notes(rq4: dict, integrity: dict | None, leak: dict | None, masked_analysis: dict | None = None) -> list[str]:
     """Limitations of the RQ4 table. Every figure in them is read from rq4.json, rq4_integrity.json or rq4_leakage_split.json."""
     notes: list[str] = []
     res = rq4["results"]
@@ -136,6 +156,12 @@ def rq4_notes(rq4: dict, integrity: dict | None, leak: dict | None) -> list[str]
             f"{sm['file']['a_has_injector_specific_identifier']} in the whole-file setting. Real code would not have them, so these settings are easier here than on real flaky tests. "
             f"Cues a real tool would also see ({', '.join(leak['cue_words'])}) were added by the injection in {sm['ast']['b_has_natural_cue_added']} of {n} AST contexts; "
             f"{sm['ast']['c_has_cachetools_own_cue']} AST contexts also hold such a cue from cachetools' own code. Per-test table: results/injected/rq4_leakage_split.json.")
+    if masked_analysis:
+        ms = masked_analysis["settings"]
+        bits = "; ".join(f"{SETTING_NAMES.get(s, s)} {v['masked']['k']} of {v['masked']['n']} masked against {v['unmasked']['k']} unmasked" for s, v in ms.items())
+        notes.append(f"Masked rerun (separate run, rq4_masked): the injector-only names were replaced by neutral ones in the AST and AST + Jedi contexts: {bits}. "
+                     f"Natural cues and the structure around the names stay, so the contexts are still easier than real code. "
+                     f"{masked_analysis['planned_pairs']} planned comparisons use a Bonferroni threshold of {masked_analysis['bonferroni_threshold']}. No fix calls were made in this run.")
     said = {s: r["sensitivity_if_random_were_accepted_as_randomness"] for s, r in res.items()
             if r.get("sensitivity_if_random_were_accepted_as_randomness", {}).get("replies_saying_random")}
     if said:
@@ -180,6 +206,7 @@ def load_results(label: str, root: Path | None = None) -> m.ResultsData:
     root = root or RESULTS_DIR
     rq1, rq2, rq3, rq4 = (_load(label, f"{n}.json", root) for n in ("rq1", "rq2", "rq3", "rq4"))
     integrity, leak = _load(label, "rq4_integrity.json", root), _load(label, "rq4_leakage_split.json", root)
+    masked, masked_analysis = _load(label, "rq4_masked.json", root), _load(label, "rq4_masked_analysis.json", root)
     notes: list[str] = []
     if label == "natural":
         notes.append(NO_NATURAL)
@@ -202,7 +229,7 @@ def load_results(label: str, root: Path | None = None) -> m.ResultsData:
         notes.append("RQ3 is a simulation over labelled tests. No pull request was opened and FlakeGuard's PR flow was not run.")
     if rq4 is not None:
         notes += [x for x in rq4["provenance"]["limitations"] if x not in notes]
-        notes += [x for x in rq4_notes(rq4, integrity, leak) if x not in notes]
+        notes += [x for x in rq4_notes(rq4, integrity, leak, masked_analysis) if x not in notes]
     fixed = adaptive = red = real_q = None
     if rq2 is not None:
         a = rq2["runs_to_decision_adaptive"]
@@ -217,7 +244,7 @@ def load_results(label: str, root: Path | None = None) -> m.ResultsData:
         red = _count(fr["cleared_called_flaky"], f" red flaky PRs (N={fr['n_red_flaky_prs']}, shuffled runs N=10)") if fr["n_red_flaky_prs"] else None
         real_q = _count(p["real_failures"]["wrongly_quarantined_called_flaky"], " real failures (shuffled runs N=10)")
     return m.ResultsData(
-        ablation=ablation_table(label, rq4, integrity),
+        ablation=ablation_table(label, rq4, integrity, masked, masked_analysis),
         baselines=baselines_table(label, rq1),
         runsToDecision=m.RunsToDecision(fixed=fixed, adaptive=adaptive),
         triage=m.TriageNumbers(redPrsCleared=red, realQuarantined=real_q),

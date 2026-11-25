@@ -24,6 +24,8 @@ class NoTestScanSummary:
     kept_tests: list[GeneratedTest] = field(default_factory=list)
     rejection_reasons: dict[str, str] = field(default_factory=dict)
     output_file: str | None = None
+    candidates: list[tuple[RiskySite, GeneratedTest, ValidationResult]] = field(default_factory=list)
+    k_shuffled_runs: int = 0
 
 
 def generate_tests_for_repo(
@@ -66,6 +68,7 @@ def generate_tests_for_repo(
 
     kept_tests: list[GeneratedTest] = []
     rejections: dict[str, str] = {}
+    candidates: list[tuple[RiskySite, GeneratedTest, ValidationResult]] = []
     llm = provider or get_provider(allow_cache_fallback=True)
 
     # 2. Generate and validate tests
@@ -91,6 +94,7 @@ def generate_tests_for_repo(
             k=k_shuffled_runs,
         )
 
+        candidates.append((site, gen_test, val_res))
         if val_res.kept:
             kept_tests.append(gen_test)
             if event_logger:
@@ -134,6 +138,8 @@ def generate_tests_for_repo(
         kept_tests=kept_tests,
         rejection_reasons=rejections,
         output_file=written_path,
+        candidates=candidates,
+        k_shuffled_runs=k_shuffled_runs,
     )
 
     if event_logger:

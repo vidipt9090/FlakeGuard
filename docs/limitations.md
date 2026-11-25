@@ -80,7 +80,7 @@ This document outlines known architectural limitations, methodological trade-off
 
 Every figure below is copied from `results/injected/rq4.json`, `rq4_integrity.json` and `rq4_leakage_split.json` (written by `scripts/run_rq4.py`, `scripts/rq4_integrity.py`, `scripts/rq4_leakage_split.py`). Nothing was rescored.
 
-- **Injector-named identifiers are in the context.** Names that only the injector writes (`_FLAKEGUARD_ORDER_READY`, `_FLAKEGUARD_SHARED_CACHE`, `_bg_job`, `_fg_random`, `_hour`, `_race_flag`, `_th`) are present for 21 of 26 tests in the AST setting, 21 in AST + Jedi and 23 in the whole-file setting. Real code would not have them. Natural cues (sleep, random, datetime, now, Thread, threading, global) were added by the injection in 21 of 26 AST contexts; 6 AST contexts also hold such a cue from cachetools' own code. Per-test table: `results/injected/rq4_leakage_split.json`. A word in the context is not proof the model used it. A masked re-run has been planned and not run.
+- **Injector-named identifiers are in the context.** Names that only the injector writes (`_FLAKEGUARD_ORDER_READY`, `_FLAKEGUARD_SHARED_CACHE`, `_bg_job`, `_fg_random`, `_hour`, `_race_flag`, `_th`) are present for 21 of 26 tests in the AST setting, 21 in AST + Jedi and 23 in the whole-file setting. Real code would not have them. Natural cues (sleep, random, datetime, now, Thread, threading, global) were added by the injection in 21 of 26 AST contexts; 6 AST contexts also hold such a cue from cachetools' own code. Per-test table: `results/injected/rq4_leakage_split.json`. A word in the context is not proof the model used it. A masked re-run was made (below): AST tree only 10 of 26 masked against 10 unmasked; AST + Jedi tree 13 of 26 masked against 13 unmasked.
 - **Exact match is strict.** The reply must be the listed word. `random` instead of `randomness` counts as a miss; AST tree only: 4 replies, 13 correct if accepted; AST + Jedi tree: 1 replies, 14 correct if accepted. That is a sensitivity, not the result.
 - **Zero correct on shared_state and randomness.** shared_state: 6 tests, 0 correct across all four settings; randomness: 5 tests, 0 correct across all four settings. Part of this is the taxonomy: the injected shared-state fault is a global that an earlier test leaves changed, and an answer of `order_dependence` for it is a reasonable confusion (see the matrices). Part may be the model and the prompt.
 - **One 3B model** (`llama3.2:3b`, 4-bit), one prompt, one decoding setting. A different model or prompt could move every number.
@@ -148,3 +148,29 @@ Every figure below is copied from `results/injected/rq4.json`, `rq4_integrity.js
 | time_or_timezone | 0 | 0 | 4 | 1 |
 | timing | 0 | 0 | 0 | 5 |
 
+### Masked rerun (`rq4_masked`)
+
+Registered in `docs/EVAL.md` before it ran; figures are copied from `results/injected/rq4_masked.json` and `rq4_masked_analysis.json`. The seven injector-only identifiers (`_FLAKEGUARD_ORDER_READY` → `_x1`, `_FLAKEGUARD_SHARED_CACHE` → `_x2`, `_bg_job` → `_x3`, `_fg_random` → `_x4`, `_hour` → `_x5`, `_race_flag` → `_x6`, `_th` → `_x7`) were replaced in the `ast` and `ast_jedi` code; natural cues and the structure around the names (for example `globals().get(...)`) stayed. 52 prompts, no fix calls, same model, decoding and order as `rq4`; `rq4.json` is unchanged.
+
+| Setting | Unmasked | Masked | 95% interval (masked) | Prompts changed by masking | Answers changed among them |
+|---|---|---|---|---|---|
+| AST tree only | 10 of 26 | 10 of 26 | 0.224 to 0.575 | 21 of 26 | 1 |
+| AST + Jedi tree | 13 of 26 | 13 of 26 | 0.321 to 0.679 | 21 of 26 | 2 |
+
+Correct per fault class (masked; the unmasked counts are the same in both settings):
+
+| Setting | order_dependence | randomness | shared_state | time_or_timezone | timing |
+|---|---|---|---|---|---|
+| AST tree only | 1 of 5 | 0 of 5 | 0 of 6 | 4 of 5 | 5 of 5 |
+| AST + Jedi tree | 4 of 5 | 0 of 5 | 0 of 6 | 4 of 5 | 5 of 5 |
+
+Planned paired exact tests on the same 26 tests (Bonferroni threshold 0.0125):
+
+| Pair | Right only in first | Right only in second | p (two-sided) |
+|---|---|---|---|
+| masked ast vs none | 0 (none) | 5 (masked_ast) | 0.0625 |
+| masked ast vs unmasked ast | 0 (unmasked_ast) | 0 (masked_ast) | 1.0000 |
+| masked ast jedi vs none | 0 (none) | 8 (masked_ast_jedi) | 0.0078 |
+| masked ast jedi vs unmasked ast jedi | 1 (unmasked_ast_jedi) | 1 (masked_ast_jedi) | 1.0000 |
+
+Reading: masking the injector's names did not lower the counts in either setting. That does not show the model never used them; natural cues remain, the surrounding structure remains, and 26 tests with one model cannot resolve small differences. Confusion matrices for the masked runs are in `results/injected/rq4_masked_analysis.json`.

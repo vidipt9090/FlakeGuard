@@ -75,7 +75,7 @@ export interface CodeLine {
 }
 export interface CodeSnippet {
   file: string;
-  role: 'the polluter' | 'the victim';
+  role: 'the polluter' | 'the victim' | 'the risky spot' | 'the test FlakeGuard wrote';
   lines: CodeLine[];
 }
 export interface LivesChip {
@@ -171,6 +171,9 @@ export interface NoTestsPlan {
   spots: RiskySpot[];
   example: { risky: CodeSnippet; test: CodeSnippet } | null;
   checks: { label: string; ok: boolean | null }[];
+  dropped?: { test: string; where: string; reason: string; byUser: boolean }[];
+  notes?: string[];
+  canOpenPr?: boolean;
 }
 
 export interface StartRunRequest {

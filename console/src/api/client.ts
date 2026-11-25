@@ -46,6 +46,9 @@ export const api = {
   getNoTests: (runId: string): Promise<NoTestsPlan> =>
     USE_MOCK ? wait(MOCK_NOTESTS) : http(`/api/runs/${encodeURIComponent(runId)}/no-tests`),
 
+  dropNoTest: (runId: string, test: string): Promise<NoTestsPlan> =>
+    USE_MOCK ? wait(MOCK_NOTESTS) : post(`/api/runs/${encodeURIComponent(runId)}/no-tests/drop`, { test }),
+
   ask: (findingId: string, question: string): Promise<AskAnswer> =>
     USE_MOCK ? wait(mockAsk(question)) : post(`/api/findings/${encodeURIComponent(findingId)}/ask`, { question }),
 

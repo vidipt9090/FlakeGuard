@@ -1,0 +1,146 @@
+{
+ "repo": "fixtures/no_tests_demo",
+ "steps": [
+  {
+   "name": "Find risky spots",
+   "state": "done"
+  },
+  {
+   "name": "Write tests",
+   "state": "done"
+  },
+  {
+   "name": "Check them",
+   "state": "done"
+  },
+  {
+   "name": "Open PR on your fork",
+   "state": "pending"
+  }
+ ],
+ "spots": [
+  {
+   "where": "clock_report.py:7",
+   "what": "Reads system wall-clock time via datetime.now.",
+   "why": "The result changes with the time of day.",
+   "test": "test_current_report_title"
+  },
+  {
+   "where": "counter.py:7",
+   "what": "Rebinds global variable(s): _COUNT",
+   "why": "State kept between calls changes what the next call returns.",
+   "test": "test_current_next_ticket"
+  },
+  {
+   "where": "lottery.py:7",
+   "what": "Calls unseeded random source random.choice.",
+   "why": "The result changes every run.",
+   "test": "test_current_pick_winner"
+  },
+  {
+   "where": "slow_lookup.py:9",
+   "what": "Calls time.sleep, introducing timing and execution speed sensitivity.",
+   "why": "The timing changes with machine speed.",
+   "test": "test_current_price_after_pause"
+  },
+  {
+   "where": "worker.py:7",
+   "what": "Spawns asynchronous concurrent worker via threading.Thread.",
+   "why": "A background worker can finish at a different moment.",
+   "test": null
+  }
+ ],
+ "example": {
+  "risky": {
+   "file": "clock_report.py",
+   "role": "the risky spot",
+   "lines": [
+    {
+     "n": 5,
+     "t": ""
+    },
+    {
+     "n": 6,
+     "t": "def report_title(prefix: str = \"Report\") -> str:"
+    },
+    {
+     "n": 7,
+     "t": "    today = datetime.now()",
+     "hot": true
+    },
+    {
+     "n": 8,
+     "t": "    return f\"{prefix} for {today:%Y-%m-%d}\""
+    }
+   ]
+  },
+  "test": {
+   "file": "tests/test_clock_report.py",
+   "role": "the test FlakeGuard wrote",
+   "lines": [
+    {
+     "n": 1,
+     "t": "import pytest"
+    },
+    {
+     "n": 2,
+     "t": "from clock_report import report_title"
+    },
+    {
+     "n": 3,
+     "t": ""
+    },
+    {
+     "n": 4,
+     "t": "def test_current_report_title():",
+     "hot": true
+    },
+    {
+     "n": 5,
+     "t": "    # Call the function with a reasonable input"
+    },
+    {
+     "n": 6,
+     "t": "    result = report_title()"
+    },
+    {
+     "n": 7,
+     "t": ""
+    },
+    {
+     "n": 8,
+     "t": "    # Assert the current return value"
+    },
+    {
+     "n": 9,
+     "t": "    assert result.startswith(\"Report for \")"
+    }
+   ]
+  }
+ },
+ "checks": [
+  {
+   "label": "Runs and passes on the current commit",
+   "ok": true
+  },
+  {
+   "label": "Same result in 5 runs with different shuffle seeds",
+   "ok": true
+  }
+ ],
+ "dropped": [
+  {
+   "test": "test_current_run_in_background",
+   "where": "worker.py:7",
+   "reason": "Test failed to pass at HEAD",
+   "byUser": false
+  }
+ ],
+ "notes": [
+  "Written by llama3.2:3b through Ollama (temperature 0, seed 42): 5 of 5 tests came from the model; 0 came from the generic template because the reply had no usable test.",
+  "Checks run in a local process on a temporary copy of the repository, not in Docker. Each generated file holds one test, so the order cannot change; the 5 seeds change what random returns. A clock-dependent test can pass all 5 runs on the same day.",
+  "The mutation check is not run in this build.",
+  "Recorded 2026-11-25T16:47:56Z at commit cd58857 with: python scripts/run_no_tests.py"
+ ],
+ "canOpenPr": false
+}

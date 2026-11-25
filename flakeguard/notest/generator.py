@@ -20,6 +20,7 @@ class GeneratedTest:
     test_code: str
     records_current_behavior: bool = True
     explanation: str = ""
+    from_template: bool = False  # True when the model's reply had no usable test and the generic template was used
 
 
 _GENERATION_PROMPT_TEMPLATE = """You are FlakeGuard's automated test synthesis engine.
@@ -76,7 +77,8 @@ def generate_targeted_test(
     test_func_name = f"test_current_{site.function_name}"
 
     # If code is invalid or fallback needed, synthesize deterministic template recording current behavior
-    if not code or f"def {test_func_name}" not in code:
+    from_template = not code or f"def {test_func_name}" not in code
+    if from_template:
         code = f"""import pytest
 import {module_import_name}
 
@@ -100,5 +102,6 @@ def {test_func_name}():
         test_code=code,
         records_current_behavior=True,
         explanation=f"Targeted test recording current behaviour around {site.risk_category} in {site.function_name}",
+        from_template=from_template,
     )
 

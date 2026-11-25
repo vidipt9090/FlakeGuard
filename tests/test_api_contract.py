@@ -386,3 +386,23 @@ def test_rq4_table_and_notes_are_read_from_the_result_files(client):
     assert "does not measure the product's template fixer" in text and "counts as a miss" in text
     planted = m.ResultsData.model_validate(client.get("/api/results?label=planted").json())
     assert all(cell is None for r in planted.ablation.table.rows for cell in r[1:])  # no RQ4 on the planted set
+
+
+def test_masked_rerun_rows_and_note_come_from_the_masked_files(client):
+    import json
+
+    from flakeguard.console.results import RESULTS_DIR
+
+    masked = json.loads((RESULTS_DIR / "injected" / "rq4_masked.json").read_text(encoding="utf-8"))
+    ana = json.loads((RESULTS_DIR / "injected" / "rq4_masked_analysis.json").read_text(encoding="utf-8"))
+    data = m.ResultsData.model_validate(client.get("/api/results?label=injected").json())
+    rows = {r[0]: r for r in data.ablation.table.rows}
+    for s, label in (("ast", "AST tree only, injector names masked"), ("ast_jedi", "AST + Jedi tree, injector names masked")):
+        k = masked["results"][s]["diagnosis_matches"]["k"]
+        assert rows[label][1].startswith(f"{k} of 26")
+        p = ana["mcnemar_exact_paired"][f"masked_{s}_vs_none"]["p_two_sided"]
+        assert f"against no code: p = {p:.4f} (planned)" in rows[label][2]
+        assert "Against the unmasked setting" in rows[label][2] and rows[label][3] is None  # no fix calls in the masked run
+    assert any("Masked rerun" in n and str(ana["bonferroni_threshold"]) in n for n in data.notes)
+    planted = m.ResultsData.model_validate(client.get("/api/results?label=planted").json())
+    assert not any("masked" in r[0] for r in planted.ablation.table.rows)

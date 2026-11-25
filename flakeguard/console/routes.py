@@ -32,6 +32,13 @@ from flakeguard.console.actions import (
     is_actions_id,
 )
 from flakeguard.console.ask import answer_question, clear_indexes
+from flakeguard.console.no_tests import (
+    NoTestsNotFound,
+    NoTestsRefused,
+    drop_test,
+    is_no_tests_id,
+    read_plan,
+)
 from flakeguard.console.results import load_results
 from flakeguard.console.runs import DEMO_REPOS, Refused, is_live_id, manager, seed_start_from_env
 from flakeguard.console.store import FINDING_SEPARATOR, NotFound, RecordedStore, empty_no_tests_plan
@@ -235,11 +242,29 @@ async def get_tree(request: Request) -> Response:
 async def get_no_tests(request: Request) -> Response:
     run_id = request.path_params["run_id"]
     try:
+        if is_no_tests_id(run_id):
+            return respond(await run_in_threadpool(read_plan, run_id))
         if is_live_id(run_id) or is_actions_id(run_id):
             return respond(empty_no_tests_plan((await run_in_threadpool(_run, run_id)).target))
         return respond(store().no_tests(run_id))
-    except NotFound as e:
+    except (NotFound, NoTestsNotFound) as e:
         return detail(str(e), 404)
+
+
+async def drop_no_test(request: Request) -> Response:
+    """Drop one generated test. Local only: it edits two files under recorded_no_tests/ and nothing else."""
+    run_id = request.path_params["run_id"]
+    if not is_no_tests_id(run_id):
+        return detail("Only a recorded no-tests scan has generated tests that can be dropped.", 409)
+    test = str((await body_of(request)).get("test", "")).strip()
+    if not test:
+        return detail("Say which test to drop.", 422)
+    try:
+        return respond(await run_in_threadpool(drop_test, run_id, test))
+    except NoTestsNotFound as e:
+        return detail(str(e), 404)
+    except NoTestsRefused as e:
+        return detail(str(e), 409)
 
 
 async def get_results(request: Request) -> Response:
@@ -380,6 +405,7 @@ ROUTES = [
     Route("/api/runs/{run_id}/findings", get_findings),
     Route("/api/runs/{run_id}/tree", get_tree),
     Route("/api/runs/{run_id}/no-tests", get_no_tests),
+    Route("/api/runs/{run_id}/no-tests/drop", drop_no_test, methods=["POST"]),
     Route("/api/findings/{finding_id}/ask", ask, methods=["POST"]),
     Route("/api/findings/{finding_id}/fix", fix, methods=["POST"]),
     Route("/api/findings/{finding_id}/reverify", reverify, methods=["POST"]),

@@ -2,7 +2,7 @@ import type { CodeSnippet } from '../types';
 
 /** Annotated code. `hot` lines are tinted: red for the polluter pane, amber for the victim pane. */
 export function CodePane({ snippet }: { snippet: CodeSnippet }) {
-  const tone = snippet.role === 'the polluter' ? 'hot-write' : 'hot-read';
+  const tone = snippet.role === 'the polluter' || snippet.role === 'the risky spot' ? 'hot-write' : 'hot-read';
   return (
     <div className="pane">
       <div className="pane-h">{snippet.file} · {snippet.role}</div>

@@ -1,0 +1,453 @@
+{
+ "id": "notests-2026-11-25-001",
+ "repo": "fixtures/no_tests_demo",
+ "candidates": [
+  {
+   "test": "test_current_report_title",
+   "where": "clock_report.py:7",
+   "category": "now",
+   "what": "Reads system wall-clock time via datetime.now.",
+   "kept": true,
+   "droppedByUser": false,
+   "reason": null,
+   "fromTemplate": false,
+   "testCode": "import pytest\nfrom clock_report import report_title\n\ndef test_current_report_title():\n    # Call the function with a reasonable input\n    result = report_title()\n\n    # Assert the current return value\n    assert result.startswith(\"Report for \")",
+   "checks": {
+    "passedAtHead": true,
+    "deterministic": true,
+    "kRunsExecuted": 5
+   },
+   "risky": {
+    "file": "clock_report.py",
+    "lines": [
+     {
+      "n": 5,
+      "t": ""
+     },
+     {
+      "n": 6,
+      "t": "def report_title(prefix: str = \"Report\") -> str:"
+     },
+     {
+      "n": 7,
+      "t": "    today = datetime.now()",
+      "hot": true
+     },
+     {
+      "n": 8,
+      "t": "    return f\"{prefix} for {today:%Y-%m-%d}\""
+     }
+    ]
+   },
+   "testFile": {
+    "file": "tests/test_clock_report.py",
+    "lines": [
+     {
+      "n": 1,
+      "t": "import pytest"
+     },
+     {
+      "n": 2,
+      "t": "from clock_report import report_title"
+     },
+     {
+      "n": 3,
+      "t": ""
+     },
+     {
+      "n": 4,
+      "t": "def test_current_report_title():",
+      "hot": true
+     },
+     {
+      "n": 5,
+      "t": "    # Call the function with a reasonable input"
+     },
+     {
+      "n": 6,
+      "t": "    result = report_title()"
+     },
+     {
+      "n": 7,
+      "t": ""
+     },
+     {
+      "n": 8,
+      "t": "    # Assert the current return value"
+     },
+     {
+      "n": 9,
+      "t": "    assert result.startswith(\"Report for \")"
+     }
+    ]
+   }
+  },
+  {
+   "test": "test_current_next_ticket",
+   "where": "counter.py:7",
+   "category": "globals",
+   "what": "Rebinds global variable(s): _COUNT",
+   "kept": true,
+   "droppedByUser": false,
+   "reason": null,
+   "fromTemplate": false,
+   "testCode": "import pytest\nfrom counter import next_ticket\n\ndef test_current_next_ticket():\n    \"\"\"Test the current behaviour of next_ticket()\"\"\"\n    # Initialize the global variable to 0\n    _COUNT = 0\n    \n    # Call the function and assert the return value\n    assert next_ticket() == 1\n    \n    # Call the function again and assert the return value\n    assert next_ticket() == 2",
+   "checks": {
+    "passedAtHead": true,
+    "deterministic": true,
+    "kRunsExecuted": 5
+   },
+   "risky": {
+    "file": "counter.py",
+    "lines": [
+     {
+      "n": 5,
+      "t": ""
+     },
+     {
+      "n": 6,
+      "t": "def next_ticket() -> int:"
+     },
+     {
+      "n": 7,
+      "t": "    global _COUNT",
+      "hot": true
+     },
+     {
+      "n": 8,
+      "t": "    _COUNT += 1"
+     },
+     {
+      "n": 9,
+      "t": "    return _COUNT"
+     }
+    ]
+   },
+   "testFile": {
+    "file": "tests/test_counter.py",
+    "lines": [
+     {
+      "n": 1,
+      "t": "import pytest"
+     },
+     {
+      "n": 2,
+      "t": "from counter import next_ticket"
+     },
+     {
+      "n": 3,
+      "t": ""
+     },
+     {
+      "n": 4,
+      "t": "def test_current_next_ticket():",
+      "hot": true
+     },
+     {
+      "n": 5,
+      "t": "    \"\"\"Test the current behaviour of next_ticket()\"\"\""
+     },
+     {
+      "n": 6,
+      "t": "    # Initialize the global variable to 0"
+     },
+     {
+      "n": 7,
+      "t": "    _COUNT = 0"
+     },
+     {
+      "n": 8,
+      "t": "    "
+     },
+     {
+      "n": 9,
+      "t": "    # Call the function and assert the return value"
+     },
+     {
+      "n": 10,
+      "t": "    assert next_ticket() == 1"
+     },
+     {
+      "n": 11,
+      "t": "    "
+     },
+     {
+      "n": 12,
+      "t": "    # Call the function again and assert the return value"
+     },
+     {
+      "n": 13,
+      "t": "    assert next_ticket() == 2"
+     }
+    ]
+   }
+  },
+  {
+   "test": "test_current_pick_winner",
+   "where": "lottery.py:7",
+   "category": "randomness",
+   "what": "Calls unseeded random source random.choice.",
+   "kept": true,
+   "droppedByUser": false,
+   "reason": null,
+   "fromTemplate": false,
+   "testCode": "import pytest\nfrom lottery import pick_winner\n\ndef test_current_pick_winner():\n    # Arrange\n    entries = [\"John\", \"Alice\", \"Bob\"]\n\n    # Act\n    winner = pick_winner(entries)\n\n    # Assert\n    assert winner in entries",
+   "checks": {
+    "passedAtHead": true,
+    "deterministic": true,
+    "kRunsExecuted": 5
+   },
+   "risky": {
+    "file": "lottery.py",
+    "lines": [
+     {
+      "n": 5,
+      "t": ""
+     },
+     {
+      "n": 6,
+      "t": "def pick_winner(entries: list[str]) -> str:"
+     },
+     {
+      "n": 7,
+      "t": "    return random.choice(entries)",
+      "hot": true
+     }
+    ]
+   },
+   "testFile": {
+    "file": "tests/test_lottery.py",
+    "lines": [
+     {
+      "n": 1,
+      "t": "import pytest"
+     },
+     {
+      "n": 2,
+      "t": "from lottery import pick_winner"
+     },
+     {
+      "n": 3,
+      "t": ""
+     },
+     {
+      "n": 4,
+      "t": "def test_current_pick_winner():",
+      "hot": true
+     },
+     {
+      "n": 5,
+      "t": "    # Arrange"
+     },
+     {
+      "n": 6,
+      "t": "    entries = [\"John\", \"Alice\", \"Bob\"]"
+     },
+     {
+      "n": 7,
+      "t": ""
+     },
+     {
+      "n": 8,
+      "t": "    # Act"
+     },
+     {
+      "n": 9,
+      "t": "    winner = pick_winner(entries)"
+     },
+     {
+      "n": 10,
+      "t": ""
+     },
+     {
+      "n": 11,
+      "t": "    # Assert"
+     },
+     {
+      "n": 12,
+      "t": "    assert winner in entries"
+     }
+    ]
+   }
+  },
+  {
+   "test": "test_current_price_after_pause",
+   "where": "slow_lookup.py:9",
+   "category": "sleep",
+   "what": "Calls time.sleep, introducing timing and execution speed sensitivity.",
+   "kept": true,
+   "droppedByUser": false,
+   "reason": null,
+   "fromTemplate": false,
+   "testCode": "import pytest\nfrom slow_lookup import price_after_pause\n\ndef test_current_price_after_pause():\n    current_price = price_after_pause(\"apple\")\n    assert current_price == 3",
+   "checks": {
+    "passedAtHead": true,
+    "deterministic": true,
+    "kRunsExecuted": 5
+   },
+   "risky": {
+    "file": "slow_lookup.py",
+    "lines": [
+     {
+      "n": 7,
+      "t": ""
+     },
+     {
+      "n": 8,
+      "t": "def price_after_pause(name: str) -> int:"
+     },
+     {
+      "n": 9,
+      "t": "    time.sleep(0.01)",
+      "hot": true
+     },
+     {
+      "n": 10,
+      "t": "    return PRICES[name]"
+     }
+    ]
+   },
+   "testFile": {
+    "file": "tests/test_slow_lookup.py",
+    "lines": [
+     {
+      "n": 1,
+      "t": "import pytest"
+     },
+     {
+      "n": 2,
+      "t": "from slow_lookup import price_after_pause"
+     },
+     {
+      "n": 3,
+      "t": ""
+     },
+     {
+      "n": 4,
+      "t": "def test_current_price_after_pause():",
+      "hot": true
+     },
+     {
+      "n": 5,
+      "t": "    current_price = price_after_pause(\"apple\")"
+     },
+     {
+      "n": 6,
+      "t": "    assert current_price == 3"
+     }
+    ]
+   }
+  },
+  {
+   "test": "test_current_run_in_background",
+   "where": "worker.py:7",
+   "category": "threads",
+   "what": "Spawns asynchronous concurrent worker via threading.Thread.",
+   "kept": false,
+   "droppedByUser": false,
+   "reason": "Test failed to pass at HEAD",
+   "fromTemplate": false,
+   "testCode": "import pytest\nfrom worker import run_in_background\n\ndef test_current_run_in_background():\n    # Create a list to store the result\n    result = []\n\n    # Call the function with a list containing an integer\n    run_in_background([1, 2, 3])\n\n    # Assert that the result list contains the expected value\n    assert result == [1, 2, 3, 7]",
+   "checks": {
+    "passedAtHead": false,
+    "deterministic": false,
+    "kRunsExecuted": 0
+   },
+   "risky": {
+    "file": "worker.py",
+    "lines": [
+     {
+      "n": 5,
+      "t": ""
+     },
+     {
+      "n": 6,
+      "t": "def run_in_background(results: list[int]) -> None:"
+     },
+     {
+      "n": 7,
+      "t": "    job = threading.Thread(target=results.append, args=(7,))",
+      "hot": true
+     },
+     {
+      "n": 8,
+      "t": "    job.start()"
+     },
+     {
+      "n": 9,
+      "t": "    job.join()"
+     }
+    ]
+   },
+   "testFile": {
+    "file": "tests/test_worker.py",
+    "lines": [
+     {
+      "n": 1,
+      "t": "import pytest"
+     },
+     {
+      "n": 2,
+      "t": "from worker import run_in_background"
+     },
+     {
+      "n": 3,
+      "t": ""
+     },
+     {
+      "n": 4,
+      "t": "def test_current_run_in_background():",
+      "hot": true
+     },
+     {
+      "n": 5,
+      "t": "    # Create a list to store the result"
+     },
+     {
+      "n": 6,
+      "t": "    result = []"
+     },
+     {
+      "n": 7,
+      "t": ""
+     },
+     {
+      "n": 8,
+      "t": "    # Call the function with a list containing an integer"
+     },
+     {
+      "n": 9,
+      "t": "    run_in_background([1, 2, 3])"
+     },
+     {
+      "n": 10,
+      "t": ""
+     },
+     {
+      "n": 11,
+      "t": "    # Assert that the result list contains the expected value"
+     },
+     {
+      "n": 12,
+      "t": "    assert result == [1, 2, 3, 7]"
+     }
+    ]
+   }
+  }
+ ],
+ "provenance": {
+  "date_utc": "2026-11-25T16:47:56Z",
+  "command": "python scripts/run_no_tests.py",
+  "commit": "cd588575c7e667a3036cbd9fafc64d6a87c974cb",
+  "tracked_files_modified": true,
+  "model": "llama3.2:3b",
+  "seed": 42,
+  "num_ctx": 16384,
+  "temperature": 0,
+  "ollama_version": "0.40.18",
+  "k_shuffled_runs": 5,
+  "sandbox": "local process on a temporary copy, not Docker",
+  "python": "3.12.13",
+  "risky_sites_found": 5
+ }
+}
