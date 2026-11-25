@@ -1,0 +1,713 @@
+{
+ "source": "results/injected/rq4.json (not changed)",
+ "n_tests": 26,
+ "class_counts": {
+  "order_dependence": 5,
+  "randomness": 5,
+  "time_or_timezone": 5,
+  "timing": 5,
+  "shared_state": 6
+ },
+ "confusion_true_by_answered": {
+  "none": {
+   "order_dependence": {
+    "timing": 5
+   },
+   "randomness": {
+    "timing": 5
+   },
+   "shared_state": {
+    "timing": 6
+   },
+   "time_or_timezone": {
+    "timing": 5
+   },
+   "timing": {
+    "timing": 5
+   }
+  },
+  "file": {
+   "order_dependence": {
+    "timing": 5
+   },
+   "randomness": {
+    "timing": 5
+   },
+   "shared_state": {
+    "order_dependence": 3,
+    "timing": 3
+   },
+   "time_or_timezone": {
+    "timing": 5
+   },
+   "timing": {
+    "timing": 5
+   }
+  },
+  "ast": {
+   "order_dependence": {
+    "timing": 4,
+    "order_dependence": 1
+   },
+   "randomness": {
+    "random": 3,
+    "timing": 2
+   },
+   "shared_state": {
+    "timing": 3,
+    "random": 1,
+    "order_dependence": 2
+   },
+   "time_or_timezone": {
+    "time_or_timezone": 4,
+    "timing": 1
+   },
+   "timing": {
+    "timing": 5
+   }
+  },
+  "ast_jedi": {
+   "order_dependence": {
+    "order_dependence": 4,
+    "timing": 1
+   },
+   "randomness": {
+    "order_dependence": 2,
+    "random": 1,
+    "timing": 2
+   },
+   "shared_state": {
+    "order_dependence": 6
+   },
+   "time_or_timezone": {
+    "time_or_timezone": 4,
+    "timing": 1
+   },
+   "timing": {
+    "timing": 5
+   }
+  }
+ },
+ "constant_guess": {
+  "best_class": "shared_state",
+  "k": 6,
+  "n": 26,
+  "value": 0.2308,
+  "uniform_one_of_five": 0.2,
+  "note": "ties: the most common class is the one with the most tests; shared_state has 6, others 5"
+ },
+ "wilson95": {
+  "none": {
+   "k": 5,
+   "n": 26,
+   "ci": [
+    0.0851,
+    0.3788
+   ]
+  },
+  "file": {
+   "k": 5,
+   "n": 26,
+   "ci": [
+    0.0851,
+    0.3788
+   ]
+  },
+  "ast": {
+   "k": 10,
+   "n": 26,
+   "ci": [
+    0.2243,
+    0.5747
+   ]
+  },
+  "ast_jedi": {
+   "k": 13,
+   "n": 26,
+   "ci": [
+    0.3206,
+    0.6794
+   ]
+  }
+ },
+ "mcnemar_exact_paired": {
+  "none_vs_ast": {
+   "right_only_in_none": 0,
+   "right_only_in_ast": 5,
+   "p_two_sided": 0.0625,
+   "kind": "planned",
+   "note": ""
+  },
+  "none_vs_ast_jedi": {
+   "right_only_in_none": 0,
+   "right_only_in_ast_jedi": 8,
+   "p_two_sided": 0.0078,
+   "kind": "planned",
+   "note": ""
+  },
+  "ast_vs_ast_jedi": {
+   "right_only_in_ast": 0,
+   "right_only_in_ast_jedi": 3,
+   "p_two_sided": 0.25,
+   "kind": "planned",
+   "note": ""
+  },
+  "none_vs_file": {
+   "right_only_in_none": 0,
+   "right_only_in_file": 0,
+   "p_two_sided": 1.0,
+   "kind": "exploratory",
+   "note": "three pairs were asked for; the last two are extra and make five comparisons with no correction"
+  },
+  "file_vs_ast_jedi": {
+   "right_only_in_file": 0,
+   "right_only_in_ast_jedi": 8,
+   "p_two_sided": 0.0078,
+   "kind": "exploratory",
+   "note": "three pairs were asked for; the last two are extra and make five comparisons with no correction"
+  }
+ },
+ "mcnemar_multiplicity": {
+  "planned_pairs": 3,
+  "bonferroni_threshold": 0.0167,
+  "note": "planned = none vs ast, none vs ast_jedi, ast vs ast_jedi; exploratory pairs are not corrected and are not tested against this threshold"
+ },
+ "shared_state_and_randomness_answers": {
+  "none": {
+   "shared_state": {
+    "timing": 6
+   },
+   "randomness": {
+    "timing": 5
+   }
+  },
+  "file": {
+   "shared_state": {
+    "order_dependence": 3,
+    "timing": 3
+   },
+   "randomness": {
+    "timing": 5
+   }
+  },
+  "ast": {
+   "shared_state": {
+    "timing": 3,
+    "random": 1,
+    "order_dependence": 2
+   },
+   "randomness": {
+    "random": 3,
+    "timing": 2
+   }
+  },
+  "ast_jedi": {
+   "shared_state": {
+    "order_dependence": 6
+   },
+   "randomness": {
+    "order_dependence": 2,
+    "random": 1,
+    "timing": 2
+   }
+  }
+ },
+ "shared_state_and_randomness_n": {
+  "shared_state": 6,
+  "randomness": 5
+ },
+ "context_names_fault_summary": {
+  "ast": {
+   "yes": 26,
+   "n": 26,
+   "by_cause": {
+    "order_dependence": "5 of 5",
+    "randomness": "5 of 5",
+    "shared_state": "6 of 6",
+    "time_or_timezone": "5 of 5",
+    "timing": "5 of 5"
+   }
+  },
+  "ast_jedi": {
+   "yes": 26,
+   "n": 26,
+   "by_cause": {
+    "order_dependence": "5 of 5",
+    "randomness": "5 of 5",
+    "shared_state": "6 of 6",
+    "time_or_timezone": "5 of 5",
+    "timing": "5 of 5"
+   }
+  }
+ },
+ "context_names_fault_per_test": {
+  "ast": {
+   "tests/test_cached.py::CacheWrapperTest::test_decorator_lock_cond_info": {
+    "true_cause": "order_dependence",
+    "names_the_fault": true,
+    "matches": [
+     "_FLAKEGUARD_ORDER_READY"
+    ],
+    "chars": 1198
+   },
+   "tests/test_cached.py::CacheWrapperTest::test_zero_size_cache_decorator": {
+    "true_cause": "order_dependence",
+    "names_the_fault": true,
+    "matches": [
+     "_FLAKEGUARD_ORDER_READY"
+    ],
+    "chars": 338
+   },
+   "tests/test_cached.py::PickleTest::test_pickle": {
+    "true_cause": "randomness",
+    "names_the_fault": true,
+    "matches": [
+     "random"
+    ],
+    "chars": 305
+   },
+   "tests/test_cachedmethod.py::CacheMethodTest::test_value_too_large": {
+    "true_cause": "order_dependence",
+    "names_the_fault": true,
+    "matches": [
+     "_FLAKEGUARD_ORDER_READY"
+    ],
+    "chars": 462
+   },
+   "tests/test_cachedmethod.py::NoneMethodTest::test_none_info": {
+    "true_cause": "time_or_timezone",
+    "names_the_fault": true,
+    "matches": [
+     "datetime",
+     "now("
+    ],
+    "chars": 388
+   },
+   "tests/test_cachedmethod.py::UnboundMethodTest::test_class_access_copy": {
+    "true_cause": "timing",
+    "names_the_fault": true,
+    "matches": [
+     "Thread",
+     "_race_flag",
+     "sleep",
+     "threading"
+    ],
+    "chars": 780
+   },
+   "tests/test_cachedmethod.py::UnboundMethodTest::test_class_call_after_delete": {
+    "true_cause": "randomness",
+    "names_the_fault": true,
+    "matches": [
+     "random"
+    ],
+    "chars": 709
+   },
+   "tests/test_fifo.py::FIFOCacheTest::test_fifo": {
+    "true_cause": "randomness",
+    "names_the_fault": true,
+    "matches": [
+     "random"
+    ],
+    "chars": 952
+   },
+   "tests/test_func.py::TTLDecoratorTest::test_ttl_expire_unbound": {
+    "true_cause": "randomness",
+    "names_the_fault": true,
+    "matches": [
+     "random"
+    ],
+    "chars": 1008
+   },
+   "tests/test_keys.py::CacheKeysTest::test_addkeys": {
+    "true_cause": "time_or_timezone",
+    "names_the_fault": true,
+    "matches": [
+     "datetime",
+     "now("
+    ],
+    "chars": 518
+   },
+   "tests/test_lfu.py::LFUCacheTest::test_lfu_copy_use_counts": {
+    "true_cause": "timing",
+    "names_the_fault": true,
+    "matches": [
+     "Thread",
+     "_race_flag",
+     "sleep",
+     "threading"
+    ],
+    "chars": 1593
+   },
+   "tests/test_lfu.py::LFUCacheTest::test_lfu_getsizeof": {
+    "true_cause": "time_or_timezone",
+    "names_the_fault": true,
+    "matches": [
+     "datetime",
+     "now("
+    ],
+    "chars": 788
+   },
+   "tests/test_lru.py::LRUCacheTest::test_lru": {
+    "true_cause": "shared_state",
+    "names_the_fault": true,
+    "matches": [
+     "_FLAKEGUARD_SHARED_CACHE"
+    ],
+    "chars": 1064
+   },
+   "tests/test_lru.py::LRUCacheTest::test_lru_clear": {
+    "true_cause": "shared_state",
+    "names_the_fault": true,
+    "matches": [
+     "_FLAKEGUARD_SHARED_CACHE"
+    ],
+    "chars": 848
+   },
+   "tests/test_lru.py::LRUCacheTest::test_lru_update_existing": {
+    "true_cause": "shared_state",
+    "names_the_fault": true,
+    "matches": [
+     "_FLAKEGUARD_SHARED_CACHE"
+    ],
+    "chars": 570
+   },
+   "tests/test_rr.py::RRCacheTest::test_rr": {
+    "true_cause": "timing",
+    "names_the_fault": true,
+    "matches": [
+     "Thread",
+     "_race_flag",
+     "sleep",
+     "threading"
+    ],
+    "chars": 1253
+   },
+   "tests/test_rr.py::RRCacheTest::test_rr_copy": {
+    "true_cause": "shared_state",
+    "names_the_fault": true,
+    "matches": [
+     "_FLAKEGUARD_SHARED_CACHE"
+    ],
+    "chars": 863
+   },
+   "tests/test_rr.py::RRCacheTest::test_rr_default_choice": {
+    "true_cause": "shared_state",
+    "names_the_fault": true,
+    "matches": [
+     "_FLAKEGUARD_SHARED_CACHE"
+    ],
+    "chars": 478
+   },
+   "tests/test_rr.py::RRCacheTest::test_rr_popitem_empty_custom_choice": {
+    "true_cause": "order_dependence",
+    "names_the_fault": true,
+    "matches": [
+     "_FLAKEGUARD_ORDER_READY"
+    ],
+    "chars": 721
+   },
+   "tests/test_rr.py::RRCacheTest::test_rr_update_existing": {
+    "true_cause": "shared_state",
+    "names_the_fault": true,
+    "matches": [
+     "_FLAKEGUARD_SHARED_CACHE"
+    ],
+    "chars": 649
+   },
+   "tests/test_tlru.py::TLRUCacheTest::test_tlru_clear": {
+    "true_cause": "randomness",
+    "names_the_fault": true,
+    "matches": [
+     "random"
+    ],
+    "chars": 1125
+   },
+   "tests/test_ttl.py::TTLCacheTest::test_ttl_atomic": {
+    "true_cause": "order_dependence",
+    "names_the_fault": true,
+    "matches": [
+     "_FLAKEGUARD_ORDER_READY"
+    ],
+    "chars": 660
+   },
+   "tests/test_ttl.py::TTLCacheTest::test_ttl_clear": {
+    "true_cause": "time_or_timezone",
+    "names_the_fault": true,
+    "matches": [
+     "datetime",
+     "now("
+    ],
+    "chars": 1115
+   },
+   "tests/test_ttl.py::TTLCacheTest::test_ttl_copy": {
+    "true_cause": "time_or_timezone",
+    "names_the_fault": true,
+    "matches": [
+     "datetime",
+     "now("
+    ],
+    "chars": 1303
+   },
+   "tests/test_ttl.py::TTLCacheTest::test_ttl_deepcopy_timer": {
+    "true_cause": "timing",
+    "names_the_fault": true,
+    "matches": [
+     "Thread",
+     "_race_flag",
+     "sleep",
+     "threading"
+    ],
+    "chars": 1232
+   },
+   "tests/test_ttl.py::TTLCacheTest::test_ttl_expire": {
+    "true_cause": "timing",
+    "names_the_fault": true,
+    "matches": [
+     "Thread",
+     "_race_flag",
+     "sleep",
+     "threading"
+    ],
+    "chars": 2347
+   }
+  },
+  "ast_jedi": {
+   "tests/test_cached.py::CacheWrapperTest::test_decorator_lock_cond_info": {
+    "true_cause": "order_dependence",
+    "names_the_fault": true,
+    "matches": [
+     "_FLAKEGUARD_ORDER_READY"
+    ],
+    "chars": 9992
+   },
+   "tests/test_cached.py::CacheWrapperTest::test_zero_size_cache_decorator": {
+    "true_cause": "order_dependence",
+    "names_the_fault": true,
+    "matches": [
+     "_FLAKEGUARD_ORDER_READY"
+    ],
+    "chars": 7593
+   },
+   "tests/test_cached.py::PickleTest::test_pickle": {
+    "true_cause": "randomness",
+    "names_the_fault": true,
+    "matches": [
+     "random"
+    ],
+    "chars": 2586
+   },
+   "tests/test_cachedmethod.py::CacheMethodTest::test_value_too_large": {
+    "true_cause": "order_dependence",
+    "names_the_fault": true,
+    "matches": [
+     "_FLAKEGUARD_ORDER_READY"
+    ],
+    "chars": 8719
+   },
+   "tests/test_cachedmethod.py::NoneMethodTest::test_none_info": {
+    "true_cause": "time_or_timezone",
+    "names_the_fault": true,
+    "matches": [
+     "datetime",
+     "now("
+    ],
+    "chars": 3857
+   },
+   "tests/test_cachedmethod.py::UnboundMethodTest::test_class_access_copy": {
+    "true_cause": "timing",
+    "names_the_fault": true,
+    "matches": [
+     "Thread",
+     "_race_flag",
+     "sleep",
+     "threading"
+    ],
+    "chars": 4141
+   },
+   "tests/test_cachedmethod.py::UnboundMethodTest::test_class_call_after_delete": {
+    "true_cause": "randomness",
+    "names_the_fault": true,
+    "matches": [
+     "random"
+    ],
+    "chars": 8681
+   },
+   "tests/test_fifo.py::FIFOCacheTest::test_fifo": {
+    "true_cause": "randomness",
+    "names_the_fault": true,
+    "matches": [
+     "random"
+    ],
+    "chars": 7869
+   },
+   "tests/test_func.py::TTLDecoratorTest::test_ttl_expire_unbound": {
+    "true_cause": "randomness",
+    "names_the_fault": true,
+    "matches": [
+     "random"
+    ],
+    "chars": 8528
+   },
+   "tests/test_keys.py::CacheKeysTest::test_addkeys": {
+    "true_cause": "time_or_timezone",
+    "names_the_fault": true,
+    "matches": [
+     "datetime",
+     "now("
+    ],
+    "chars": 817
+   },
+   "tests/test_lfu.py::LFUCacheTest::test_lfu_copy_use_counts": {
+    "true_cause": "timing",
+    "names_the_fault": true,
+    "matches": [
+     "Thread",
+     "_race_flag",
+     "sleep",
+     "threading"
+    ],
+    "chars": 11289
+   },
+   "tests/test_lfu.py::LFUCacheTest::test_lfu_getsizeof": {
+    "true_cause": "time_or_timezone",
+    "names_the_fault": true,
+    "matches": [
+     "datetime",
+     "now("
+    ],
+    "chars": 9496
+   },
+   "tests/test_lru.py::LRUCacheTest::test_lru": {
+    "true_cause": "shared_state",
+    "names_the_fault": true,
+    "matches": [
+     "_FLAKEGUARD_SHARED_CACHE"
+    ],
+    "chars": 8260
+   },
+   "tests/test_lru.py::LRUCacheTest::test_lru_clear": {
+    "true_cause": "shared_state",
+    "names_the_fault": true,
+    "matches": [
+     "_FLAKEGUARD_SHARED_CACHE"
+    ],
+    "chars": 7743
+   },
+   "tests/test_lru.py::LRUCacheTest::test_lru_update_existing": {
+    "true_cause": "shared_state",
+    "names_the_fault": true,
+    "matches": [
+     "_FLAKEGUARD_SHARED_CACHE"
+    ],
+    "chars": 7035
+   },
+   "tests/test_rr.py::RRCacheTest::test_rr": {
+    "true_cause": "timing",
+    "names_the_fault": true,
+    "matches": [
+     "Thread",
+     "_race_flag",
+     "sleep",
+     "threading"
+    ],
+    "chars": 8025
+   },
+   "tests/test_rr.py::RRCacheTest::test_rr_copy": {
+    "true_cause": "shared_state",
+    "names_the_fault": true,
+    "matches": [
+     "_FLAKEGUARD_SHARED_CACHE"
+    ],
+    "chars": 8260
+   },
+   "tests/test_rr.py::RRCacheTest::test_rr_default_choice": {
+    "true_cause": "shared_state",
+    "names_the_fault": true,
+    "matches": [
+     "_FLAKEGUARD_SHARED_CACHE"
+    ],
+    "chars": 7054
+   },
+   "tests/test_rr.py::RRCacheTest::test_rr_popitem_empty_custom_choice": {
+    "true_cause": "order_dependence",
+    "names_the_fault": true,
+    "matches": [
+     "_FLAKEGUARD_ORDER_READY"
+    ],
+    "chars": 8118
+   },
+   "tests/test_rr.py::RRCacheTest::test_rr_update_existing": {
+    "true_cause": "shared_state",
+    "names_the_fault": true,
+    "matches": [
+     "_FLAKEGUARD_SHARED_CACHE"
+    ],
+    "chars": 7222
+   },
+   "tests/test_tlru.py::TLRUCacheTest::test_tlru_clear": {
+    "true_cause": "randomness",
+    "names_the_fault": true,
+    "matches": [
+     "random"
+    ],
+    "chars": 11613
+   },
+   "tests/test_ttl.py::TTLCacheTest::test_ttl_atomic": {
+    "true_cause": "order_dependence",
+    "names_the_fault": true,
+    "matches": [
+     "_FLAKEGUARD_ORDER_READY"
+    ],
+    "chars": 11110
+   },
+   "tests/test_ttl.py::TTLCacheTest::test_ttl_clear": {
+    "true_cause": "time_or_timezone",
+    "names_the_fault": true,
+    "matches": [
+     "datetime",
+     "now("
+    ],
+    "chars": 11186
+   },
+   "tests/test_ttl.py::TTLCacheTest::test_ttl_copy": {
+    "true_cause": "time_or_timezone",
+    "names_the_fault": true,
+    "matches": [
+     "datetime",
+     "now("
+    ],
+    "chars": 10785
+   },
+   "tests/test_ttl.py::TTLCacheTest::test_ttl_deepcopy_timer": {
+    "true_cause": "timing",
+    "names_the_fault": true,
+    "matches": [
+     "Thread",
+     "_race_flag",
+     "sleep",
+     "threading"
+    ],
+    "chars": 11125
+   },
+   "tests/test_ttl.py::TTLCacheTest::test_ttl_expire": {
+    "true_cause": "timing",
+    "names_the_fault": true,
+    "matches": [
+     "Thread",
+     "_race_flag",
+     "sleep",
+     "threading"
+    ],
+    "chars": 13242
+   }
+  }
+ },
+ "keywords_used": {
+  "order_dependence": "_FLAKEGUARD_ORDER\\w*",
+  "shared_state": "_FLAKEGUARD_SHARED\\w*",
+  "timing": "sleep|Thread|threading|_race\\w*",
+  "randomness": "\\brandom\\b|_fg_random|random\\.\\w+",
+  "time_or_timezone": "datetime|\\bnow\\("
+ },
+ "limitation": "A keyword hit means the text sent to the model holds a word that names the fault class; it does not show the model used it. No answer was rescored."
+}
