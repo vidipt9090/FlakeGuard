@@ -174,3 +174,9 @@ Planned paired exact tests on the same 26 tests (Bonferroni threshold 0.0125):
 | masked ast jedi vs unmasked ast jedi | 1 (unmasked_ast_jedi) | 1 (masked_ast_jedi) | 1.0000 |
 
 Reading: masking the injector's names did not lower the counts in either setting. That does not show the model never used them; natural cues remain, the surrounding structure remains, and 26 tests with one model cannot resolve small differences. Confusion matrices for the masked runs are in `results/injected/rq4_masked_analysis.json`.
+
+---
+
+## 8. No-tests flow: what "kept" means
+
+- "Kept" means a generated test passed validation (passes at HEAD and gives the same result over k seeds), not that it is a strong test. In the recorded fixture scan, `test_current_report_title` only checks that the title starts with "Report for ", and `test_current_next_ticket` passes only because every run starts a fresh process (its `_COUNT = 0` line sets a local variable and does nothing). Both were kept (DECISIONS M7-4). No test-quality score is computed.

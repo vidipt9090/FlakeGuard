@@ -57,6 +57,7 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     command = "python " + " ".join(["scripts/run_no_tests.py", *(argv if argv is not None else sys.argv[1:])])
+    dirty_at_start = bool(_git("status", "--porcelain", "--untracked-files=no"))
     with tempfile.TemporaryDirectory(prefix="flakeguard_notests_") as tmp:
         work = Path(tmp) / "repo"
         shutil.copytree(source, work, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
@@ -77,7 +78,8 @@ def main(argv: list[str] | None = None) -> int:
             "id": next_id(), "repo": args.repo, "candidates": cands,
             "provenance": {
                 "date_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "command": command, "commit": _git("rev-parse", "HEAD"),
-                "tracked_files_modified": bool(_git("status", "--porcelain", "--untracked-files=no")),
+                # true if a tracked file differed from the commit when the scan started or when it ended
+                "tracked_files_modified": dirty_at_start or bool(_git("status", "--porcelain", "--untracked-files=no")),
                 "model": provider.model_name, "seed": SEED, "num_ctx": NUM_CTX, "temperature": 0, "ollama_version": ollama_version,
                 "k_shuffled_runs": args.k, "sandbox": "local process on a temporary copy, not Docker", "python": platform.python_version(),
                 "risky_sites_found": summary.risky_sites_count,

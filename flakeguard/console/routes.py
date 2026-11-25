@@ -38,6 +38,7 @@ from flakeguard.console.no_tests import (
     drop_test,
     is_no_tests_id,
     read_plan,
+    resolve_id,
 )
 from flakeguard.console.results import load_results
 from flakeguard.console.runs import DEMO_REPOS, Refused, is_live_id, manager, seed_start_from_env
@@ -242,6 +243,7 @@ async def get_tree(request: Request) -> Response:
 async def get_no_tests(request: Request) -> Response:
     run_id = request.path_params["run_id"]
     try:
+        run_id = resolve_id(run_id)
         if is_no_tests_id(run_id):
             return respond(await run_in_threadpool(read_plan, run_id))
         if is_live_id(run_id) or is_actions_id(run_id):
@@ -254,6 +256,10 @@ async def get_no_tests(request: Request) -> Response:
 async def drop_no_test(request: Request) -> Response:
     """Drop one generated test. Local only: it edits two files under recorded_no_tests/ and nothing else."""
     run_id = request.path_params["run_id"]
+    try:
+        run_id = resolve_id(run_id)
+    except NoTestsNotFound as e:
+        return detail(str(e), 404)
     if not is_no_tests_id(run_id):
         return detail("Only a recorded no-tests scan has generated tests that can be dropped.", 409)
     test = str((await body_of(request)).get("test", "")).strip()

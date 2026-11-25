@@ -64,6 +64,7 @@ export default function NoTests() {
                   ))}
                 </div>
                 <div className="banner neutral">These tests record what the code does today. They do not prove it is correct.</div>
+                <p className="footnote" role="note" style={{ marginTop: 8 }}>Kept means the test passed validation, not that it is a strong test.</p>
                 <div className="btns" style={{ marginTop: 14 }}>
                   <button type="button" className="btn primary" disabled aria-disabled="true" title="Not enabled in this build">Open PR on your fork</button>
                   <button type="button" className="btn" onClick={drop}>Drop this test</button>

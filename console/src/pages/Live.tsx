@@ -59,7 +59,7 @@ export default function Live() {
         </section>
 
         <p className="footnote" style={{ marginTop: -8 }}>
-          Repo has no tests? <Link to="/no-tests">See how FlakeGuard handles it</Link> ·{' '}
+          Repo has no tests? <Link to="/no-tests?plan=latest">See how FlakeGuard handles it</Link> ·{' '}
           <Link to="/states">Screen states</Link> · <Link to="/bot-text">Text the bot posts on GitHub</Link>
           {health?.recorded && (
             <> · <button type="button" className="linklike" onClick={() => setRunId(health.recorded)}>Replay the recorded run</button></>

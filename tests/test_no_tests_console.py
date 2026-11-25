@@ -81,3 +81,21 @@ def test_routes_serve_and_drop_only_a_recorded_no_tests_scan(tmp_path, state, mo
     assert client.post(f"/api/runs/{RUN}/no-tests/drop", json={"test": "zzz"}).status_code == 404
     assert client.post("/api/runs/run-2026-11-21-001/no-tests/drop", json={"test": "x"}).status_code == 409
     assert client.get("/api/runs/notests-2030-01-01-009/no-tests").status_code == 404
+
+
+def test_latest_resolves_to_the_newest_recorded_scan_and_drop_follows_it(tmp_path, state, monkeypatch):
+    from flakeguard.app.api import app
+
+    monkeypatch.setattr(no_tests, "NO_TESTS_DIR", tmp_path)
+    older = {**state, "id": "notests-2026-01-02-001", "repo": "older"}
+    newer = {**state, "id": "notests-2026-01-02-002", "repo": "newer"}
+    no_tests.write_plan(older["id"], older)
+    no_tests.write_plan(newer["id"], newer)
+    client = TestClient(app)
+    assert m.NoTestsPlan.model_validate(client.get("/api/runs/latest/no-tests").json()).repo == "newer"
+    assert client.get(f"/api/runs/{older['id']}/no-tests").json()["repo"] == "older"  # the older record stays reachable by id
+    assert client.post("/api/runs/latest/no-tests/drop", json={"test": "kept_a"}).status_code == 200
+    assert {d.test for d in no_tests.read_plan(newer["id"]).dropped} == {"failed_b", "kept_a"}
+    assert {d.test for d in no_tests.read_plan(older["id"]).dropped} == {"failed_b"}  # the older scan was not touched
+    monkeypatch.setattr(no_tests, "NO_TESTS_DIR", tmp_path / "empty")
+    assert client.get("/api/runs/latest/no-tests").status_code == 404

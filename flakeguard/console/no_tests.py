@@ -42,6 +42,17 @@ class NoTestsRefused(Exception):
     """The action is not possible for this plan; the message says why."""
 
 
+def resolve_id(run_id: str, root: Path | None = None) -> str:
+    """``latest`` means the newest recorded scan (by id); any other id is returned unchanged."""
+    if run_id != "latest":
+        return run_id
+    base = root or NO_TESTS_DIR
+    ids = sorted(p.name for p in base.glob("notests-*") if is_no_tests_id(p.name) and (p / "state.json").is_file()) if base.is_dir() else []
+    if not ids:
+        raise NoTestsNotFound("No no-tests scan has been recorded yet.")
+    return ids[-1]
+
+
 def _dir(run_id: str, root: Path | None = None) -> Path:
     if not is_no_tests_id(run_id):
         raise NoTestsNotFound(f"There is no no-tests scan called {run_id}.")
