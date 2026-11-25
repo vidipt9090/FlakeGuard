@@ -45,6 +45,22 @@ HOST = "http://localhost:11434"
 SEED = 42
 NUM_CTX = 16384
 SETTINGS = ("none", "file", "ast", "ast_jedi")
+
+# --mask (the rq4_masked run): the seven identifiers only the injection operators write (flakeguard/injector/operators.py) are
+# replaced in the code part of the prompt, one neutral name each. Natural cues (sleep, random, datetime, now, Thread, global ...) stay.
+MASK_MAP = {"_FLAKEGUARD_ORDER_READY": "_x1", "_FLAKEGUARD_SHARED_CACHE": "_x2", "_bg_job": "_x3", "_fg_random": "_x4",
+            "_hour": "_x5", "_race_flag": "_x6", "_th": "_x7"}
+_MASK_RE = re.compile(r"\b(" + "|".join(map(re.escape, MASK_MAP)) + r")\b")
+
+
+def mask_code(text: str) -> str:
+    out = _MASK_RE.sub(lambda m: MASK_MAP[m.group(1)], text)
+    left = _MASK_RE.findall(out)
+    if left:  # never send a prompt that still holds a name that was meant to be masked
+        raise RuntimeError(f"masking left {sorted(set(left))} in the text")
+    return out
+
+
 CAUSE_WORD = {"order_dep": "order_dependence", "shared_state": "shared_state", "timing": "timing",
               "randomness": "randomness", "time_tz": "time_or_timezone"}
 VOCAB = [*CAUSE_WORD.values(), "other"]
@@ -339,7 +355,7 @@ def _stats(values: list[float]) -> dict:
             "total": sum(values)} if values else {"n": 0, "mean": None, "median": None, "max": None, "total": None}
 
 
-def run(label: str, prompt_version: str, settings: tuple[str, ...], use_cache: bool, limit: int | None, fix: bool) -> dict:
+def run(label: str, prompt_version: str, settings: tuple[str, ...], use_cache: bool, limit: int | None, fix: bool, mask: bool = False) -> dict:
     labels = run_eval.prepare(label)
     flaky = [x for x in labels if x["label"] == "flaky"][:limit]
     template = PROMPTS[prompt_version]
@@ -352,6 +368,8 @@ def run(label: str, prompt_version: str, settings: tuple[str, ...], use_cache: b
         for x in flaky:
             tid = x["id"]
             code = context(setting, label, tid, nav, root)
+            if mask:
+                code = mask_code(code)
             prompt = template.format(test_id=tid, summary=run_summary(label, tid), code=code, causes=CAUSES_TEXT)
             rec = ask(prompt, 200, use_cache)
             cause, readable = read_cause(rec["response"])
@@ -407,6 +425,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--settings", default=",".join(SETTINGS))
     ap.add_argument("--no-cache", action="store_true")
     ap.add_argument("--no-fix", action="store_true")
+    ap.add_argument("--mask", action="store_true", help="the rq4_masked run: mask the seven injector-only identifiers (docs/EVAL.md)")
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--out", default=None)
     args = ap.parse_args(argv)
@@ -416,7 +435,7 @@ def main(argv: list[str] | None = None) -> int:
     prov = run_eval.provenance(args.label, labels, command)
     tags = ollama("/api/tags")
     digest = next((m["digest"] for m in tags["models"] if m["name"] == MODEL), None)
-    body = run(args.label, args.prompt, settings, not args.no_cache, args.limit, not args.no_fix)
+    body = run(args.label, args.prompt, settings, not args.no_cache, args.limit, not args.no_fix, args.mask)
     prov.update({
         "model": {"name": MODEL, "digest": digest, "ollama_version": ollama("/api/version").get("version"), "host": "local, CPU"},
         "decoding": {"temperature": 0, "seed": SEED, "num_ctx": NUM_CTX, "format": "json", "retries": 0},
@@ -435,6 +454,12 @@ def main(argv: list[str] | None = None) -> int:
             "Fix metric: N=5. No figure there is a rate.",
         ],
     })
+    if args.mask:
+        prov["mask"] = {"map": MASK_MAP, "applies_to": "the code part of the prompt, settings " + ", ".join(settings),
+                        "natural_cues_untouched": True, "note": "a separate run; results/injected/rq4.json is not changed"}
+        prov["limitations"] = [x if not x.startswith("Identifiers chosen by the injection operators") else
+                               "The seven identifiers only the injection operators write are replaced by _x1 to _x7 (map in provenance.mask). Natural cues stay, and so do the structures around the names (for example globals().get(...)), so the code is still easier than real code."
+                               for x in prov["limitations"]]
     name = args.out or (f"rq4_tuning_{args.prompt}.json" if args.label == "planted" else "rq4.json")
     run_eval.write(REPO / "results" / args.label / name, {"provenance": prov, **body})
     for s, r in body["results"].items():

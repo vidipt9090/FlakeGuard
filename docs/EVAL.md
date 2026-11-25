@@ -131,3 +131,43 @@ Two prompt versions were tried, both scored on the 15 planted flaky tests in all
 | v2 | 3/15 | 4/15 | 9/15 | 10/15 | a clue for each cause (words and patterns to look for) and a warning not to answer `shared_state` just because a global name appears |
 
 v2 is the frozen prompt. The v1 and v2 logs are `results/planted/rq4_tuning_v1.json` and `rq4_tuning_v2.json`. These are tuning scores on the set the prompt was tuned on; they are not a result.
+
+### RQ4 masked rerun `rq4_masked` (registered before it was run)
+
+**Why.** The text sent to the model in the `ast`, `ast_jedi` and `file` settings holds names that only the fault injector writes (`results/injected/rq4_leakage_split.json`: 21 of 26 tests in `ast` and `ast_jedi`). Real code would not have them. This run asks whether the `ast` and `ast_jedi` gains survive without them. It is a new run; `results/injected/rq4.json` is never replaced or edited.
+
+**What is masked.** Only the seven identifiers that appear in the blocks of `flakeguard/injector/operators.py` and start with an underscore, in the code part of the prompt, with one fixed neutral name each (whole-word match):
+
+| Injector name | Replaced by |
+|---|---|
+| `_FLAKEGUARD_ORDER_READY` | `_x1` |
+| `_FLAKEGUARD_SHARED_CACHE` | `_x2` |
+| `_bg_job` | `_x3` |
+| `_fg_random` | `_x4` |
+| `_hour` | `_x5` |
+| `_race_flag` | `_x6` |
+| `_th` | `_x7` |
+
+The run stops if a prompt still holds one of the seven names. **Not masked:** natural cues (`sleep`, `random`, `datetime`, `now`, `Thread`, `threading`, `global`), the structure around the names (for example `globals().get(...)`), test names, and the run summary line. So the masked contexts are still easier than real code.
+
+**Before and after, two tests (the `ast` context, lines that hold a masked name).**
+
+`tests/test_cached.py::CacheWrapperTest::test_decorator_lock_cond_info` (order dependence)
+
+    before:  assert globals().get('_FLAKEGUARD_ORDER_READY') is True
+    after:   assert globals().get('_x1') is True
+
+`tests/test_cachedmethod.py::UnboundMethodTest::test_class_access_copy` (timing)
+
+    before:  import random as _fg_random, threading, time        after:  import random as _x4, threading, time
+    before:  _race_flag = [False]                                after:  _x6 = [False]
+    before:  def _bg_job():                                      after:  def _x3():
+    before:  time.sleep(_fg_random.uniform(0.01, 0.04))          after:  time.sleep(_x4.uniform(0.01, 0.04))
+    before:  _race_flag[0] = True                                after:  _x6[0] = True
+    before:  _th = threading.Thread(target=_bg_job)              after:  _x7 = threading.Thread(target=_x3)
+    before:  _th.start()                                         after:  _x7.start()
+    before:  assert _race_flag[0] is True                        after:  assert _x6[0] is True
+
+**Run.** Settings `ast` and `ast_jedi` only; 26 flaky tests each, so 52 diagnosis prompts; no fix calls (`--no-fix`); prompt v2 as frozen; `llama3.2:3b`, temperature 0, seed 42, `num_ctx` 16384, same order (setting by setting, dataset order). Command: `python scripts/run_rq4.py injected --settings ast,ast_jedi --no-fix --mask --out rq4_masked.json`. A dry run before this entry showed masking changes the prompt of 21 of 26 tests in each setting; the other 5 (the randomness tests, which hold no injector name) are the same request as in `rq4`, so their replies come from the existing call cache and are not asked again. The cache is keyed by the full request, so masked prompts never hit an unmasked reply.
+
+**What will be reported, whatever the outcome.** Per setting: correct of 26 with a Wilson 95% interval; per fault class counts; the answers given. Paired exact McNemar tests on the same 26 tests, two-sided: masked `ast` vs `none`, masked `ast_jedi` vs `none` (reusing the recorded `none` results), masked vs unmasked `ast`, masked vs unmasked `ast_jedi`. These four are planned; Bonferroni threshold 0.05 / 4 = 0.0125. Discordant counts are shown with each p. The exact-match rule and the definitions above are unchanged, nothing is rescored, and if the gain shrinks or vanishes it is reported as it is.
