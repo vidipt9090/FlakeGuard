@@ -181,7 +181,7 @@ export const MOCK_TREE: TreeData = {
 
 export const MOCK_RESULTS: ResultsData = {
   ablation: {
-    table: { columns: ['Context given to the model', 'Diagnosis matches the known cause', 'Fix passes validation under shuffle', 'Code sent to the model'], rows: [] },
+    table: { columns: ['Context given to the model', 'Diagnosis matches the known cause', 'Paired exact test against No code (McNemar)', "Model-written fix passes validation (not the product's fixer)", 'Code sent to the model'], rows: [] },
     provenance: { dataset: null, labelType: 'injected', n: null, command: null, date: null, commit: null },
   },
   baselines: {

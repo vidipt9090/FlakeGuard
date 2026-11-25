@@ -73,3 +73,78 @@ This document outlines known architectural limitations, methodological trade-off
   - Freezing the system clock forces failures during benchmark collection, but does not capture true real-time clock drift, leap years, or DST transitions occurring naturally during un-frozen CI execution.
 - **Action Item / Verification**:
   - TODO: Verify time-dependent test behaviors under live system clock execution during off-hours CI runs.
+
+---
+
+## 7. RQ4 on the injected set: what the numbers can and cannot say
+
+Every figure below is copied from `results/injected/rq4.json`, `rq4_integrity.json` and `rq4_leakage_split.json` (written by `scripts/run_rq4.py`, `scripts/rq4_integrity.py`, `scripts/rq4_leakage_split.py`). Nothing was rescored.
+
+- **Injector-named identifiers are in the context.** Names that only the injector writes (`_FLAKEGUARD_ORDER_READY`, `_FLAKEGUARD_SHARED_CACHE`, `_bg_job`, `_fg_random`, `_hour`, `_race_flag`, `_th`) are present for 21 of 26 tests in the AST setting, 21 in AST + Jedi and 23 in the whole-file setting. Real code would not have them. Natural cues (sleep, random, datetime, now, Thread, threading, global) were added by the injection in 21 of 26 AST contexts; 6 AST contexts also hold such a cue from cachetools' own code. Per-test table: `results/injected/rq4_leakage_split.json`. A word in the context is not proof the model used it. A masked re-run has been planned and not run.
+- **Exact match is strict.** The reply must be the listed word. `random` instead of `randomness` counts as a miss; AST tree only: 4 replies, 13 correct if accepted; AST + Jedi tree: 1 replies, 14 correct if accepted. That is a sensitivity, not the result.
+- **Zero correct on shared_state and randomness.** shared_state: 6 tests, 0 correct across all four settings; randomness: 5 tests, 0 correct across all four settings. Part of this is the taxonomy: the injected shared-state fault is a global that an earlier test leaves changed, and an answer of `order_dependence` for it is a reasonable confusion (see the matrices). Part may be the model and the prompt.
+- **One 3B model** (`llama3.2:3b`, 4-bit), one prompt, one decoding setting. A different model or prompt could move every number.
+- **The fix column is not the product's fixer.** It measures a replacement test written by the model for the 5 order-dependent tests. The template fixer applies to 0 of them (DECISIONS M8-21).
+- **Multiple comparisons.** 3 comparisons were planned; the Bonferroni threshold is 0.0167. Two more were looked at afterwards and are marked exploratory.
+
+**Chance baseline.** The best constant guess is `shared_state`: 6 of 26. Class counts: order_dependence 5, randomness 5, time_or_timezone 5, timing 5, shared_state 6.
+
+**Wilson 95% intervals and paired exact tests (same 26 tests).**
+
+| Setting | Correct | 95% interval |
+|---|---|---|
+| No code | 5 of 26 | 0.085 to 0.379 |
+| Whole file | 5 of 26 | 0.085 to 0.379 |
+| AST tree only | 10 of 26 | 0.224 to 0.575 |
+| AST + Jedi tree | 13 of 26 | 0.321 to 0.679 |
+
+| Pair | Kind | Right only in first | Right only in second | p (two-sided) |
+|---|---|---|---|---|
+| No code vs AST tree only | planned | 0 | 5 | 0.0625 |
+| No code vs AST + Jedi tree | planned | 0 | 8 | 0.0078 |
+| AST tree only vs AST + Jedi tree | planned | 0 | 3 | 0.2500 |
+| No code vs Whole file | exploratory | 0 | 0 | 1.0000 |
+| Whole file vs AST + Jedi tree | exploratory | 0 | 8 | 0.0078 |
+
+**Confusion matrices** (rows: true cause; columns: what the model answered; `random` is the reply that is not one of the six listed words).
+
+*No code*
+
+| True cause | timing |
+|---|---|
+| order_dependence | 5 |
+| randomness | 5 |
+| shared_state | 6 |
+| time_or_timezone | 5 |
+| timing | 5 |
+
+*Whole file*
+
+| True cause | order_dependence | timing |
+|---|---|---|
+| order_dependence | 0 | 5 |
+| randomness | 0 | 5 |
+| shared_state | 3 | 3 |
+| time_or_timezone | 0 | 5 |
+| timing | 0 | 5 |
+
+*AST tree only*
+
+| True cause | order_dependence | random | time_or_timezone | timing |
+|---|---|---|---|---|
+| order_dependence | 1 | 0 | 0 | 4 |
+| randomness | 0 | 3 | 0 | 2 |
+| shared_state | 2 | 1 | 0 | 3 |
+| time_or_timezone | 0 | 0 | 4 | 1 |
+| timing | 0 | 0 | 0 | 5 |
+
+*AST + Jedi tree*
+
+| True cause | order_dependence | random | time_or_timezone | timing |
+|---|---|---|---|---|
+| order_dependence | 4 | 0 | 0 | 1 |
+| randomness | 2 | 1 | 0 | 2 |
+| shared_state | 6 | 0 | 0 | 0 |
+| time_or_timezone | 0 | 0 | 4 | 1 |
+| timing | 0 | 0 | 0 | 5 |
+

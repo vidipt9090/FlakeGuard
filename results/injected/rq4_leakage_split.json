@@ -1,0 +1,2064 @@
+{
+ "source": "rebuilt contexts (scripts/run_rq4.py context()) from .eval_cache/injected_view and .eval_cache/dl/cachetools-8.0.2",
+ "injector_only_identifiers_found": [
+  "_FLAKEGUARD_ORDER_READY",
+  "_FLAKEGUARD_SHARED_CACHE",
+  "_bg_job",
+  "_fg_random",
+  "_hour",
+  "_race_flag",
+  "_th"
+ ],
+ "marker_words": [
+  "Injected",
+  "FlakeGuard",
+  "mutant"
+ ],
+ "cue_words": [
+  "sleep",
+  "random",
+  "datetime",
+  "now",
+  "Thread",
+  "threading",
+  "global"
+ ],
+ "definition": "Leakage split for the RQ4 contexts. Read-only on results and on the dataset; writes results/injected/rq4_leakage_split.json.\n\nFor every flaky test and each of the file, ast and ast_jedi settings, the text sent to the model is rebuilt with the runner's own\n``context`` function, once from the injected suite (as the model saw it) and once from the pristine cachetools 8.0.2 sources.\nThen, per test and setting:\n\n(a) injector-specific: identifiers that start with an underscore inside the blocks flakeguard/injector/operators.py inserts\n    (``_FLAKEGUARD_*``, ``_race_flag``, ``_fg_random``, ``_bg_job``, ``_th``, ``_hour``), plus marker words left in the text\n    (``Injected``, ``FlakeGuard``, ``mutant``). Real code would not contain them.\n(b) natural cues the injection introduced: a cue word (sleep, random, datetime, now, Thread, threading, global) that occurs more\n    often in the injected text than in the pristine text. A real tool would also see these in real flaky code.\n(c) cachetools' own: a cue word that occurs in the pristine text of the same test and setting.\n    A cue can be in both (b) and (c) when the injection added occurrences to a word the library already had.\n\nNothing is rescored; prompts, labels and results are not changed.\n",
+ "summary": {
+  "file": {
+   "tests": 26,
+   "a_has_injector_specific_identifier": 23,
+   "b_has_natural_cue_added": 26,
+   "c_has_cachetools_own_cue": 12,
+   "a_only_no_natural_cue_added": 0,
+   "neither_a_nor_b": 0,
+   "pristine_context_failed": 0
+  },
+  "ast": {
+   "tests": 26,
+   "a_has_injector_specific_identifier": 21,
+   "b_has_natural_cue_added": 21,
+   "c_has_cachetools_own_cue": 6,
+   "a_only_no_natural_cue_added": 5,
+   "neither_a_nor_b": 0,
+   "pristine_context_failed": 0
+  },
+  "ast_jedi": {
+   "tests": 26,
+   "a_has_injector_specific_identifier": 21,
+   "b_has_natural_cue_added": 21,
+   "c_has_cachetools_own_cue": 7,
+   "a_only_no_natural_cue_added": 5,
+   "neither_a_nor_b": 0,
+   "pristine_context_failed": 0
+  }
+ },
+ "per_test": [
+  {
+   "id": "tests/test_cached.py::CacheWrapperTest::test_decorator_lock_cond_info",
+   "true_cause": "order_dependence",
+   "setting": "file",
+   "chars": 24245,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 6
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "random": [
+     0,
+     3
+    ],
+    "global": [
+     0,
+     2
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_cached.py::CacheWrapperTest::test_zero_size_cache_decorator",
+   "true_cause": "order_dependence",
+   "setting": "file",
+   "chars": 24245,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 6
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "random": [
+     0,
+     3
+    ],
+    "global": [
+     0,
+     2
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_cached.py::PickleTest::test_pickle",
+   "true_cause": "randomness",
+   "setting": "file",
+   "chars": 24245,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 6
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "random": [
+     0,
+     3
+    ],
+    "global": [
+     0,
+     2
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_cachedmethod.py::CacheMethodTest::test_value_too_large",
+   "true_cause": "order_dependence",
+   "setting": "file",
+   "chars": 47430,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 3,
+    "_bg_job": 2,
+    "_fg_random": 2,
+    "_hour": 2,
+    "_race_flag": 3,
+    "_th": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     2
+    ],
+    "random": [
+     0,
+     4
+    ],
+    "datetime": [
+     0,
+     3
+    ],
+    "now": [
+     0,
+     1
+    ],
+    "Thread": [
+     0,
+     1
+    ],
+    "threading": [
+     0,
+     2
+    ],
+    "global": [
+     0,
+     1
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_cachedmethod.py::NoneMethodTest::test_none_info",
+   "true_cause": "time_or_timezone",
+   "setting": "file",
+   "chars": 47430,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 3,
+    "_bg_job": 2,
+    "_fg_random": 2,
+    "_hour": 2,
+    "_race_flag": 3,
+    "_th": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     2
+    ],
+    "random": [
+     0,
+     4
+    ],
+    "datetime": [
+     0,
+     3
+    ],
+    "now": [
+     0,
+     1
+    ],
+    "Thread": [
+     0,
+     1
+    ],
+    "threading": [
+     0,
+     2
+    ],
+    "global": [
+     0,
+     1
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_cachedmethod.py::UnboundMethodTest::test_class_access_copy",
+   "true_cause": "timing",
+   "setting": "file",
+   "chars": 47430,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 3,
+    "_bg_job": 2,
+    "_fg_random": 2,
+    "_hour": 2,
+    "_race_flag": 3,
+    "_th": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     2
+    ],
+    "random": [
+     0,
+     4
+    ],
+    "datetime": [
+     0,
+     3
+    ],
+    "now": [
+     0,
+     1
+    ],
+    "Thread": [
+     0,
+     1
+    ],
+    "threading": [
+     0,
+     2
+    ],
+    "global": [
+     0,
+     1
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_cachedmethod.py::UnboundMethodTest::test_class_call_after_delete",
+   "true_cause": "randomness",
+   "setting": "file",
+   "chars": 47430,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 3,
+    "_bg_job": 2,
+    "_fg_random": 2,
+    "_hour": 2,
+    "_race_flag": 3,
+    "_th": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     2
+    ],
+    "random": [
+     0,
+     4
+    ],
+    "datetime": [
+     0,
+     3
+    ],
+    "now": [
+     0,
+     1
+    ],
+    "Thread": [
+     0,
+     1
+    ],
+    "threading": [
+     0,
+     2
+    ],
+    "global": [
+     0,
+     1
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_fifo.py::FIFOCacheTest::test_fifo",
+   "true_cause": "randomness",
+   "setting": "file",
+   "chars": 1966,
+   "pristine_context_built": true,
+   "a_injector_specific": {},
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "random": [
+     0,
+     3
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_func.py::TTLDecoratorTest::test_ttl_expire_unbound",
+   "true_cause": "randomness",
+   "setting": "file",
+   "chars": 11310,
+   "pristine_context_built": true,
+   "a_injector_specific": {},
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "random": [
+     0,
+     3
+    ]
+   },
+   "c_cachetools_own_cues": {
+    "datetime": 3,
+    "now": 2
+   }
+  },
+  {
+   "id": "tests/test_keys.py::CacheKeysTest::test_addkeys",
+   "true_cause": "time_or_timezone",
+   "setting": "file",
+   "chars": 5454,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_hour": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "datetime": [
+     0,
+     3
+    ],
+    "now": [
+     0,
+     1
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_lfu.py::LFUCacheTest::test_lfu_copy_use_counts",
+   "true_cause": "timing",
+   "setting": "file",
+   "chars": 5206,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_bg_job": 2,
+    "_fg_random": 2,
+    "_hour": 2,
+    "_race_flag": 3,
+    "_th": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     2
+    ],
+    "random": [
+     0,
+     1
+    ],
+    "datetime": [
+     0,
+     3
+    ],
+    "now": [
+     0,
+     1
+    ],
+    "Thread": [
+     0,
+     1
+    ],
+    "threading": [
+     0,
+     2
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_lfu.py::LFUCacheTest::test_lfu_getsizeof",
+   "true_cause": "time_or_timezone",
+   "setting": "file",
+   "chars": 5206,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_bg_job": 2,
+    "_fg_random": 2,
+    "_hour": 2,
+    "_race_flag": 3,
+    "_th": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     2
+    ],
+    "random": [
+     0,
+     1
+    ],
+    "datetime": [
+     0,
+     3
+    ],
+    "now": [
+     0,
+     1
+    ],
+    "Thread": [
+     0,
+     1
+    ],
+    "threading": [
+     0,
+     2
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_lru.py::LRUCacheTest::test_lru",
+   "true_cause": "shared_state",
+   "setting": "file",
+   "chars": 3218,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_SHARED_CACHE": 12
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "global": [
+     0,
+     3
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_lru.py::LRUCacheTest::test_lru_clear",
+   "true_cause": "shared_state",
+   "setting": "file",
+   "chars": 3218,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_SHARED_CACHE": 12
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "global": [
+     0,
+     3
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_lru.py::LRUCacheTest::test_lru_update_existing",
+   "true_cause": "shared_state",
+   "setting": "file",
+   "chars": 3218,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_SHARED_CACHE": 12
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "global": [
+     0,
+     3
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_rr.py::RRCacheTest::test_rr",
+   "true_cause": "timing",
+   "setting": "file",
+   "chars": 4676,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 3,
+    "_FLAKEGUARD_SHARED_CACHE": 12,
+    "_bg_job": 2,
+    "_fg_random": 2,
+    "_race_flag": 3,
+    "_th": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     2
+    ],
+    "random": [
+     2,
+     3
+    ],
+    "Thread": [
+     0,
+     1
+    ],
+    "threading": [
+     0,
+     2
+    ],
+    "global": [
+     0,
+     4
+    ]
+   },
+   "c_cachetools_own_cues": {
+    "random": 2
+   }
+  },
+  {
+   "id": "tests/test_rr.py::RRCacheTest::test_rr_copy",
+   "true_cause": "shared_state",
+   "setting": "file",
+   "chars": 4676,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 3,
+    "_FLAKEGUARD_SHARED_CACHE": 12,
+    "_bg_job": 2,
+    "_fg_random": 2,
+    "_race_flag": 3,
+    "_th": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     2
+    ],
+    "random": [
+     2,
+     3
+    ],
+    "Thread": [
+     0,
+     1
+    ],
+    "threading": [
+     0,
+     2
+    ],
+    "global": [
+     0,
+     4
+    ]
+   },
+   "c_cachetools_own_cues": {
+    "random": 2
+   }
+  },
+  {
+   "id": "tests/test_rr.py::RRCacheTest::test_rr_default_choice",
+   "true_cause": "shared_state",
+   "setting": "file",
+   "chars": 4676,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 3,
+    "_FLAKEGUARD_SHARED_CACHE": 12,
+    "_bg_job": 2,
+    "_fg_random": 2,
+    "_race_flag": 3,
+    "_th": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     2
+    ],
+    "random": [
+     2,
+     3
+    ],
+    "Thread": [
+     0,
+     1
+    ],
+    "threading": [
+     0,
+     2
+    ],
+    "global": [
+     0,
+     4
+    ]
+   },
+   "c_cachetools_own_cues": {
+    "random": 2
+   }
+  },
+  {
+   "id": "tests/test_rr.py::RRCacheTest::test_rr_popitem_empty_custom_choice",
+   "true_cause": "order_dependence",
+   "setting": "file",
+   "chars": 4676,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 3,
+    "_FLAKEGUARD_SHARED_CACHE": 12,
+    "_bg_job": 2,
+    "_fg_random": 2,
+    "_race_flag": 3,
+    "_th": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     2
+    ],
+    "random": [
+     2,
+     3
+    ],
+    "Thread": [
+     0,
+     1
+    ],
+    "threading": [
+     0,
+     2
+    ],
+    "global": [
+     0,
+     4
+    ]
+   },
+   "c_cachetools_own_cues": {
+    "random": 2
+   }
+  },
+  {
+   "id": "tests/test_rr.py::RRCacheTest::test_rr_update_existing",
+   "true_cause": "shared_state",
+   "setting": "file",
+   "chars": 4676,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 3,
+    "_FLAKEGUARD_SHARED_CACHE": 12,
+    "_bg_job": 2,
+    "_fg_random": 2,
+    "_race_flag": 3,
+    "_th": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     2
+    ],
+    "random": [
+     2,
+     3
+    ],
+    "Thread": [
+     0,
+     1
+    ],
+    "threading": [
+     0,
+     2
+    ],
+    "global": [
+     0,
+     4
+    ]
+   },
+   "c_cachetools_own_cues": {
+    "random": 2
+   }
+  },
+  {
+   "id": "tests/test_tlru.py::TLRUCacheTest::test_tlru_clear",
+   "true_cause": "randomness",
+   "setting": "file",
+   "chars": 15257,
+   "pristine_context_built": true,
+   "a_injector_specific": {},
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "random": [
+     0,
+     3
+    ]
+   },
+   "c_cachetools_own_cues": {
+    "datetime": 6,
+    "now": 7
+   }
+  },
+  {
+   "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_atomic",
+   "true_cause": "order_dependence",
+   "setting": "file",
+   "chars": 12208,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 3,
+    "_bg_job": 4,
+    "_fg_random": 4,
+    "_hour": 4,
+    "_race_flag": 6,
+    "_th": 4
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     4
+    ],
+    "random": [
+     0,
+     2
+    ],
+    "datetime": [
+     10,
+     16
+    ],
+    "now": [
+     4,
+     6
+    ],
+    "Thread": [
+     0,
+     2
+    ],
+    "threading": [
+     0,
+     4
+    ],
+    "global": [
+     0,
+     1
+    ]
+   },
+   "c_cachetools_own_cues": {
+    "datetime": 10,
+    "now": 4
+   }
+  },
+  {
+   "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_clear",
+   "true_cause": "time_or_timezone",
+   "setting": "file",
+   "chars": 12208,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 3,
+    "_bg_job": 4,
+    "_fg_random": 4,
+    "_hour": 4,
+    "_race_flag": 6,
+    "_th": 4
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     4
+    ],
+    "random": [
+     0,
+     2
+    ],
+    "datetime": [
+     10,
+     16
+    ],
+    "now": [
+     4,
+     6
+    ],
+    "Thread": [
+     0,
+     2
+    ],
+    "threading": [
+     0,
+     4
+    ],
+    "global": [
+     0,
+     1
+    ]
+   },
+   "c_cachetools_own_cues": {
+    "datetime": 10,
+    "now": 4
+   }
+  },
+  {
+   "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_copy",
+   "true_cause": "time_or_timezone",
+   "setting": "file",
+   "chars": 12208,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 3,
+    "_bg_job": 4,
+    "_fg_random": 4,
+    "_hour": 4,
+    "_race_flag": 6,
+    "_th": 4
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     4
+    ],
+    "random": [
+     0,
+     2
+    ],
+    "datetime": [
+     10,
+     16
+    ],
+    "now": [
+     4,
+     6
+    ],
+    "Thread": [
+     0,
+     2
+    ],
+    "threading": [
+     0,
+     4
+    ],
+    "global": [
+     0,
+     1
+    ]
+   },
+   "c_cachetools_own_cues": {
+    "datetime": 10,
+    "now": 4
+   }
+  },
+  {
+   "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_deepcopy_timer",
+   "true_cause": "timing",
+   "setting": "file",
+   "chars": 12208,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 3,
+    "_bg_job": 4,
+    "_fg_random": 4,
+    "_hour": 4,
+    "_race_flag": 6,
+    "_th": 4
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     4
+    ],
+    "random": [
+     0,
+     2
+    ],
+    "datetime": [
+     10,
+     16
+    ],
+    "now": [
+     4,
+     6
+    ],
+    "Thread": [
+     0,
+     2
+    ],
+    "threading": [
+     0,
+     4
+    ],
+    "global": [
+     0,
+     1
+    ]
+   },
+   "c_cachetools_own_cues": {
+    "datetime": 10,
+    "now": 4
+   }
+  },
+  {
+   "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_expire",
+   "true_cause": "timing",
+   "setting": "file",
+   "chars": 12208,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 3,
+    "_bg_job": 4,
+    "_fg_random": 4,
+    "_hour": 4,
+    "_race_flag": 6,
+    "_th": 4
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     4
+    ],
+    "random": [
+     0,
+     2
+    ],
+    "datetime": [
+     10,
+     16
+    ],
+    "now": [
+     4,
+     6
+    ],
+    "Thread": [
+     0,
+     2
+    ],
+    "threading": [
+     0,
+     4
+    ],
+    "global": [
+     0,
+     1
+    ]
+   },
+   "c_cachetools_own_cues": {
+    "datetime": 10,
+    "now": 4
+   }
+  },
+  {
+   "id": "tests/test_cached.py::CacheWrapperTest::test_decorator_lock_cond_info",
+   "true_cause": "order_dependence",
+   "setting": "ast",
+   "chars": 1198,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 1
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {},
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_cached.py::CacheWrapperTest::test_zero_size_cache_decorator",
+   "true_cause": "order_dependence",
+   "setting": "ast",
+   "chars": 338,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 1
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {},
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_cached.py::PickleTest::test_pickle",
+   "true_cause": "randomness",
+   "setting": "ast",
+   "chars": 305,
+   "pristine_context_built": true,
+   "a_injector_specific": {},
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "random": [
+     0,
+     4
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_cachedmethod.py::CacheMethodTest::test_value_too_large",
+   "true_cause": "order_dependence",
+   "setting": "ast",
+   "chars": 462,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 1
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {},
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_cachedmethod.py::NoneMethodTest::test_none_info",
+   "true_cause": "time_or_timezone",
+   "setting": "ast",
+   "chars": 388,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_hour": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "datetime": [
+     0,
+     4
+    ],
+    "now": [
+     0,
+     2
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_cachedmethod.py::UnboundMethodTest::test_class_access_copy",
+   "true_cause": "timing",
+   "setting": "ast",
+   "chars": 780,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_bg_job": 2,
+    "_fg_random": 2,
+    "_race_flag": 3,
+    "_th": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     3
+    ],
+    "random": [
+     0,
+     2
+    ],
+    "Thread": [
+     0,
+     1
+    ],
+    "threading": [
+     0,
+     3
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_cachedmethod.py::UnboundMethodTest::test_class_call_after_delete",
+   "true_cause": "randomness",
+   "setting": "ast",
+   "chars": 709,
+   "pristine_context_built": true,
+   "a_injector_specific": {},
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "random": [
+     0,
+     4
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_fifo.py::FIFOCacheTest::test_fifo",
+   "true_cause": "randomness",
+   "setting": "ast",
+   "chars": 952,
+   "pristine_context_built": true,
+   "a_injector_specific": {},
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "random": [
+     0,
+     4
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_func.py::TTLDecoratorTest::test_ttl_expire_unbound",
+   "true_cause": "randomness",
+   "setting": "ast",
+   "chars": 1008,
+   "pristine_context_built": true,
+   "a_injector_specific": {},
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "random": [
+     0,
+     4
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_keys.py::CacheKeysTest::test_addkeys",
+   "true_cause": "time_or_timezone",
+   "setting": "ast",
+   "chars": 518,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_hour": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "datetime": [
+     0,
+     4
+    ],
+    "now": [
+     0,
+     2
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_lfu.py::LFUCacheTest::test_lfu_copy_use_counts",
+   "true_cause": "timing",
+   "setting": "ast",
+   "chars": 1593,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_bg_job": 2,
+    "_fg_random": 2,
+    "_race_flag": 3,
+    "_th": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     3
+    ],
+    "random": [
+     0,
+     2
+    ],
+    "Thread": [
+     0,
+     1
+    ],
+    "threading": [
+     0,
+     3
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_lfu.py::LFUCacheTest::test_lfu_getsizeof",
+   "true_cause": "time_or_timezone",
+   "setting": "ast",
+   "chars": 788,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_hour": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "datetime": [
+     0,
+     4
+    ],
+    "now": [
+     0,
+     2
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_lru.py::LRUCacheTest::test_lru",
+   "true_cause": "shared_state",
+   "setting": "ast",
+   "chars": 1064,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_SHARED_CACHE": 4
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "global": [
+     0,
+     1
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_lru.py::LRUCacheTest::test_lru_clear",
+   "true_cause": "shared_state",
+   "setting": "ast",
+   "chars": 848,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_SHARED_CACHE": 4
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "global": [
+     0,
+     1
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_lru.py::LRUCacheTest::test_lru_update_existing",
+   "true_cause": "shared_state",
+   "setting": "ast",
+   "chars": 570,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_SHARED_CACHE": 4
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "global": [
+     0,
+     1
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_rr.py::RRCacheTest::test_rr",
+   "true_cause": "timing",
+   "setting": "ast",
+   "chars": 1253,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_bg_job": 2,
+    "_fg_random": 2,
+    "_race_flag": 3,
+    "_th": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     3
+    ],
+    "random": [
+     1,
+     2
+    ],
+    "Thread": [
+     0,
+     1
+    ],
+    "threading": [
+     0,
+     3
+    ]
+   },
+   "c_cachetools_own_cues": {
+    "random": 1
+   }
+  },
+  {
+   "id": "tests/test_rr.py::RRCacheTest::test_rr_copy",
+   "true_cause": "shared_state",
+   "setting": "ast",
+   "chars": 863,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_SHARED_CACHE": 4
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "global": [
+     0,
+     1
+    ]
+   },
+   "c_cachetools_own_cues": {
+    "random": 1
+   }
+  },
+  {
+   "id": "tests/test_rr.py::RRCacheTest::test_rr_default_choice",
+   "true_cause": "shared_state",
+   "setting": "ast",
+   "chars": 478,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_SHARED_CACHE": 4
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "global": [
+     0,
+     1
+    ]
+   },
+   "c_cachetools_own_cues": {
+    "random": 2
+   }
+  },
+  {
+   "id": "tests/test_rr.py::RRCacheTest::test_rr_popitem_empty_custom_choice",
+   "true_cause": "order_dependence",
+   "setting": "ast",
+   "chars": 721,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 1
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {},
+   "c_cachetools_own_cues": {
+    "random": 1
+   }
+  },
+  {
+   "id": "tests/test_rr.py::RRCacheTest::test_rr_update_existing",
+   "true_cause": "shared_state",
+   "setting": "ast",
+   "chars": 649,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_SHARED_CACHE": 4
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "global": [
+     0,
+     1
+    ]
+   },
+   "c_cachetools_own_cues": {
+    "random": 1
+   }
+  },
+  {
+   "id": "tests/test_tlru.py::TLRUCacheTest::test_tlru_clear",
+   "true_cause": "randomness",
+   "setting": "ast",
+   "chars": 1125,
+   "pristine_context_built": true,
+   "a_injector_specific": {},
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "random": [
+     0,
+     4
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_atomic",
+   "true_cause": "order_dependence",
+   "setting": "ast",
+   "chars": 660,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 1
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {},
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_clear",
+   "true_cause": "time_or_timezone",
+   "setting": "ast",
+   "chars": 1115,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_hour": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "datetime": [
+     0,
+     4
+    ],
+    "now": [
+     0,
+     2
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_copy",
+   "true_cause": "time_or_timezone",
+   "setting": "ast",
+   "chars": 1303,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_hour": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "datetime": [
+     0,
+     4
+    ],
+    "now": [
+     1,
+     3
+    ]
+   },
+   "c_cachetools_own_cues": {
+    "now": 1
+   }
+  },
+  {
+   "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_deepcopy_timer",
+   "true_cause": "timing",
+   "setting": "ast",
+   "chars": 1232,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_bg_job": 2,
+    "_fg_random": 2,
+    "_race_flag": 3,
+    "_th": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     3
+    ],
+    "random": [
+     0,
+     2
+    ],
+    "Thread": [
+     0,
+     1
+    ],
+    "threading": [
+     0,
+     3
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_expire",
+   "true_cause": "timing",
+   "setting": "ast",
+   "chars": 2347,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_bg_job": 2,
+    "_fg_random": 2,
+    "_race_flag": 3,
+    "_th": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     3
+    ],
+    "random": [
+     0,
+     2
+    ],
+    "Thread": [
+     0,
+     1
+    ],
+    "threading": [
+     0,
+     3
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_cached.py::CacheWrapperTest::test_decorator_lock_cond_info",
+   "true_cause": "order_dependence",
+   "setting": "ast_jedi",
+   "chars": 9992,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 1
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {},
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_cached.py::CacheWrapperTest::test_zero_size_cache_decorator",
+   "true_cause": "order_dependence",
+   "setting": "ast_jedi",
+   "chars": 7593,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 1
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {},
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_cached.py::PickleTest::test_pickle",
+   "true_cause": "randomness",
+   "setting": "ast_jedi",
+   "chars": 2586,
+   "pristine_context_built": true,
+   "a_injector_specific": {},
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "random": [
+     0,
+     4
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_cachedmethod.py::CacheMethodTest::test_value_too_large",
+   "true_cause": "order_dependence",
+   "setting": "ast_jedi",
+   "chars": 8719,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 1
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {},
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_cachedmethod.py::NoneMethodTest::test_none_info",
+   "true_cause": "time_or_timezone",
+   "setting": "ast_jedi",
+   "chars": 3857,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_hour": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "datetime": [
+     0,
+     4
+    ],
+    "now": [
+     0,
+     2
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_cachedmethod.py::UnboundMethodTest::test_class_access_copy",
+   "true_cause": "timing",
+   "setting": "ast_jedi",
+   "chars": 4141,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_bg_job": 4,
+    "_fg_random": 3,
+    "_race_flag": 4,
+    "_th": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     4
+    ],
+    "random": [
+     0,
+     2
+    ],
+    "Thread": [
+     0,
+     1
+    ],
+    "threading": [
+     0,
+     3
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_cachedmethod.py::UnboundMethodTest::test_class_call_after_delete",
+   "true_cause": "randomness",
+   "setting": "ast_jedi",
+   "chars": 8681,
+   "pristine_context_built": true,
+   "a_injector_specific": {},
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "random": [
+     0,
+     4
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_fifo.py::FIFOCacheTest::test_fifo",
+   "true_cause": "randomness",
+   "setting": "ast_jedi",
+   "chars": 7869,
+   "pristine_context_built": true,
+   "a_injector_specific": {},
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "random": [
+     0,
+     4
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_func.py::TTLDecoratorTest::test_ttl_expire_unbound",
+   "true_cause": "randomness",
+   "setting": "ast_jedi",
+   "chars": 8528,
+   "pristine_context_built": true,
+   "a_injector_specific": {},
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "random": [
+     0,
+     4
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_keys.py::CacheKeysTest::test_addkeys",
+   "true_cause": "time_or_timezone",
+   "setting": "ast_jedi",
+   "chars": 817,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_hour": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "datetime": [
+     0,
+     4
+    ],
+    "now": [
+     0,
+     2
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_lfu.py::LFUCacheTest::test_lfu_copy_use_counts",
+   "true_cause": "timing",
+   "setting": "ast_jedi",
+   "chars": 11289,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_bg_job": 4,
+    "_fg_random": 3,
+    "_race_flag": 4,
+    "_th": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     4
+    ],
+    "random": [
+     0,
+     2
+    ],
+    "Thread": [
+     0,
+     1
+    ],
+    "threading": [
+     0,
+     3
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_lfu.py::LFUCacheTest::test_lfu_getsizeof",
+   "true_cause": "time_or_timezone",
+   "setting": "ast_jedi",
+   "chars": 9496,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_hour": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "datetime": [
+     0,
+     4
+    ],
+    "now": [
+     0,
+     2
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_lru.py::LRUCacheTest::test_lru",
+   "true_cause": "shared_state",
+   "setting": "ast_jedi",
+   "chars": 8260,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_SHARED_CACHE": 4
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "global": [
+     0,
+     1
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_lru.py::LRUCacheTest::test_lru_clear",
+   "true_cause": "shared_state",
+   "setting": "ast_jedi",
+   "chars": 7743,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_SHARED_CACHE": 4
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "global": [
+     0,
+     1
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_lru.py::LRUCacheTest::test_lru_update_existing",
+   "true_cause": "shared_state",
+   "setting": "ast_jedi",
+   "chars": 7035,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_SHARED_CACHE": 4
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "global": [
+     0,
+     1
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_rr.py::RRCacheTest::test_rr",
+   "true_cause": "timing",
+   "setting": "ast_jedi",
+   "chars": 8025,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_bg_job": 4,
+    "_fg_random": 3,
+    "_race_flag": 4,
+    "_th": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     4
+    ],
+    "random": [
+     3,
+     4
+    ],
+    "Thread": [
+     0,
+     1
+    ],
+    "threading": [
+     0,
+     3
+    ]
+   },
+   "c_cachetools_own_cues": {
+    "random": 3
+   }
+  },
+  {
+   "id": "tests/test_rr.py::RRCacheTest::test_rr_copy",
+   "true_cause": "shared_state",
+   "setting": "ast_jedi",
+   "chars": 8260,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_SHARED_CACHE": 4
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "global": [
+     0,
+     1
+    ]
+   },
+   "c_cachetools_own_cues": {
+    "random": 4
+   }
+  },
+  {
+   "id": "tests/test_rr.py::RRCacheTest::test_rr_default_choice",
+   "true_cause": "shared_state",
+   "setting": "ast_jedi",
+   "chars": 7054,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_SHARED_CACHE": 4
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "global": [
+     0,
+     1
+    ]
+   },
+   "c_cachetools_own_cues": {
+    "random": 4
+   }
+  },
+  {
+   "id": "tests/test_rr.py::RRCacheTest::test_rr_popitem_empty_custom_choice",
+   "true_cause": "order_dependence",
+   "setting": "ast_jedi",
+   "chars": 8118,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 1
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {},
+   "c_cachetools_own_cues": {
+    "random": 4
+   }
+  },
+  {
+   "id": "tests/test_rr.py::RRCacheTest::test_rr_update_existing",
+   "true_cause": "shared_state",
+   "setting": "ast_jedi",
+   "chars": 7222,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_SHARED_CACHE": 4
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "global": [
+     0,
+     1
+    ]
+   },
+   "c_cachetools_own_cues": {
+    "random": 3
+   }
+  },
+  {
+   "id": "tests/test_tlru.py::TLRUCacheTest::test_tlru_clear",
+   "true_cause": "randomness",
+   "setting": "ast_jedi",
+   "chars": 11613,
+   "pristine_context_built": true,
+   "a_injector_specific": {},
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "random": [
+     0,
+     4
+    ]
+   },
+   "c_cachetools_own_cues": {
+    "now": 1
+   }
+  },
+  {
+   "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_atomic",
+   "true_cause": "order_dependence",
+   "setting": "ast_jedi",
+   "chars": 11110,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_FLAKEGUARD_ORDER_READY": 1
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {},
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_clear",
+   "true_cause": "time_or_timezone",
+   "setting": "ast_jedi",
+   "chars": 11186,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_hour": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "datetime": [
+     0,
+     4
+    ],
+    "now": [
+     0,
+     2
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_copy",
+   "true_cause": "time_or_timezone",
+   "setting": "ast_jedi",
+   "chars": 10785,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_hour": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "datetime": [
+     0,
+     4
+    ],
+    "now": [
+     1,
+     3
+    ]
+   },
+   "c_cachetools_own_cues": {
+    "now": 1
+   }
+  },
+  {
+   "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_deepcopy_timer",
+   "true_cause": "timing",
+   "setting": "ast_jedi",
+   "chars": 11125,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_bg_job": 4,
+    "_fg_random": 3,
+    "_race_flag": 4,
+    "_th": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     4
+    ],
+    "random": [
+     0,
+     2
+    ],
+    "Thread": [
+     0,
+     1
+    ],
+    "threading": [
+     0,
+     3
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  },
+  {
+   "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_expire",
+   "true_cause": "timing",
+   "setting": "ast_jedi",
+   "chars": 13242,
+   "pristine_context_built": true,
+   "a_injector_specific": {
+    "_bg_job": 4,
+    "_fg_random": 3,
+    "_race_flag": 4,
+    "_th": 2
+   },
+   "a_markers": {},
+   "b_natural_cues_added_by_injection": {
+    "sleep": [
+     0,
+     4
+    ],
+    "random": [
+     0,
+     2
+    ],
+    "Thread": [
+     0,
+     1
+    ],
+    "threading": [
+     0,
+     3
+    ]
+   },
+   "c_cachetools_own_cues": {}
+  }
+ ],
+ "limitation": "A word in a context is not proof the model used it. Counts are of tests having the item, not of occurrences, unless a dict shows counts."
+}

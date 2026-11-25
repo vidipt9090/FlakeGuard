@@ -363,3 +363,26 @@ def test_an_actions_finding_id_resolves_to_its_actions_run(monkeypatch):
     monkeypatch.setattr(routes, "_findings", lambda run_id: (seen.append(run_id), [finding])[1])
     assert routes._find_finding("gh-123_finding-1") == ("actions-123", finding)
     assert seen == ["actions-123"]
+
+
+def test_rq4_table_and_notes_are_read_from_the_result_files(client):
+    import json
+
+    from flakeguard.console.results import RESULTS_DIR
+
+    integ = json.loads((RESULTS_DIR / "injected" / "rq4_integrity.json").read_text(encoding="utf-8"))
+    leak = json.loads((RESULTS_DIR / "injected" / "rq4_leakage_split.json").read_text(encoding="utf-8"))
+    data = m.ResultsData.model_validate(client.get("/api/results?label=injected").json())
+    rows = {r[0]: r for r in data.ablation.table.rows}
+    assert len(data.ablation.table.columns) == 5 and all(len(r) == 5 for r in data.ablation.table.rows)
+    for name, key in (("AST tree only", "none_vs_ast"), ("AST + Jedi tree", "none_vs_ast_jedi"), ("The whole file", "none_vs_file")):
+        pair = integ["mcnemar_exact_paired"][key]
+        assert f"p = {pair['p_two_sided']:.4f} ({pair['kind']})" in rows[name][2]  # p and planned or exploratory come from the file
+    assert rows["No code"][2] == "reference setting"
+    text = " ".join(data.notes)
+    sm = leak["summary"]["ast"]
+    assert f"{sm['a_has_injector_specific_identifier']} of {sm['tests']} tests in the AST setting" in text
+    assert str(integ["mcnemar_multiplicity"]["bonferroni_threshold"]) in text
+    assert "does not measure the product's template fixer" in text and "counts as a miss" in text
+    planted = m.ResultsData.model_validate(client.get("/api/results?label=planted").json())
+    assert all(cell is None for r in planted.ablation.table.rows for cell in r[1:])  # no RQ4 on the planted set

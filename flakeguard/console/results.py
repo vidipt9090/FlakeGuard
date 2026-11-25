@@ -91,8 +91,20 @@ def baselines_table(label: str, doc: dict | None) -> m.TableWithProvenance:
     return m.TableWithProvenance(table=m.ResultsTable(columns=cols, rows=rows), provenance=_prov(label, doc))
 
 
-def ablation_table(label: str, rq4: dict | None) -> m.TableWithProvenance:
-    cols = ["Context given to the model", "Diagnosis matches the known cause", "Fix passes validation under shuffle", "Code sent to the model"]
+def _paired(integrity: dict | None, setting: str) -> str | None:
+    """The paired exact test of one setting against 'No code', read from results/<label>/rq4_integrity.json."""
+    if setting == "none":
+        return "reference setting"
+    pair = ((integrity or {}).get("mcnemar_exact_paired") or {}).get(f"none_vs_{setting}")
+    if not pair:
+        return None
+    return (f"p = {pair['p_two_sided']:.4f} ({pair['kind']}); right only here: {pair.get(f'right_only_in_{setting}')}, "
+            f"right only with no code: {pair.get('right_only_in_none')}")
+
+
+def ablation_table(label: str, rq4: dict | None, integrity: dict | None = None) -> m.TableWithProvenance:
+    cols = ["Context given to the model", "Diagnosis matches the known cause", "Paired exact test against No code (McNemar)",
+            "Model-written fix passes validation (not the product's fixer)", "Code sent to the model"]
     if label == "injected" and rq4 is not None:
         rows = []
         for s, r in rq4["results"].items():
@@ -101,12 +113,50 @@ def ablation_table(label: str, rq4: dict | None) -> m.TableWithProvenance:
                          + (f"; {r['unreadable_replies_counted_as_failures']} unreadable replies counted as failures" if r["unreadable_replies_counted_as_failures"] else "")
                          + (f" (if the word 'random' were accepted as randomness: {r['sensitivity_if_random_were_accepted_as_randomness']['k']} of {r['sensitivity_if_random_were_accepted_as_randomness']['n']}; not the result)"
                             if r.get("sensitivity_if_random_were_accepted_as_randomness", {}).get("replies_saying_random") else ""),
+                         _paired(integrity, s),
                          f"{fx['validated']} of {fx['n']} (N={fx['n']}, counts not rates)" if fx else None,
                          f"mean {r['code_chars_sent']['mean']:.0f} characters, {r['prompt_tokens']['mean']:.0f} tokens per prompt"
                          if r["prompt_tokens"]["mean"] is not None else None])
         return m.TableWithProvenance(table=m.ResultsTable(columns=cols, rows=rows), provenance=_prov(label, rq4))
-    rows = [[SETTING_NAMES[s], None, None, None] for s in SETTING_NAMES]
+    rows = [[SETTING_NAMES[s], None, None, None, None] for s in SETTING_NAMES]
     return m.TableWithProvenance(table=m.ResultsTable(columns=cols, rows=rows), provenance=_prov(label, None))
+
+
+def rq4_notes(rq4: dict, integrity: dict | None, leak: dict | None) -> list[str]:
+    """Limitations of the RQ4 table. Every figure in them is read from rq4.json, rq4_integrity.json or rq4_leakage_split.json."""
+    notes: list[str] = []
+    res = rq4["results"]
+    if leak:
+        sm = leak["summary"]
+        n = sm["ast"]["tests"]
+        names = ", ".join(leak["injector_only_identifiers_found"][:3])
+        notes.append(
+            f"The code sent to the model holds names that only the fault injector writes (for example {names}). They are present for "
+            f"{sm['ast']['a_has_injector_specific_identifier']} of {n} tests in the AST setting, {sm['ast_jedi']['a_has_injector_specific_identifier']} in AST + Jedi and "
+            f"{sm['file']['a_has_injector_specific_identifier']} in the whole-file setting. Real code would not have them, so these settings are easier here than on real flaky tests. "
+            f"Cues a real tool would also see ({', '.join(leak['cue_words'])}) were added by the injection in {sm['ast']['b_has_natural_cue_added']} of {n} AST contexts; "
+            f"{sm['ast']['c_has_cachetools_own_cue']} AST contexts also hold such a cue from cachetools' own code. Per-test table: results/injected/rq4_leakage_split.json.")
+    said = {s: r["sensitivity_if_random_were_accepted_as_randomness"] for s, r in res.items()
+            if r.get("sensitivity_if_random_were_accepted_as_randomness", {}).get("replies_saying_random")}
+    if said:
+        replies = "; ".join(f"{SETTING_NAMES.get(s, s)}: {v['replies_saying_random']} {'reply' if v['replies_saying_random'] == 1 else 'replies'}" for s, v in said.items())
+        counts = ", ".join(f"{SETTING_NAMES.get(s, s)} {v['k']}" for s, v in said.items())
+        notes.append(f"Exact match is strict: the answer must be the listed word. 'random' instead of 'randomness' counts as a miss ({replies}). "
+                     f"Accepting it would give {counts} correct; that is a sensitivity, not the result.")
+    causes = sorted({c for r in res.values() for c in r["by_known_cause"]})
+    for c in causes:
+        if all(r["by_known_cause"][c]["k"] == 0 for r in res.values()):
+            total = next(iter(res.values()))["by_known_cause"][c]["n"]
+            notes.append(f"No setting named the cause correctly for any of the {total} {c} tests. Where the answers went is in the confusion matrices (docs/limitations.md).")
+    fx = next((r["fix"] for r in res.values() if r.get("fix")), None)
+    if fx:
+        notes.append(f"The fix column measures a replacement test written by the model for the {fx['n']} order-dependent tests and checked with the validation in docs/EVAL.md. "
+                     f"It does not measure the product's template fixer, which applies to {fx['fix_proposer_applies']} of them.")
+    if integrity and "mcnemar_multiplicity" in integrity:
+        mm = integrity["mcnemar_multiplicity"]
+        notes.append(f"{mm['planned_pairs']} planned comparisons are judged against a Bonferroni threshold of {mm['bonferroni_threshold']}; rows marked exploratory are not corrected. "
+                     f"The sample is {integrity['n_tests']} tests.")
+    return notes
 
 
 def triage_table(label: str, rq3: dict | None) -> m.TableWithProvenance:
@@ -129,6 +179,7 @@ def load_results(label: str, root: Path | None = None) -> m.ResultsData:
         raise ValueError(f"no results for {label!r}")
     root = root or RESULTS_DIR
     rq1, rq2, rq3, rq4 = (_load(label, f"{n}.json", root) for n in ("rq1", "rq2", "rq3", "rq4"))
+    integrity, leak = _load(label, "rq4_integrity.json", root), _load(label, "rq4_leakage_split.json", root)
     notes: list[str] = []
     if label == "natural":
         notes.append(NO_NATURAL)
@@ -151,6 +202,7 @@ def load_results(label: str, root: Path | None = None) -> m.ResultsData:
         notes.append("RQ3 is a simulation over labelled tests. No pull request was opened and FlakeGuard's PR flow was not run.")
     if rq4 is not None:
         notes += [x for x in rq4["provenance"]["limitations"] if x not in notes]
+        notes += [x for x in rq4_notes(rq4, integrity, leak) if x not in notes]
     fixed = adaptive = red = real_q = None
     if rq2 is not None:
         a = rq2["runs_to_decision_adaptive"]
@@ -165,7 +217,7 @@ def load_results(label: str, root: Path | None = None) -> m.ResultsData:
         red = _count(fr["cleared_called_flaky"], f" red flaky PRs (N={fr['n_red_flaky_prs']}, shuffled runs N=10)") if fr["n_red_flaky_prs"] else None
         real_q = _count(p["real_failures"]["wrongly_quarantined_called_flaky"], " real failures (shuffled runs N=10)")
     return m.ResultsData(
-        ablation=ablation_table(label, rq4),
+        ablation=ablation_table(label, rq4, integrity),
         baselines=baselines_table(label, rq1),
         runsToDecision=m.RunsToDecision(fixed=fixed, adaptive=adaptive),
         triage=m.TriageNumbers(redPrsCleared=red, realQuarantined=real_q),
