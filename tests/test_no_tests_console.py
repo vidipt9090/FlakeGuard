@@ -99,3 +99,11 @@ def test_latest_resolves_to_the_newest_recorded_scan_and_drop_follows_it(tmp_pat
     assert {d.test for d in no_tests.read_plan(older["id"]).dropped} == {"failed_b"}  # the older scan was not touched
     monkeypatch.setattr(no_tests, "NO_TESTS_DIR", tmp_path / "empty")
     assert client.get("/api/runs/latest/no-tests").status_code == 404
+
+
+def test_the_screens_carry_the_kept_note_and_the_live_link_points_at_the_latest_scan():
+    from pathlib import Path
+
+    src = Path(__file__).resolve().parents[1] / "console" / "src" / "pages"
+    assert "Kept means the test passed validation, not that it is a strong test." in (src / "NoTests.tsx").read_text(encoding="utf-8")
+    assert '<Link to="/no-tests?plan=latest">See how FlakeGuard handles it</Link>' in (src / "Live.tsx").read_text(encoding="utf-8")
