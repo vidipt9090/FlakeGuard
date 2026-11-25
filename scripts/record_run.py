@@ -30,6 +30,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 
+from flakeguard.console import fixer  # noqa: E402
 from flakeguard.console.builder import build_run, collect_stats, load_runs, shuffled_seeds  # noqa: E402
 
 
@@ -60,6 +61,8 @@ def main() -> int:
     ap.add_argument("--max-attempts", type=int, default=30)
     ap.add_argument("--seed-start", type=int, default=None, help="First pytest-randomly seed (engine default if omitted)")
     ap.add_argument("--allow-dirty", action="store_true", help="Record even if tracked files are modified")
+    ap.add_argument("--fix-runs", type=int, default=fixer.DEFAULT_RUNS,
+                    help="Shuffled orders used to validate a proposed fix on a copy (0: no fix is attempted)")
     args = ap.parse_args()
 
     if bool(args.target) == bool(args.clone):
@@ -131,13 +134,14 @@ def main() -> int:
                 "pr-comment": "Not run. This is a saved scan of a repository, not a pull request.",
             },
             notice_detail="Replay of a saved scan of a cloned GitHub repository, not a pull request and not a GitHub Actions run.",
+            fix_runs=args.fix_runs,
         )
         shutil.copytree(target, run_dir / "target", ignore=shutil.ignore_patterns(".git", "__pycache__", ".pytest_cache"))
         meta_target = f"{args.out}/{run_id}/target"
     else:
         built = build_run(
             repo=target, artifacts=raw / "artifacts", events_path=raw / "events.jsonl", run_id=run_id,
-            target_label=f"{args.target} (local fixture)", shuffled_n=args.shuffled_n,
+            target_label=f"{args.target} (local fixture)", shuffled_n=args.shuffled_n, fix_runs=args.fix_runs,
         )
         meta_target = args.target
     (run_dir / "run.json").write_text(built.run.model_dump_json(indent=2), encoding="utf-8")
@@ -154,6 +158,22 @@ def main() -> int:
                   "--shuffled-n", str(args.shuffled_n)]
     if args.seed_start is not None:
         record_cmd += ["--seed-start", str(args.seed_start)]
+    if args.fix_runs != fixer.DEFAULT_RUNS:
+        record_cmd += ["--fix-runs", str(args.fix_runs)]
+    with_fix = [f for f in built.findings if f.fix is not None]
+    if args.fix_runs <= 0:
+        fix_line = "Fix preview: not attempted (--fix-runs 0)."
+    elif with_fix:
+        fix_line = (
+            "Fix preview: present for " + ", ".join(f"{f.test} ({f.fix.file})" for f in with_fix) + ". It was computed when this was recorded, "
+            f"by flakeguard/console/fixer.py on a copy of the repository: the suite in {args.fix_runs} shuffled orders with the fix, plus the polluter-then-victim repro without and with it. "
+            "The 'checked' text on the finding states the counts. It is a preview; nothing was applied to the repository or pushed."
+        )
+    else:
+        fix_line = (
+            f"Fix preview: null. A fix was attempted for order-dependent findings (validation in {args.fix_runs} shuffled orders) and none passed, or no finding "
+            "has shared module-level dict/list/set state the fixer handles. Where a fix was tried and failed, the finding's evidence says so."
+        )
     seeds = shuffled_seeds(raw / "events.jsonl")
     seed_line = (
         f"{', '.join(str(x) for x in seeds)} (read from raw/events.jsonl, one per shuffled run)"
@@ -222,7 +242,7 @@ Do not read these as results:
   Only the JUnit XML and events.jsonl in raw/ feed run.json, findings.json and tree.json.
 
 What is not in this run (shown as dashes, pending, or absent in the console):
-  - Fix preview: null. No fix was proposed or validated.
+  - {fix_line}
   - Pull request and PR comment: none. Install and PR comment stages are shown as pending ("not run").
   - Evidence tier "intervention-confirmed": not used. No change was made that removed a failure.
 
