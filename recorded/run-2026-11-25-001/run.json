@@ -1,0 +1,125 @@
+{
+  "id": "run-2026-11-25-001",
+  "target": "tests/data/demo_inventory (local fixture)",
+  "mode": "recorded",
+  "status": "complete",
+  "pr": null,
+  "stages": [
+    {
+      "id": "checkout",
+      "name": "Checkout",
+      "detail": "Local fixture, used in place. No clone was needed.",
+      "tool": "local path",
+      "time": "under 1 s",
+      "state": "done"
+    },
+    {
+      "id": "install",
+      "name": "Install",
+      "detail": "Not run. The fixture has no dependencies to install.",
+      "tool": "not run",
+      "time": null,
+      "state": "pending"
+    },
+    {
+      "id": "baseline",
+      "name": "Baseline",
+      "detail": "1 run in default order, 1 test failed",
+      "tool": "pytest",
+      "time": "3 s",
+      "state": "done"
+    },
+    {
+      "id": "shuffled",
+      "name": "Shuffled runs",
+      "detail": "10 runs, seeds 1001 to 1010, 3 tests failed at least once",
+      "tool": "pytest, pytest-randomly",
+      "time": "30 s",
+      "state": "done"
+    },
+    {
+      "id": "isolated",
+      "name": "Isolated runs",
+      "detail": "3 tests run alone",
+      "tool": "pytest",
+      "time": "8 s",
+      "state": "done"
+    },
+    {
+      "id": "bisection",
+      "name": "Bisection",
+      "detail": "Named 1 polluter",
+      "tool": "FlakeGuard evidence engine",
+      "time": "51 s",
+      "state": "done"
+    },
+    {
+      "id": "retrieval",
+      "name": "Retrieval",
+      "detail": "Found 1 shared name and 1 shared link in 7 tests",
+      "tool": "AST + Jedi",
+      "time": null,
+      "state": "done"
+    },
+    {
+      "id": "verdict",
+      "name": "Verdict",
+      "detail": "1 flaky, 1 real, 1 unknown",
+      "tool": "FlakeGuard rules (no LLM)",
+      "time": null,
+      "state": "done"
+    },
+    {
+      "id": "pr-comment",
+      "name": "PR comment",
+      "detail": "Not run. This is a local fixture, not a pull request.",
+      "tool": "not run",
+      "time": null,
+      "state": "pending"
+    }
+  ],
+  "current": null,
+  "counters": {
+    "runsDone": 10,
+    "runsTotal": 10,
+    "failures": 5,
+    "flagged": 3
+  },
+  "matrix": [
+    {
+      "label": "Baseline",
+      "summary": "1 run: 1 passed, 0 failed",
+      "cells": [
+        "pass"
+      ]
+    },
+    {
+      "label": "Shuffled",
+      "summary": "10 runs: 5 passed, 5 failed",
+      "cells": [
+        "fail",
+        "fail",
+        "pass",
+        "fail",
+        "pass",
+        "pass",
+        "fail",
+        "pass",
+        "fail",
+        "pass"
+      ]
+    },
+    {
+      "label": "Isolated",
+      "summary": "1 run: 1 passed, 0 failed",
+      "cells": [
+        "pass"
+      ]
+    }
+  ],
+  "notice": {
+    "kind": "recorded-run",
+    "detail": "Replay of a saved scan of a local fixture, not a GitHub pull request."
+  },
+  "source": null
+}

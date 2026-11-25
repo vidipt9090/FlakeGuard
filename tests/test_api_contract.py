@@ -104,9 +104,11 @@ def client():
 
 @pytest.fixture(scope="module")
 def run_id():
-    ids = sorted(p.name for p in RECORDED_DIR.glob("run-*") if p.is_dir())
-    assert ids, "recorded/ has no run; run scripts/record_run.py"
-    return ids[-1]
+    """The recorded run of a cloned GitHub repository (it has a source and no fix preview). Pinned, because newer recordings
+    are of a local fixture and carry a fix preview; ``test_the_newest_recording_has_a_validated_fix_preview`` covers the latest one."""
+    pinned = "run-2026-11-21-002"
+    assert (RECORDED_DIR / pinned).is_dir(), "recorded/ lost the pinned run; run scripts/record_run.py --clone"
+    return pinned
 
 
 def test_health(client):
@@ -406,3 +408,16 @@ def test_masked_rerun_rows_and_note_come_from_the_masked_files(client):
     assert any("Masked rerun" in n and str(ana["bonferroni_threshold"]) in n for n in data.notes)
     planted = m.ResultsData.model_validate(client.get("/api/results?label=planted").json())
     assert not any("masked" in r[0] for r in planted.ablation.table.rows)
+
+
+def test_the_newest_recording_has_a_validated_fix_preview(client):
+    from flakeguard.console.store import RecordedStore
+
+    latest = RecordedStore().latest_id()
+    assert latest and latest > "run-2026-11-21-002"
+    findings = [m.Finding.model_validate(f) for f in client.get(f"/api/runs/{latest}/findings").json()]
+    flaky = next(f for f in findings if f.verdict == "flaky")
+    assert flaky.fix is not None and flaky.fix.diff and "failed in 0 of" in flaky.fix.checked
+    assert "failed without the fix and passes with it" in flaky.fix.checked  # the repro, as the fixer reports it
+    assert next(f for f in findings if f.verdict == "real").fix is None  # a real failure gets no fix
+    assert "Fix preview: present for" in (RECORDED_DIR / latest / "PROVENANCE.txt").read_text(encoding="utf-8")

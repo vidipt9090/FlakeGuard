@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.239" timestamp="2026-11-25T22:53:52.648964+05:30" hostname="Priyal"><testcase classname="tests.test_stock" name="test_reserve_negative" time="0.001"><failure message="Failed: DID NOT RAISE ValueError">def test_reserve_negative():
+        stock = StockService()
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_stock.py:8: Failed</failure></testcase></testsuite></testsuites>
