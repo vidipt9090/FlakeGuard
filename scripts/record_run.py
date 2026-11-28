@@ -135,6 +135,7 @@ def main() -> int:
             },
             notice_detail="Replay of a saved scan of a cloned GitHub repository, not a pull request and not a GitHub Actions run.",
             fix_runs=args.fix_runs,
+            did="Nothing was posted or changed. This run was a saved scan of a cloned repository, not a pull request.",
         )
         shutil.copytree(target, run_dir / "target", ignore=shutil.ignore_patterns(".git", "__pycache__", ".pytest_cache"))
         meta_target = f"{args.out}/{run_id}/target"

@@ -421,3 +421,29 @@ def test_the_newest_recording_has_a_validated_fix_preview(client):
     assert "failed without the fix and passes with it" in flaky.fix.checked  # the repro, as the fixer reports it
     assert next(f for f in findings if f.verdict == "real").fix is None  # a real failure gets no fix
     assert "Fix preview: present for" in (RECORDED_DIR / latest / "PROVENANCE.txt").read_text(encoding="utf-8")
+
+
+def test_ask_on_a_github_run_searches_a_checkout_of_the_scanned_commit(client, monkeypatch, tmp_path):
+    """It used to look for a recorded run of that id and answer 500."""
+    import shutil
+
+    from flakeguard.console import forge, routes
+    from flakeguard.console.runs import REPO_ROOT, SAMPLE_TARGET
+
+    recorded = client.get("/api/runs/run-2026-11-25-001/findings").json()
+    finding = m.Finding.model_validate(next(f for f in recorded if f["verdict"] == "flaky"))
+    source = m.SourceRef(repo="vidipt9090/flakeguard-demo", ref="cce60ff")
+    fetched = []
+
+    def fake_fetch(src, dest):
+        fetched.append(src.ref)
+        shutil.copytree(REPO_ROOT / SAMPLE_TARGET, dest, dirs_exist_ok=True)
+
+    monkeypatch.setattr(routes, "_find_finding", lambda fid: ("actions-1", finding))
+    monkeypatch.setattr(routes, "_run", lambda rid: type("Run", (), {"source": source})())
+    monkeypatch.setattr(routes, "manager", lambda: type("Mgr", (), {"root": tmp_path})())
+    monkeypatch.setattr(forge, "fetch_source", fake_fetch)
+    for _ in range(2):
+        resp = client.post("/api/findings/x/ask", json={"question": "Why does CACHE matter here?"})
+        assert resp.status_code == 200 and resp.json()["citations"]
+    assert fetched == ["cce60ff"]  # cloned once, reused

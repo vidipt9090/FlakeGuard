@@ -266,6 +266,9 @@ def _validated_fix(
     )
 
 
+DID_FIXTURE = "Nothing was posted or changed. This run scanned a local fixture, not a GitHub pull request."
+
+
 def build_run(
     repo: Path,
     artifacts: Path,
@@ -282,6 +285,7 @@ def build_run(
     bisection_seconds: float = 0.0,
     repo_name: str | None = None,
     fix_runs: int = fixer.DEFAULT_RUNS,
+    did: str = DID_FIXTURE,
 ) -> Built:
     """``live=True`` builds a local scan (mode ``local``, no notice); otherwise a recorded replay.
 
@@ -330,7 +334,6 @@ def build_run(
         chips += [m.LivesChip(text=filename, tone="plain"), m.LivesChip(text=t.name, tone="plain")]
         writer = reader = None
         repro: str | None = None
-        did = "Nothing was posted or changed. This run scanned a local fixture, not a GitHub pull request."
         subtype: str | None = None
         quarantine = m.Quarantine(allowed=True, reason=None)
         fix: m.FixPreview | None = None

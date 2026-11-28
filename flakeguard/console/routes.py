@@ -139,6 +139,8 @@ def _find_finding(finding_id: str) -> tuple[str, m.Finding]:
 
 
 def _target_path(run_id: str) -> Path | None:
+    if is_actions_id(run_id):
+        return None  # scanned on GitHub: there is no recorded or local copy to look up
     if not is_live_id(run_id):
         return store().target_path(run_id)
     meta = manager().dir(run_id) / "meta.json"
@@ -290,12 +292,39 @@ async def ask(request: Request) -> Response:
         return detail("Type a question first.", 422)
     try:
         run_id, finding = _find_finding(finding_id)
+        repo = _target_path(run_id)
+        if repo is None and is_actions_id(run_id):
+            repo = await run_in_threadpool(_checkout_for_ask, run_id)
     except NotFound as e:
         return detail(str(e), 404)
-    repo = _target_path(run_id)
+    except (Refused, forge.ForgeError) as e:
+        return detail(str(e), e.status)
+    except (ApiError, BudgetExhausted) as e:
+        return github_failure(e)
     if repo is None:
         return detail("The scanned repository is not on this machine, so there is no code to search.", 409)
     return respond(await run_in_threadpool(answer_question, repo, finding, question))
+
+
+_checkout_lock = threading.Lock()
+
+
+def _checkout_for_ask(run_id: str) -> Path | None:
+    """The scanned commit of a GitHub run, cloned once into the run's directory. Only read, never run."""
+    source = _run(run_id).source
+    if source is None or source.repo not in DEMO_REPOS:
+        return None
+    dest = manager().root / run_id / "source"
+    with _checkout_lock:
+        if not dest.is_dir():
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            partial = Path(tempfile.mkdtemp(prefix="source-", dir=dest.parent))
+            try:
+                forge.fetch_source(source, partial)
+                partial.rename(dest)
+            finally:
+                shutil.rmtree(partial, ignore_errors=True)  # a no-op once renamed
+    return dest
 
 
 def _run_dir(run_id: str) -> Path | None:

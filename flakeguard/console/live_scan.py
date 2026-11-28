@@ -85,6 +85,7 @@ def main(argv: list[str] | None = None) -> int:
         built = build_run(
             repo, artifacts, events, args.run_id, args.label, args.shuffled_n, live=True,
             progress=live.phase,
+            did="Nothing was posted or changed. This run was a scan on this machine, not a GitHub pull request.",
             stage_text={
                 "checkout": checkout_text,
                 "install": "Not run. A local scan uses this machine's Python environment.",
