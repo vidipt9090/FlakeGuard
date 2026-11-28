@@ -38,6 +38,8 @@ ollama ps                                   # empty is fine: the console makes n
 
 ## 2. Script (about 10 minutes)
 
+**Check of 2026-11-28 (API only, not clicked through in Chrome).** Attaching to PR #4 returns `actions-44877934601`, which has **no fix preview**, so **Propose fix PR** is disabled there. For the fix preview, use **Replay the recorded run** and say it is a recording. Its Findings text also still says "local fixture": it was stored by that Actions run. Ask works on PR #4 (restart the API to pick up the fix; the first question clones the repository, so it needs the network).
+
 Layout: console on one half of the screen, the GitHub page on the other.
 
 | Act | Do | Say | Expect | Needs network |
@@ -83,7 +85,7 @@ Local mode as a middle step when Actions is slow: Source **Sample repo** (148 s,
 
 ## 5. Known limits found in the rehearsal
 
-* **Act 2 run link.** Attaching to a PR picks the newest run at the PR's head commit. PR #4 and the throwaway PR #13 shared that commit, so attaching to #4 now selects the run that belongs to #13 (`actions-45665294747`). The numbers are identical (same commit); the **Open Actions run** link goes to the #13 run. The older run for #4 is `44877934601`. Removing the #13 run needs a GitHub write that was not approved.
+* **Act 2 run link (fixed after rehearsal 1).** Attaching to a PR picks the newest run at the PR's head commit, and the throwaway PR #13 shared PR #4's commit. With the owner's approval the #13 run (`45665294747`) was deleted; attaching to #4 returns `actions-44877934601` again and its **Open Actions run** link opens (HTTP 200). Do not open another PR from the same commit before the demo: it would repeat this.
 * **A fresh PR, not an old commit.** A new commit has no earlier run, so attach waits correctly ("starts when the pull request is opened or updated"). The first Actions run takes about 100 s (rehearsal 1: 17:29:28 to 17:31:10).
 * **Generated tests vary.** The no-tests scan is a recording; running `scripts/run_no_tests.py` again can keep or drop different tests at the same settings (M7-7).
 * **Do not push to `c/eval3-console` before the demo.** The demo repository's workflows call FlakeGuard at that branch (`@c/eval3-console`), so any new push changes what Actions runs.

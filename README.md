@@ -82,7 +82,8 @@ FlakeGuard/
 │       ├── pages_nav.py                  #     its knowledge tree + trace pages
 │       ├── pages_cicd.py                 #     its pipeline page
 │       └── viz.py                        #     its chart tokens and loaders
-├── frontend/                             # the React dashboard (the one to demo)
+├── console/                              # the React console (the one to demo)
+├── frontend/                             # the older React dashboard
 │   ├── src/
 │   │   ├── App.tsx                       #     shell, rail, theme
 │   │   ├── NavigatorView.tsx             #     the centrepiece: source + tree + replay
@@ -102,7 +103,18 @@ FlakeGuard/
 
 ---
 
-## The dashboard
+## The console
+
+The console in `console/` (Live, Findings, Repo map, Results) is the one to demo. It needs the API and the Vite dev server:
+
+```bash
+python -m flakeguard.app.api                              # terminal 1, port 8000
+cd console && npm ci && npm run dev -- --host 127.0.0.1   # terminal 2, http://127.0.0.1:5173
+```
+
+See [`docs/DEMO.md`](docs/DEMO.md) for the demo script. Port 8000 in a browser serves the older dashboard below.
+
+## The older dashboard
 
 A React app served by a small Starlette API. Two commands:
 
@@ -171,7 +183,7 @@ a private repo fails in seconds instead of hanging on a credential prompt.
 made to execute a planted file.
 
 The Streamlit dashboard (`streamlit run flakeguard/app/dashboard.py`) is still
-in the repo and still tested; the React UI is the one to demo.
+in the repo and still tested; the console in `console/` is the one to demo.
 
 ### API
 
