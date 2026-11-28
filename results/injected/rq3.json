@@ -1,0 +1,1142 @@
+{
+  "provenance": {
+    "label_type": "injected",
+    "dataset": {
+      "suite": "tests",
+      "labels_file": ".eval_cache/injected/labels.json",
+      "labels_sha256": "490a62cd5a14865fb4e4a19dbd6f8090a3790f78beb0d46858274db735831ac6",
+      "how_labelled": "by construction: operators in flakeguard/injector insert each fault into a passing published test suite (cachetools); untouched tests are stable by observation (pristine suite passed in every pristine run)",
+      "n_tests": 476,
+      "n_by_label": {
+        "stable": 445,
+        "flaky": 26,
+        "real": 5
+      },
+      "base": "cachetools 8.0.2 (source archive sha256 30ac523adfc118b51d2b2e7bad8a0ddb31370dfe2700c7f10ca224f36ccf81e0)",
+      "seed": 20261122,
+      "manifest_sha256": "16ed17a63fe7bd5ca1d2296b24bca4e9c9e759508c385785bdfad3c5c70df741",
+      "injections_by_category": {
+        "order_dep": 10,
+        "randomness": 5,
+        "real_fail": 5,
+        "shared_state": 6,
+        "time_tz": 5,
+        "timing": 5
+      },
+      "pristine_runs": [
+        "476 passed, 24 subtests passed in 1.22s",
+        "476 passed, 24 subtests passed in 1.23s",
+        "476 passed, 24 subtests passed in 1.28s",
+        "476 passed, 24 subtests passed in 1.28s",
+        "476 passed, 24 subtests passed in 1.30s",
+        "476 passed, 24 subtests passed in 1.36s"
+      ],
+      "excluded_from_injection": [
+        "test_threading.py"
+      ]
+    },
+    "command": "python scripts/run_rq3.py injected",
+    "date_utc": "2026-11-22T09:50:45Z",
+    "clock": {
+      "local": "2026-11-22 15:20:45 India Standard Time+0530",
+      "weekday": "Sunday"
+    },
+    "commit": "32863f24f7aa84553b1ee08797f7fdfc8f37d652",
+    "tracked_files_modified": false,
+    "environment": {
+      "python": "3.12.13",
+      "pytest": "9.2.0",
+      "platform": "Windows-11-10.0.26300-SP0"
+    },
+    "budget_minutes": 6.0,
+    "tolerances": {
+      "b1_fixed_order": "B1 found-flaky counts vary by about 1 test between executions (unseeded randomness tests).",
+      "everything_else": "exact given the recorded runs; the runs themselves are re-made by run_eval.py"
+    },
+    "natural_flakes": "none available: shown as a dash on the Results screen",
+    "limitations": [
+      "No natural flakes (flakes found in real projects) were available. Natural results are not reported and stay dashes.",
+      "The injection operators produce the same fault classes the detector looks for (order, shared state, timing, randomness, clock), so injected results are only partly independent of the methods being evaluated.",
+      "B1 (fixed order) cannot see a fault that only an unusual order triggers, and the order-dependence pairs are built so that the setup test comes first in the default order (as a real order dependence usually does, or it would be found at once).",
+      "The time_tz faults fail only when the local hour is outside 8 to 17. Runs were made in the daytime, so those faults cannot fail in these runs by construction. The sensitivity table removes them; the primary table keeps them as flaky.",
+      "Tests no operator touched are labelled stable because the untouched suite passed in every one of its recorded runs. That is evidence, not proof; a rare flake in the library's own tests would be counted as a wrong flag.",
+      "26 flaky and 5 real tests among 476: small N for the flaky class. Intervals are wide.",
+      "B3's code features (the words sleep, random, datetime in the test source) read the text the operators insert, so B3 with them is partly circular; the run-features-only variant is reported next to it."
+    ],
+    "runs_recorded": {
+      "b1_fixed_order": {
+        "command": "python scripts/run_eval.py injected --steps runs,coverage,rq1,rq2",
+        "date_utc": "2026-11-22T09:36:01Z",
+        "commit": "c9c7bad102e304cedae6e89068333aa98d6e5641"
+      },
+      "perturbation": {
+        "command": "python scripts/run_eval.py injected --steps runs,coverage,rq1,rq2",
+        "date_utc": "2026-11-22T09:36:01Z",
+        "commit": "c9c7bad102e304cedae6e89068333aa98d6e5641"
+      }
+    }
+  },
+  "simulation": "SIMULATION over labelled tests. No pull request was opened and no FlakeGuard PR flow was run. Each labelled test is treated as the one new test of a PR whose other changes are fine; the pipelines below are applied to the recorded runs. 'Naive CI' is one fixed-order run: any failure turns the PR red.",
+  "definitions": "docs/EVAL.md, section RQ3",
+  "primary": {
+    "n_by_label": {
+      "flaky": 26,
+      "real": 5,
+      "stable": 445
+    },
+    "pipelines": {
+      "naive_ci_one_fixed_order_run": {
+        "false_red_prs": {
+          "n_red_flaky_prs": 10,
+          "cleared_called_flaky": {
+            "k": 0,
+            "n": 10,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.2775
+            ]
+          },
+          "still_blocked_called_real": {
+            "k": 10,
+            "n": 10,
+            "value": 1.0,
+            "ci95_wilson": [
+              0.7225,
+              1.0
+            ]
+          },
+          "no_evidence_or_undecided": {
+            "k": 0,
+            "n": 10,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.2775
+            ]
+          }
+        },
+        "flaky_tests_called_real": {
+          "k": 10,
+          "n": 26,
+          "value": 0.3846,
+          "ci95_wilson": [
+            0.2243,
+            0.5747
+          ],
+          "ids": [
+            "tests/test_cached.py::PickleTest::test_pickle",
+            "tests/test_cachedmethod.py::UnboundMethodTest::test_class_access_copy",
+            "tests/test_lfu.py::LFUCacheTest::test_lfu_copy_use_counts",
+            "tests/test_lru.py::LRUCacheTest::test_lru_clear",
+            "tests/test_lru.py::LRUCacheTest::test_lru_update_existing",
+            "tests/test_rr.py::RRCacheTest::test_rr_default_choice",
+            "tests/test_rr.py::RRCacheTest::test_rr_update_existing",
+            "tests/test_tlru.py::TLRUCacheTest::test_tlru_clear",
+            "tests/test_ttl.py::TTLCacheTest::test_ttl_deepcopy_timer",
+            "tests/test_ttl.py::TTLCacheTest::test_ttl_expire"
+          ],
+          "meaning": "a PR with this test would be blocked as a real bug"
+        },
+        "real_failures": {
+          "called_real": {
+            "k": 5,
+            "n": 5,
+            "value": 1.0,
+            "ci95_wilson": [
+              0.5655,
+              1.0
+            ]
+          },
+          "wrongly_quarantined_called_flaky": {
+            "k": 0,
+            "n": 5,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4345
+            ],
+            "ids": []
+          }
+        },
+        "stable_tests_wrongly_flagged_flaky": {
+          "k": 0,
+          "n": 445,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.0086
+          ],
+          "ids": []
+        }
+      },
+      "b1_fixed_order_rerun_n20": {
+        "false_red_prs": {
+          "n_red_flaky_prs": 10,
+          "cleared_called_flaky": {
+            "k": 6,
+            "n": 10,
+            "value": 0.6,
+            "ci95_wilson": [
+              0.3127,
+              0.8318
+            ]
+          },
+          "still_blocked_called_real": {
+            "k": 4,
+            "n": 10,
+            "value": 0.4,
+            "ci95_wilson": [
+              0.1682,
+              0.6873
+            ]
+          },
+          "no_evidence_or_undecided": {
+            "k": 0,
+            "n": 10,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.2775
+            ]
+          }
+        },
+        "flaky_tests_called_real": {
+          "k": 4,
+          "n": 26,
+          "value": 0.1538,
+          "ci95_wilson": [
+            0.0615,
+            0.3353
+          ],
+          "ids": [
+            "tests/test_lru.py::LRUCacheTest::test_lru_clear",
+            "tests/test_lru.py::LRUCacheTest::test_lru_update_existing",
+            "tests/test_rr.py::RRCacheTest::test_rr_default_choice",
+            "tests/test_rr.py::RRCacheTest::test_rr_update_existing"
+          ],
+          "meaning": "a PR with this test would be blocked as a real bug"
+        },
+        "real_failures": {
+          "called_real": {
+            "k": 5,
+            "n": 5,
+            "value": 1.0,
+            "ci95_wilson": [
+              0.5655,
+              1.0
+            ]
+          },
+          "wrongly_quarantined_called_flaky": {
+            "k": 0,
+            "n": 5,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4345
+            ],
+            "ids": []
+          }
+        },
+        "stable_tests_wrongly_flagged_flaky": {
+          "k": 0,
+          "n": 445,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.0086
+          ],
+          "ids": []
+        }
+      },
+      "flakeguard_shuffled_runs_n5": {
+        "false_red_prs": {
+          "n_red_flaky_prs": 10,
+          "cleared_called_flaky": {
+            "k": 5,
+            "n": 10,
+            "value": 0.5,
+            "ci95_wilson": [
+              0.2366,
+              0.7634
+            ]
+          },
+          "still_blocked_called_real": {
+            "k": 3,
+            "n": 10,
+            "value": 0.3,
+            "ci95_wilson": [
+              0.1078,
+              0.6032
+            ]
+          },
+          "no_evidence_or_undecided": {
+            "k": 2,
+            "n": 10,
+            "value": 0.2,
+            "ci95_wilson": [
+              0.0567,
+              0.5098
+            ]
+          }
+        },
+        "flaky_tests_called_real": {
+          "k": 4,
+          "n": 26,
+          "value": 0.1538,
+          "ci95_wilson": [
+            0.0615,
+            0.3353
+          ],
+          "ids": [
+            "tests/test_lru.py::LRUCacheTest::test_lru_clear",
+            "tests/test_rr.py::RRCacheTest::test_rr_copy",
+            "tests/test_rr.py::RRCacheTest::test_rr_default_choice",
+            "tests/test_ttl.py::TTLCacheTest::test_ttl_deepcopy_timer"
+          ],
+          "meaning": "a PR with this test would be blocked as a real bug"
+        },
+        "real_failures": {
+          "called_real": {
+            "k": 5,
+            "n": 5,
+            "value": 1.0,
+            "ci95_wilson": [
+              0.5655,
+              1.0
+            ]
+          },
+          "wrongly_quarantined_called_flaky": {
+            "k": 0,
+            "n": 5,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4345
+            ],
+            "ids": []
+          }
+        },
+        "stable_tests_wrongly_flagged_flaky": {
+          "k": 0,
+          "n": 445,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.0086
+          ],
+          "ids": []
+        }
+      },
+      "flakeguard_shuffled_runs_n10": {
+        "false_red_prs": {
+          "n_red_flaky_prs": 10,
+          "cleared_called_flaky": {
+            "k": 10,
+            "n": 10,
+            "value": 1.0,
+            "ci95_wilson": [
+              0.7225,
+              1.0
+            ]
+          },
+          "still_blocked_called_real": {
+            "k": 0,
+            "n": 10,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.2775
+            ]
+          },
+          "no_evidence_or_undecided": {
+            "k": 0,
+            "n": 10,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.2775
+            ]
+          }
+        },
+        "flaky_tests_called_real": {
+          "k": 0,
+          "n": 26,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.1287
+          ],
+          "ids": [],
+          "meaning": "a PR with this test would be blocked as a real bug"
+        },
+        "real_failures": {
+          "called_real": {
+            "k": 5,
+            "n": 5,
+            "value": 1.0,
+            "ci95_wilson": [
+              0.5655,
+              1.0
+            ]
+          },
+          "wrongly_quarantined_called_flaky": {
+            "k": 0,
+            "n": 5,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4345
+            ],
+            "ids": []
+          }
+        },
+        "stable_tests_wrongly_flagged_flaky": {
+          "k": 0,
+          "n": 445,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.0086
+          ],
+          "ids": []
+        }
+      },
+      "flakeguard_shuffled_runs_n20": {
+        "false_red_prs": {
+          "n_red_flaky_prs": 10,
+          "cleared_called_flaky": {
+            "k": 10,
+            "n": 10,
+            "value": 1.0,
+            "ci95_wilson": [
+              0.7225,
+              1.0
+            ]
+          },
+          "still_blocked_called_real": {
+            "k": 0,
+            "n": 10,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.2775
+            ]
+          },
+          "no_evidence_or_undecided": {
+            "k": 0,
+            "n": 10,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.2775
+            ]
+          }
+        },
+        "flaky_tests_called_real": {
+          "k": 0,
+          "n": 26,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.1287
+          ],
+          "ids": [],
+          "meaning": "a PR with this test would be blocked as a real bug"
+        },
+        "real_failures": {
+          "called_real": {
+            "k": 5,
+            "n": 5,
+            "value": 1.0,
+            "ci95_wilson": [
+              0.5655,
+              1.0
+            ]
+          },
+          "wrongly_quarantined_called_flaky": {
+            "k": 0,
+            "n": 5,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4345
+            ],
+            "ids": []
+          }
+        },
+        "stable_tests_wrongly_flagged_flaky": {
+          "k": 0,
+          "n": 445,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.0086
+          ],
+          "ids": []
+        }
+      },
+      "flakeguard_adaptive_stopping": {
+        "false_red_prs": {
+          "n_red_flaky_prs": 10,
+          "cleared_called_flaky": {
+            "k": 7,
+            "n": 10,
+            "value": 0.7,
+            "ci95_wilson": [
+              0.3968,
+              0.8922
+            ]
+          },
+          "still_blocked_called_real": {
+            "k": 3,
+            "n": 10,
+            "value": 0.3,
+            "ci95_wilson": [
+              0.1078,
+              0.6032
+            ]
+          },
+          "no_evidence_or_undecided": {
+            "k": 0,
+            "n": 10,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.2775
+            ]
+          }
+        },
+        "flaky_tests_called_real": {
+          "k": 4,
+          "n": 26,
+          "value": 0.1538,
+          "ci95_wilson": [
+            0.0615,
+            0.3353
+          ],
+          "ids": [
+            "tests/test_lru.py::LRUCacheTest::test_lru_clear",
+            "tests/test_rr.py::RRCacheTest::test_rr_copy",
+            "tests/test_rr.py::RRCacheTest::test_rr_default_choice",
+            "tests/test_ttl.py::TTLCacheTest::test_ttl_deepcopy_timer"
+          ],
+          "meaning": "a PR with this test would be blocked as a real bug"
+        },
+        "real_failures": {
+          "called_real": {
+            "k": 5,
+            "n": 5,
+            "value": 1.0,
+            "ci95_wilson": [
+              0.5655,
+              1.0
+            ]
+          },
+          "wrongly_quarantined_called_flaky": {
+            "k": 0,
+            "n": 5,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4345
+            ],
+            "ids": []
+          }
+        },
+        "stable_tests_wrongly_flagged_flaky": {
+          "k": 0,
+          "n": 445,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.0086
+          ],
+          "ids": []
+        }
+      }
+    },
+    "naive_ci_over_all_recorded_fixed_order_runs": {
+      "meaning": "fraction of (test, fixed-order run) pairs that are red, each run read as one hypothetical CI run",
+      "red_pairs_by_label": {
+        "flaky": {
+          "k": 165,
+          "n": 520,
+          "value": 0.3173,
+          "ci95_wilson": [
+            0.2788,
+            0.3585
+          ]
+        },
+        "real": {
+          "k": 100,
+          "n": 100,
+          "value": 1.0,
+          "ci95_wilson": [
+            0.963,
+            1.0
+          ]
+        },
+        "stable": {
+          "k": 0,
+          "n": 8900,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.0004
+          ]
+        }
+      }
+    },
+    "flaky_tests_that_never_failed_in_any_recorded_run": {
+      "k": 5,
+      "n": 26,
+      "ids": [
+        "tests/test_cachedmethod.py::NoneMethodTest::test_none_info",
+        "tests/test_keys.py::CacheKeysTest::test_addkeys",
+        "tests/test_lfu.py::LFUCacheTest::test_lfu_getsizeof",
+        "tests/test_ttl.py::TTLCacheTest::test_ttl_clear",
+        "tests/test_ttl.py::TTLCacheTest::test_ttl_copy"
+      ],
+      "meaning": "cannot be red in this simulation (for injected: the time_tz faults, daytime runs)"
+    }
+  },
+  "sensitivity": {
+    "scope": {
+      "kind": "time_tz faults set aside",
+      "n_set_aside": 5,
+      "ids": [
+        "tests/test_cachedmethod.py::NoneMethodTest::test_none_info",
+        "tests/test_keys.py::CacheKeysTest::test_addkeys",
+        "tests/test_lfu.py::LFUCacheTest::test_lfu_getsizeof",
+        "tests/test_ttl.py::TTLCacheTest::test_ttl_clear",
+        "tests/test_ttl.py::TTLCacheTest::test_ttl_copy"
+      ],
+      "reason": "each asserts 8 <= local hour < 18; every run started at local hour(s) [15], so by the code none of them can fail in these runs"
+    },
+    "n_by_label": {
+      "flaky": 21,
+      "real": 5,
+      "stable": 445
+    },
+    "pipelines": {
+      "naive_ci_one_fixed_order_run": {
+        "false_red_prs": {
+          "n_red_flaky_prs": 10,
+          "cleared_called_flaky": {
+            "k": 0,
+            "n": 10,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.2775
+            ]
+          },
+          "still_blocked_called_real": {
+            "k": 10,
+            "n": 10,
+            "value": 1.0,
+            "ci95_wilson": [
+              0.7225,
+              1.0
+            ]
+          },
+          "no_evidence_or_undecided": {
+            "k": 0,
+            "n": 10,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.2775
+            ]
+          }
+        },
+        "flaky_tests_called_real": {
+          "k": 10,
+          "n": 21,
+          "value": 0.4762,
+          "ci95_wilson": [
+            0.2834,
+            0.6763
+          ],
+          "ids": [
+            "tests/test_cached.py::PickleTest::test_pickle",
+            "tests/test_cachedmethod.py::UnboundMethodTest::test_class_access_copy",
+            "tests/test_lfu.py::LFUCacheTest::test_lfu_copy_use_counts",
+            "tests/test_lru.py::LRUCacheTest::test_lru_clear",
+            "tests/test_lru.py::LRUCacheTest::test_lru_update_existing",
+            "tests/test_rr.py::RRCacheTest::test_rr_default_choice",
+            "tests/test_rr.py::RRCacheTest::test_rr_update_existing",
+            "tests/test_tlru.py::TLRUCacheTest::test_tlru_clear",
+            "tests/test_ttl.py::TTLCacheTest::test_ttl_deepcopy_timer",
+            "tests/test_ttl.py::TTLCacheTest::test_ttl_expire"
+          ],
+          "meaning": "a PR with this test would be blocked as a real bug"
+        },
+        "real_failures": {
+          "called_real": {
+            "k": 5,
+            "n": 5,
+            "value": 1.0,
+            "ci95_wilson": [
+              0.5655,
+              1.0
+            ]
+          },
+          "wrongly_quarantined_called_flaky": {
+            "k": 0,
+            "n": 5,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4345
+            ],
+            "ids": []
+          }
+        },
+        "stable_tests_wrongly_flagged_flaky": {
+          "k": 0,
+          "n": 445,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.0086
+          ],
+          "ids": []
+        }
+      },
+      "b1_fixed_order_rerun_n20": {
+        "false_red_prs": {
+          "n_red_flaky_prs": 10,
+          "cleared_called_flaky": {
+            "k": 6,
+            "n": 10,
+            "value": 0.6,
+            "ci95_wilson": [
+              0.3127,
+              0.8318
+            ]
+          },
+          "still_blocked_called_real": {
+            "k": 4,
+            "n": 10,
+            "value": 0.4,
+            "ci95_wilson": [
+              0.1682,
+              0.6873
+            ]
+          },
+          "no_evidence_or_undecided": {
+            "k": 0,
+            "n": 10,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.2775
+            ]
+          }
+        },
+        "flaky_tests_called_real": {
+          "k": 4,
+          "n": 21,
+          "value": 0.1905,
+          "ci95_wilson": [
+            0.0767,
+            0.4
+          ],
+          "ids": [
+            "tests/test_lru.py::LRUCacheTest::test_lru_clear",
+            "tests/test_lru.py::LRUCacheTest::test_lru_update_existing",
+            "tests/test_rr.py::RRCacheTest::test_rr_default_choice",
+            "tests/test_rr.py::RRCacheTest::test_rr_update_existing"
+          ],
+          "meaning": "a PR with this test would be blocked as a real bug"
+        },
+        "real_failures": {
+          "called_real": {
+            "k": 5,
+            "n": 5,
+            "value": 1.0,
+            "ci95_wilson": [
+              0.5655,
+              1.0
+            ]
+          },
+          "wrongly_quarantined_called_flaky": {
+            "k": 0,
+            "n": 5,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4345
+            ],
+            "ids": []
+          }
+        },
+        "stable_tests_wrongly_flagged_flaky": {
+          "k": 0,
+          "n": 445,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.0086
+          ],
+          "ids": []
+        }
+      },
+      "flakeguard_shuffled_runs_n5": {
+        "false_red_prs": {
+          "n_red_flaky_prs": 10,
+          "cleared_called_flaky": {
+            "k": 5,
+            "n": 10,
+            "value": 0.5,
+            "ci95_wilson": [
+              0.2366,
+              0.7634
+            ]
+          },
+          "still_blocked_called_real": {
+            "k": 3,
+            "n": 10,
+            "value": 0.3,
+            "ci95_wilson": [
+              0.1078,
+              0.6032
+            ]
+          },
+          "no_evidence_or_undecided": {
+            "k": 2,
+            "n": 10,
+            "value": 0.2,
+            "ci95_wilson": [
+              0.0567,
+              0.5098
+            ]
+          }
+        },
+        "flaky_tests_called_real": {
+          "k": 4,
+          "n": 21,
+          "value": 0.1905,
+          "ci95_wilson": [
+            0.0767,
+            0.4
+          ],
+          "ids": [
+            "tests/test_lru.py::LRUCacheTest::test_lru_clear",
+            "tests/test_rr.py::RRCacheTest::test_rr_copy",
+            "tests/test_rr.py::RRCacheTest::test_rr_default_choice",
+            "tests/test_ttl.py::TTLCacheTest::test_ttl_deepcopy_timer"
+          ],
+          "meaning": "a PR with this test would be blocked as a real bug"
+        },
+        "real_failures": {
+          "called_real": {
+            "k": 5,
+            "n": 5,
+            "value": 1.0,
+            "ci95_wilson": [
+              0.5655,
+              1.0
+            ]
+          },
+          "wrongly_quarantined_called_flaky": {
+            "k": 0,
+            "n": 5,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4345
+            ],
+            "ids": []
+          }
+        },
+        "stable_tests_wrongly_flagged_flaky": {
+          "k": 0,
+          "n": 445,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.0086
+          ],
+          "ids": []
+        }
+      },
+      "flakeguard_shuffled_runs_n10": {
+        "false_red_prs": {
+          "n_red_flaky_prs": 10,
+          "cleared_called_flaky": {
+            "k": 10,
+            "n": 10,
+            "value": 1.0,
+            "ci95_wilson": [
+              0.7225,
+              1.0
+            ]
+          },
+          "still_blocked_called_real": {
+            "k": 0,
+            "n": 10,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.2775
+            ]
+          },
+          "no_evidence_or_undecided": {
+            "k": 0,
+            "n": 10,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.2775
+            ]
+          }
+        },
+        "flaky_tests_called_real": {
+          "k": 0,
+          "n": 21,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.1546
+          ],
+          "ids": [],
+          "meaning": "a PR with this test would be blocked as a real bug"
+        },
+        "real_failures": {
+          "called_real": {
+            "k": 5,
+            "n": 5,
+            "value": 1.0,
+            "ci95_wilson": [
+              0.5655,
+              1.0
+            ]
+          },
+          "wrongly_quarantined_called_flaky": {
+            "k": 0,
+            "n": 5,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4345
+            ],
+            "ids": []
+          }
+        },
+        "stable_tests_wrongly_flagged_flaky": {
+          "k": 0,
+          "n": 445,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.0086
+          ],
+          "ids": []
+        }
+      },
+      "flakeguard_shuffled_runs_n20": {
+        "false_red_prs": {
+          "n_red_flaky_prs": 10,
+          "cleared_called_flaky": {
+            "k": 10,
+            "n": 10,
+            "value": 1.0,
+            "ci95_wilson": [
+              0.7225,
+              1.0
+            ]
+          },
+          "still_blocked_called_real": {
+            "k": 0,
+            "n": 10,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.2775
+            ]
+          },
+          "no_evidence_or_undecided": {
+            "k": 0,
+            "n": 10,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.2775
+            ]
+          }
+        },
+        "flaky_tests_called_real": {
+          "k": 0,
+          "n": 21,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.1546
+          ],
+          "ids": [],
+          "meaning": "a PR with this test would be blocked as a real bug"
+        },
+        "real_failures": {
+          "called_real": {
+            "k": 5,
+            "n": 5,
+            "value": 1.0,
+            "ci95_wilson": [
+              0.5655,
+              1.0
+            ]
+          },
+          "wrongly_quarantined_called_flaky": {
+            "k": 0,
+            "n": 5,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4345
+            ],
+            "ids": []
+          }
+        },
+        "stable_tests_wrongly_flagged_flaky": {
+          "k": 0,
+          "n": 445,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.0086
+          ],
+          "ids": []
+        }
+      },
+      "flakeguard_adaptive_stopping": {
+        "false_red_prs": {
+          "n_red_flaky_prs": 10,
+          "cleared_called_flaky": {
+            "k": 7,
+            "n": 10,
+            "value": 0.7,
+            "ci95_wilson": [
+              0.3968,
+              0.8922
+            ]
+          },
+          "still_blocked_called_real": {
+            "k": 3,
+            "n": 10,
+            "value": 0.3,
+            "ci95_wilson": [
+              0.1078,
+              0.6032
+            ]
+          },
+          "no_evidence_or_undecided": {
+            "k": 0,
+            "n": 10,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.2775
+            ]
+          }
+        },
+        "flaky_tests_called_real": {
+          "k": 4,
+          "n": 21,
+          "value": 0.1905,
+          "ci95_wilson": [
+            0.0767,
+            0.4
+          ],
+          "ids": [
+            "tests/test_lru.py::LRUCacheTest::test_lru_clear",
+            "tests/test_rr.py::RRCacheTest::test_rr_copy",
+            "tests/test_rr.py::RRCacheTest::test_rr_default_choice",
+            "tests/test_ttl.py::TTLCacheTest::test_ttl_deepcopy_timer"
+          ],
+          "meaning": "a PR with this test would be blocked as a real bug"
+        },
+        "real_failures": {
+          "called_real": {
+            "k": 5,
+            "n": 5,
+            "value": 1.0,
+            "ci95_wilson": [
+              0.5655,
+              1.0
+            ]
+          },
+          "wrongly_quarantined_called_flaky": {
+            "k": 0,
+            "n": 5,
+            "value": 0.0,
+            "ci95_wilson": [
+              0.0,
+              0.4345
+            ],
+            "ids": []
+          }
+        },
+        "stable_tests_wrongly_flagged_flaky": {
+          "k": 0,
+          "n": 445,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.0086
+          ],
+          "ids": []
+        }
+      }
+    },
+    "naive_ci_over_all_recorded_fixed_order_runs": {
+      "meaning": "fraction of (test, fixed-order run) pairs that are red, each run read as one hypothetical CI run",
+      "red_pairs_by_label": {
+        "flaky": {
+          "k": 165,
+          "n": 420,
+          "value": 0.3929,
+          "ci95_wilson": [
+            0.3473,
+            0.4403
+          ]
+        },
+        "real": {
+          "k": 100,
+          "n": 100,
+          "value": 1.0,
+          "ci95_wilson": [
+            0.963,
+            1.0
+          ]
+        },
+        "stable": {
+          "k": 0,
+          "n": 8900,
+          "value": 0.0,
+          "ci95_wilson": [
+            0.0,
+            0.0004
+          ]
+        }
+      }
+    },
+    "flaky_tests_that_never_failed_in_any_recorded_run": {
+      "k": 0,
+      "n": 21,
+      "ids": [],
+      "meaning": "cannot be red in this simulation (for injected: the time_tz faults, daytime runs)"
+    }
+  },
+  "natural": {
+    "status": "not run",
+    "note": "no natural dataset: shown as dashes"
+  },
+  "real_pull_requests": {
+    "note": "Two real pull requests of the demo repository, mentioned as anecdotes only. They are not data for any figure above.",
+    "pr3": "act1-deterministic-test: a clean change; FlakeGuard's comment said no evidence of flakiness in 10 shuffled runs.",
+    "pr4": "act2-seeded-faults: a revert that brings four faulty tests back; the comment named test_report_total flaky and order-dependent, test_reserve_negative a real failure, test_sync_timeout unknown."
+  }
+}

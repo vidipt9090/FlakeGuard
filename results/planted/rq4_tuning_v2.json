@@ -1,0 +1,1254 @@
+{
+  "provenance": {
+    "label_type": "planted",
+    "dataset": {
+      "suite": "synthetic/tests",
+      "labels_file": "labels/labels.json",
+      "labels_sha256": "89a10867c7d8154e1955bdf071b8ecbcb3e34eab587b11b2ed29964f19d01b5d",
+      "how_labelled": "by construction: each fault was written into the test or the code by hand, so its label is known",
+      "n_tests": 31,
+      "n_by_label": {
+        "stable": 10,
+        "flaky": 15,
+        "real": 6
+      }
+    },
+    "command": "python scripts/run_rq4.py planted --prompt v2 --no-fix",
+    "date_utc": "2026-11-22T10:10:31Z",
+    "clock": {
+      "local": "2026-11-22 15:40:31 India Standard Time+0530",
+      "weekday": "Sunday"
+    },
+    "commit": "32863f24f7aa84553b1ee08797f7fdfc8f37d652",
+    "tracked_files_modified": true,
+    "environment": {
+      "python": "3.12.13",
+      "pytest": "9.2.0",
+      "platform": "Windows-11-10.0.26300-SP0"
+    },
+    "budget_minutes": 6.0,
+    "tolerances": {
+      "diagnosis": "temperature 0 and a fixed seed: the same machine and Ollama version should repeat each reply; a repeat check of the none setting is stored",
+      "tokens_and_chars": "exact for the same code and prompt text"
+    },
+    "natural_flakes": "none available: shown as a dash on the Results screen",
+    "limitations": [
+      "Planted faults only. Results on planted faults are partly circular: the faults were written to be the kinds that shuffled runs and the AST analysis are built to find. Read them as a check that the methods work, not as a measure of how often they find real-world flakes.",
+      "No natural flakes (flakes found in real projects) were available. Natural results are not reported and stay dashes.",
+      "Five of the 15 tests labelled flaky cannot pass on this machine, judging by their code (see sensitivity below). The primary table keeps the labels as written; the sensitivity table relabels those five as real, with the reason read from the test code. The five were first noticed because every method called them real, then confirmed by reading the code; no test is dropped because a method called it real.",
+      "Small N: 15 flaky and 16 other tests. Intervals are wide and a difference between methods of a few tests is not evidence of a difference.",
+      "B2 and B3 are not scored on this set: it has no commit diff or coverage run for B2, and B3 is trained on it, so scoring B3 here would score it on its training tests.",
+      "Planted tests are small hand-written files whose names and helper functions often state their purpose; nothing was removed from them.",
+      "One model (3B parameters, 4-bit), one prompt, one decoding setting. A different prompt could move every number.",
+      "26 injected flaky tests: a difference of a few tests between settings is inside the intervals.",
+      "Fix metric: N=5. No figure there is a rate."
+    ],
+    "model": {
+      "name": "llama3.2:3b",
+      "digest": "a80c4f17acd55265feec403c7aef86be0c25983ab279d83f3bcd3abbcb5b8b72",
+      "ollama_version": "0.40.16",
+      "host": "local, CPU"
+    },
+    "decoding": {
+      "temperature": 0,
+      "seed": 42,
+      "num_ctx": 16384,
+      "format": "json",
+      "retries": 0
+    },
+    "prompt": {
+      "version": "v2",
+      "sha256": "24ae312d85401205e30ed33328b08f6818767053ddf49fae7cd2415d37c93ff8",
+      "fix_prompt_sha256": "81c6c5d7141b42076e040ca0a9457502fda39b5a66b0302a5fb2cfe8c64a7120"
+    },
+    "what_the_model_sees": "test id, run summary, and per setting the code described in docs/EVAL.md. Failure messages are never shown. Comment lines inserted by the injection operators and the message part of their asserts are removed (injected only)."
+  },
+  "results": {
+    "none": {
+      "diagnosis_matches": {
+        "k": 3,
+        "n": 15,
+        "value": 0.2,
+        "ci95_wilson": [
+          0.0705,
+          0.4519
+        ]
+      },
+      "unreadable_replies_counted_as_failures": 0,
+      "answers": {
+        "order_dependence": 0,
+        "shared_state": 0,
+        "timing": 15,
+        "randomness": 0,
+        "time_or_timezone": 0,
+        "other": 0
+      },
+      "by_known_cause": {
+        "order_dependence": {
+          "k": 0,
+          "n": 3
+        },
+        "shared_state": {
+          "k": 0,
+          "n": 3
+        },
+        "timing": {
+          "k": 3,
+          "n": 3
+        },
+        "randomness": {
+          "k": 0,
+          "n": 3
+        },
+        "time_or_timezone": {
+          "k": 0,
+          "n": 3
+        }
+      },
+      "code_chars_sent": {
+        "n": 15,
+        "mean": 0,
+        "median": 0,
+        "max": 0,
+        "total": 0
+      },
+      "prompt_tokens": {
+        "n": 15,
+        "mean": 400,
+        "median": 400,
+        "max": 400,
+        "total": 6000
+      },
+      "generated_tokens": {
+        "n": 15,
+        "mean": 43.2,
+        "median": 43,
+        "max": 48,
+        "total": 648
+      },
+      "seconds": {
+        "n": 15,
+        "mean": 9.7,
+        "median": 9.4,
+        "max": 12.4,
+        "total": 146.0
+      },
+      "prompts_that_filled_the_context": 0
+    },
+    "file": {
+      "diagnosis_matches": {
+        "k": 4,
+        "n": 15,
+        "value": 0.2667,
+        "ci95_wilson": [
+          0.109,
+          0.5195
+        ]
+      },
+      "unreadable_replies_counted_as_failures": 0,
+      "answers": {
+        "order_dependence": 0,
+        "shared_state": 0,
+        "timing": 14,
+        "randomness": 0,
+        "time_or_timezone": 1,
+        "other": 0
+      },
+      "by_known_cause": {
+        "order_dependence": {
+          "k": 0,
+          "n": 3
+        },
+        "shared_state": {
+          "k": 0,
+          "n": 3
+        },
+        "timing": {
+          "k": 3,
+          "n": 3
+        },
+        "randomness": {
+          "k": 0,
+          "n": 3
+        },
+        "time_or_timezone": {
+          "k": 1,
+          "n": 3
+        }
+      },
+      "code_chars_sent": {
+        "n": 15,
+        "mean": 1086.3,
+        "median": 1321,
+        "max": 1321,
+        "total": 16295
+      },
+      "prompt_tokens": {
+        "n": 15,
+        "mean": 695.9,
+        "median": 762,
+        "max": 762,
+        "total": 10439
+      },
+      "generated_tokens": {
+        "n": 15,
+        "mean": 38.5,
+        "median": 37,
+        "max": 55,
+        "total": 578
+      },
+      "seconds": {
+        "n": 15,
+        "mean": 9.3,
+        "median": 8.9,
+        "max": 11.7,
+        "total": 138.9
+      },
+      "prompts_that_filled_the_context": 0
+    },
+    "ast": {
+      "diagnosis_matches": {
+        "k": 9,
+        "n": 15,
+        "value": 0.6,
+        "ci95_wilson": [
+          0.3575,
+          0.8018
+        ]
+      },
+      "unreadable_replies_counted_as_failures": 0,
+      "answers": {
+        "order_dependence": 8,
+        "shared_state": 0,
+        "timing": 4,
+        "randomness": 0,
+        "time_or_timezone": 3,
+        "other": 0
+      },
+      "by_known_cause": {
+        "order_dependence": {
+          "k": 3,
+          "n": 3
+        },
+        "shared_state": {
+          "k": 0,
+          "n": 3
+        },
+        "timing": {
+          "k": 3,
+          "n": 3
+        },
+        "randomness": {
+          "k": 0,
+          "n": 3
+        },
+        "time_or_timezone": {
+          "k": 3,
+          "n": 3
+        }
+      },
+      "code_chars_sent": {
+        "n": 15,
+        "mean": 1081,
+        "median": 1070,
+        "max": 1245,
+        "total": 16215
+      },
+      "prompt_tokens": {
+        "n": 15,
+        "mean": 685.7,
+        "median": 684,
+        "max": 730,
+        "total": 10285
+      },
+      "generated_tokens": {
+        "n": 15,
+        "mean": 41.8,
+        "median": 40,
+        "max": 60,
+        "total": 627
+      },
+      "seconds": {
+        "n": 15,
+        "mean": 9.8,
+        "median": 9.3,
+        "max": 14.3,
+        "total": 147.6
+      },
+      "prompts_that_filled_the_context": 0
+    },
+    "ast_jedi": {
+      "diagnosis_matches": {
+        "k": 10,
+        "n": 15,
+        "value": 0.6667,
+        "ci95_wilson": [
+          0.4171,
+          0.8482
+        ]
+      },
+      "unreadable_replies_counted_as_failures": 0,
+      "answers": {
+        "order_dependence": 5,
+        "shared_state": 0,
+        "timing": 5,
+        "randomness": 2,
+        "time_or_timezone": 3,
+        "other": 0
+      },
+      "by_known_cause": {
+        "order_dependence": {
+          "k": 2,
+          "n": 3
+        },
+        "shared_state": {
+          "k": 0,
+          "n": 3
+        },
+        "timing": {
+          "k": 3,
+          "n": 3
+        },
+        "randomness": {
+          "k": 2,
+          "n": 3
+        },
+        "time_or_timezone": {
+          "k": 3,
+          "n": 3
+        }
+      },
+      "code_chars_sent": {
+        "n": 15,
+        "mean": 1320.3,
+        "median": 1286,
+        "max": 1710,
+        "total": 19804
+      },
+      "prompt_tokens": {
+        "n": 15,
+        "mean": 748.1,
+        "median": 738,
+        "max": 854,
+        "total": 11221
+      },
+      "generated_tokens": {
+        "n": 15,
+        "mean": 44.6,
+        "median": 43,
+        "max": 57,
+        "total": 669
+      },
+      "seconds": {
+        "n": 15,
+        "mean": 9.4,
+        "median": 9.3,
+        "max": 10.1,
+        "total": 140.4
+      },
+      "prompts_that_filled_the_context": 0
+    }
+  },
+  "per_test": [
+    {
+      "id": "synthetic/tests/test_suite_01.py::test_case_02",
+      "setting": "none",
+      "known_cause": "order_dependence",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 400,
+      "generated_tokens": 44,
+      "seconds": 9.2,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test's failure to pass in 20 shuffled-order runs suggests that the test is waiting for something to finish, which is not guaranteed in a random order.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_01.py::test_case_04",
+      "setting": "none",
+      "known_cause": "order_dependence",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 400,
+      "generated_tokens": 44,
+      "seconds": 8.9,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test's failure to pass in 20 shuffled-order runs suggests that the test is waiting for something to finish, which is not guaranteed in a random order.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_01.py::test_case_06",
+      "setting": "none",
+      "known_cause": "order_dependence",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 400,
+      "generated_tokens": 44,
+      "seconds": 9.3,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test's failure to pass in 20 shuffled-order runs suggests that the test is waiting for something to finish, which is not guaranteed in a random order.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_01.py::test_case_08",
+      "setting": "none",
+      "known_cause": "shared_state",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 400,
+      "generated_tokens": 43,
+      "seconds": 9.4,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test's failure to pass in fixed-order runs suggests that the test is waiting for something to finish, which is not the case in shuffled-order runs.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_01.py::test_case_10",
+      "setting": "none",
+      "known_cause": "shared_state",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 400,
+      "generated_tokens": 43,
+      "seconds": 9.3,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test's failure to pass in fixed-order runs suggests that the test is waiting for something to finish, which is not the case in shuffled-order runs.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_12",
+      "setting": "none",
+      "known_cause": "shared_state",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 400,
+      "generated_tokens": 43,
+      "seconds": 9.4,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test's failure to pass in fixed-order runs suggests that the test is waiting for something to finish, which is not the case in shuffled-order runs.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_13",
+      "setting": "none",
+      "known_cause": "timing",
+      "model_cause": "timing",
+      "readable": true,
+      "match": true,
+      "code_chars": 0,
+      "prompt_tokens": 400,
+      "generated_tokens": 42,
+      "seconds": 10.0,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test's failure to pass in fixed-order runs suggests that the test is waiting for something to finish, which is not the case in these runs.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_14",
+      "setting": "none",
+      "known_cause": "timing",
+      "model_cause": "timing",
+      "readable": true,
+      "match": true,
+      "code_chars": 0,
+      "prompt_tokens": 400,
+      "generated_tokens": 42,
+      "seconds": 12.4,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test's failure to pass in both shuffled and fixed-order runs suggests that the test's result is sensitive to the timing of other tests or operations.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_15",
+      "setting": "none",
+      "known_cause": "timing",
+      "model_cause": "timing",
+      "readable": true,
+      "match": true,
+      "code_chars": 0,
+      "prompt_tokens": 400,
+      "generated_tokens": 42,
+      "seconds": 9.4,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test's failure to pass in both shuffled and fixed-order runs suggests that the test's result is sensitive to the timing of other tests or operations.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_16",
+      "setting": "none",
+      "known_cause": "randomness",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 400,
+      "generated_tokens": 44,
+      "seconds": 10.3,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test's failure to pass in some runs but not others suggests that the result depends on the timing of other tests or operations, such as threads or sleeps.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_17",
+      "setting": "none",
+      "known_cause": "randomness",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 400,
+      "generated_tokens": 43,
+      "seconds": 11.6,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test's failure to pass in fixed-order runs suggests that the test is waiting for something to finish, which is not guaranteed in a fixed-order run.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_18",
+      "setting": "none",
+      "known_cause": "randomness",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 400,
+      "generated_tokens": 48,
+      "seconds": 9.1,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test's failure to pass in 20 shuffled-order runs but pass in 20 fixed-order runs suggests that the test's result depends on the timing of other tests or operations.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_19",
+      "setting": "none",
+      "known_cause": "time_or_timezone",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 400,
+      "generated_tokens": 42,
+      "seconds": 8.8,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test's failure to pass in both shuffled and fixed-order runs suggests that the test's result is sensitive to the timing of other tests or operations.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_20",
+      "setting": "none",
+      "known_cause": "time_or_timezone",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 400,
+      "generated_tokens": 42,
+      "seconds": 8.8,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test's failure to pass in both shuffled and fixed-order runs suggests that the test's result is sensitive to the timing of other tests or operations.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_03.py::test_case_21",
+      "setting": "none",
+      "known_cause": "time_or_timezone",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 400,
+      "generated_tokens": 42,
+      "seconds": 10.1,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test's failure to pass in both shuffled and fixed-order runs suggests that the test's result is sensitive to the timing of other tests or operations.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_01.py::test_case_02",
+      "setting": "file",
+      "known_cause": "order_dependence",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 671,
+      "prompt_tokens": 575,
+      "generated_tokens": 40,
+      "seconds": 8.9,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test relies on the result of a function that is not guaranteed to finish before the test case, causing the test to fail intermittently.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_01.py::test_case_04",
+      "setting": "file",
+      "known_cause": "order_dependence",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 671,
+      "prompt_tokens": 575,
+      "generated_tokens": 55,
+      "seconds": 11.7,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test relies on the result of a previous test, test_case_05, which sets a session value, and the test_case_04 assertion depends on the current session value, which may not be set yet.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_01.py::test_case_06",
+      "setting": "file",
+      "known_cause": "order_dependence",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 671,
+      "prompt_tokens": 575,
+      "generated_tokens": 45,
+      "seconds": 9.1,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test relies on a specific session value being set by a previous test, suggesting that the test's result is dependent on the timing of when the session is set.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_01.py::test_case_08",
+      "setting": "file",
+      "known_cause": "shared_state",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 671,
+      "prompt_tokens": 575,
+      "generated_tokens": 49,
+      "seconds": 10.3,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test relies on the result of shop.apply_rate(10) which is likely to be affected by the timing of the test execution, as the rate is applied to a global variable.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_01.py::test_case_10",
+      "setting": "file",
+      "known_cause": "shared_state",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 671,
+      "prompt_tokens": 575,
+      "generated_tokens": 40,
+      "seconds": 8.7,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test relies on the result of a function that is not guaranteed to finish before the test finishes, causing the test to fail intermittently.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_12",
+      "setting": "file",
+      "known_cause": "shared_state",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 1321,
+      "prompt_tokens": 762,
+      "generated_tokens": 33,
+      "seconds": 8.2,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test uses sleep and threading, which can introduce variability in execution time, leading to flaky results.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_13",
+      "setting": "file",
+      "known_cause": "timing",
+      "model_cause": "timing",
+      "readable": true,
+      "match": true,
+      "code_chars": 1321,
+      "prompt_tokens": 762,
+      "generated_tokens": 40,
+      "seconds": 9.0,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test uses a sleep and a thread, which can introduce variability in the timing of the test's execution, leading to flaky results.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_14",
+      "setting": "file",
+      "known_cause": "timing",
+      "model_cause": "timing",
+      "readable": true,
+      "match": true,
+      "code_chars": 1321,
+      "prompt_tokens": 762,
+      "generated_tokens": 33,
+      "seconds": 8.8,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test uses sleep and threading, which can introduce variability in execution time, leading to flaky results.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_15",
+      "setting": "file",
+      "known_cause": "timing",
+      "model_cause": "timing",
+      "readable": true,
+      "match": true,
+      "code_chars": 1321,
+      "prompt_tokens": 762,
+      "generated_tokens": 41,
+      "seconds": 10.0,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test increments a global counter and waits for it to reach a certain value, which is sensitive to the timing of the threads and sleep function.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_16",
+      "setting": "file",
+      "known_cause": "randomness",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 1321,
+      "prompt_tokens": 762,
+      "generated_tokens": 33,
+      "seconds": 9.3,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test uses sleep and threading, which can introduce variability in execution time, leading to flaky results.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_17",
+      "setting": "file",
+      "known_cause": "randomness",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 1321,
+      "prompt_tokens": 762,
+      "generated_tokens": 33,
+      "seconds": 8.9,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test uses sleep and threading, which can introduce variability in execution time, leading to flaky results.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_18",
+      "setting": "file",
+      "known_cause": "randomness",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 1321,
+      "prompt_tokens": 762,
+      "generated_tokens": 33,
+      "seconds": 8.4,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test uses sleep and threading, which can introduce variability in execution time, leading to flaky results.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_19",
+      "setting": "file",
+      "known_cause": "time_or_timezone",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 1321,
+      "prompt_tokens": 762,
+      "generated_tokens": 33,
+      "seconds": 11.2,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test uses sleep and threading, which can introduce variability in execution time, leading to flaky results.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_20",
+      "setting": "file",
+      "known_cause": "time_or_timezone",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 1321,
+      "prompt_tokens": 762,
+      "generated_tokens": 33,
+      "seconds": 7.9,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test uses sleep and threading, which can introduce variability in execution time, leading to flaky results.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_03.py::test_case_21",
+      "setting": "file",
+      "known_cause": "time_or_timezone",
+      "model_cause": "time_or_timezone",
+      "readable": true,
+      "match": true,
+      "code_chars": 1051,
+      "prompt_tokens": 706,
+      "generated_tokens": 37,
+      "seconds": 8.5,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"time_or_timezone\", \"reason\": \"The test relies on the current timezone offset, which can change between runs, causing the test to fail intermittently.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_01.py::test_case_02",
+      "setting": "ast",
+      "known_cause": "order_dependence",
+      "model_cause": "order_dependence",
+      "readable": true,
+      "match": true,
+      "code_chars": 994,
+      "prompt_tokens": 661,
+      "generated_tokens": 40,
+      "seconds": 11.1,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"order_dependence\", \"reason\": \"The test asserts on a value that is set up by another test, and the order of tests matters for the setup to occur.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_01.py::test_case_04",
+      "setting": "ast",
+      "known_cause": "order_dependence",
+      "model_cause": "order_dependence",
+      "readable": true,
+      "match": true,
+      "code_chars": 991,
+      "prompt_tokens": 661,
+      "generated_tokens": 60,
+      "seconds": 9.7,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"order_dependence\", \"reason\": \"The test asserts on a global variable that is set up by another test, which is not the case here, but the test itself does not create the variable, suggesting that the variable is set up by a previous test or run.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_01.py::test_case_06",
+      "setting": "ast",
+      "known_cause": "order_dependence",
+      "model_cause": "order_dependence",
+      "readable": true,
+      "match": true,
+      "code_chars": 999,
+      "prompt_tokens": 664,
+      "generated_tokens": 39,
+      "seconds": 9.4,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"order_dependence\", \"reason\": \"The test asserts on a global variable that is set up by another test, and the order of tests matters for its value.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_01.py::test_case_08",
+      "setting": "ast",
+      "known_cause": "shared_state",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 988,
+      "prompt_tokens": 663,
+      "generated_tokens": 43,
+      "seconds": 9.8,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test relies on the result of a global variable assignment, which can be affected by the order in which tests are run, leading to flaky behavior.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_01.py::test_case_10",
+      "setting": "ast",
+      "known_cause": "shared_state",
+      "model_cause": "order_dependence",
+      "readable": true,
+      "match": false,
+      "code_chars": 993,
+      "prompt_tokens": 665,
+      "generated_tokens": 38,
+      "seconds": 9.7,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"order_dependence\", \"reason\": \"The test asserts on a value that is set up by another test, and the order of tests matters for the result.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_12",
+      "setting": "ast",
+      "known_cause": "shared_state",
+      "model_cause": "order_dependence",
+      "readable": true,
+      "match": false,
+      "code_chars": 1004,
+      "prompt_tokens": 665,
+      "generated_tokens": 43,
+      "seconds": 8.6,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"order_dependence\", \"reason\": \"The test asserts on a value that is set up by another test, and the order of tests matters for the value to be set up correctly.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_13",
+      "setting": "ast",
+      "known_cause": "timing",
+      "model_cause": "timing",
+      "readable": true,
+      "match": true,
+      "code_chars": 1232,
+      "prompt_tokens": 730,
+      "generated_tokens": 40,
+      "seconds": 8.7,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test relies on a thread and a sleep, which can introduce variability in execution time, causing the test to pass or fail intermittently.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_14",
+      "setting": "ast",
+      "known_cause": "timing",
+      "model_cause": "timing",
+      "readable": true,
+      "match": true,
+      "code_chars": 1169,
+      "prompt_tokens": 711,
+      "generated_tokens": 40,
+      "seconds": 13.3,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test relies on a thread and a sleep, which can introduce variability in execution time, causing the test to pass or fail intermittently.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_15",
+      "setting": "ast",
+      "known_cause": "timing",
+      "model_cause": "timing",
+      "readable": true,
+      "match": true,
+      "code_chars": 1245,
+      "prompt_tokens": 728,
+      "generated_tokens": 46,
+      "seconds": 14.3,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test uses a sleep function to wait for a short period of time before asserting on a value, which suggests that the timing of the test is critical to its success.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_16",
+      "setting": "ast",
+      "known_cause": "randomness",
+      "model_cause": "order_dependence",
+      "readable": true,
+      "match": false,
+      "code_chars": 1067,
+      "prompt_tokens": 684,
+      "generated_tokens": 42,
+      "seconds": 8.7,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"order_dependence\", \"reason\": \"The test asserts on a value that is set up by another test, suggesting that the test relies on the previous test's output to pass.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_17",
+      "setting": "ast",
+      "known_cause": "randomness",
+      "model_cause": "order_dependence",
+      "readable": true,
+      "match": false,
+      "code_chars": 1075,
+      "prompt_tokens": 684,
+      "generated_tokens": 43,
+      "seconds": 8.7,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"order_dependence\", \"reason\": \"The test asserts on a value that is set up by another test, and the order of tests matters for the value to be set up correctly.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_18",
+      "setting": "ast",
+      "known_cause": "randomness",
+      "model_cause": "order_dependence",
+      "readable": true,
+      "match": false,
+      "code_chars": 1070,
+      "prompt_tokens": 685,
+      "generated_tokens": 38,
+      "seconds": 8.9,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"order_dependence\", \"reason\": \"The test asserts on a value that is set up by another test, and the order of tests matters for the result.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_19",
+      "setting": "ast",
+      "known_cause": "time_or_timezone",
+      "model_cause": "time_or_timezone",
+      "readable": true,
+      "match": true,
+      "code_chars": 1099,
+      "prompt_tokens": 688,
+      "generated_tokens": 38,
+      "seconds": 8.4,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"time_or_timezone\", \"reason\": \"The test relies on the current date and time, which can vary between runs, causing the assertion to fail intermittently.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_20",
+      "setting": "ast",
+      "known_cause": "time_or_timezone",
+      "model_cause": "time_or_timezone",
+      "readable": true,
+      "match": true,
+      "code_chars": 1102,
+      "prompt_tokens": 687,
+      "generated_tokens": 34,
+      "seconds": 9.3,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"time_or_timezone\", \"reason\": \"The test asserts on the current time, which may vary between runs due to the test's timing.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_03.py::test_case_21",
+      "setting": "ast",
+      "known_cause": "time_or_timezone",
+      "model_cause": "time_or_timezone",
+      "readable": true,
+      "match": true,
+      "code_chars": 1187,
+      "prompt_tokens": 709,
+      "generated_tokens": 43,
+      "seconds": 9.0,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"time_or_timezone\", \"reason\": \"The test asserts on the timezone offset of the current date and time, which can vary between runs due to changes in the system's timezone settings.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_01.py::test_case_02",
+      "setting": "ast_jedi",
+      "known_cause": "order_dependence",
+      "model_cause": "order_dependence",
+      "readable": true,
+      "match": true,
+      "code_chars": 1131,
+      "prompt_tokens": 693,
+      "generated_tokens": 40,
+      "seconds": 9.8,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"order_dependence\", \"reason\": \"The test asserts on a value that is set up by another test, and the order of tests matters for this setup to occur.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_01.py::test_case_04",
+      "setting": "ast_jedi",
+      "known_cause": "order_dependence",
+      "model_cause": "order_dependence",
+      "readable": true,
+      "match": true,
+      "code_chars": 1134,
+      "prompt_tokens": 696,
+      "generated_tokens": 47,
+      "seconds": 9.0,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"order_dependence\", \"reason\": \"The test asserts on a global variable that is initialized before the test runs, and the test's failure is likely due to the test not being run first or alone.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_01.py::test_case_06",
+      "setting": "ast_jedi",
+      "known_cause": "order_dependence",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 1141,
+      "prompt_tokens": 698,
+      "generated_tokens": 42,
+      "seconds": 8.8,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test relies on the result of a function call that may be affected by the timing of other operations, such as the increment of a global counter.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_01.py::test_case_08",
+      "setting": "ast_jedi",
+      "known_cause": "shared_state",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 1133,
+      "prompt_tokens": 701,
+      "generated_tokens": 57,
+      "seconds": 9.9,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test's assertion on the result of apply_rate depends on the value of _cache['rate'], which is not reset between runs, suggesting that the test's timing is affected by the rate being cached from a previous run.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_01.py::test_case_10",
+      "setting": "ast_jedi",
+      "known_cause": "shared_state",
+      "model_cause": "order_dependence",
+      "readable": true,
+      "match": false,
+      "code_chars": 1152,
+      "prompt_tokens": 702,
+      "generated_tokens": 43,
+      "seconds": 8.7,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"order_dependence\", \"reason\": \"The test asserts on a value that is set up by another test, and the order of tests matters for the value to be set up correctly.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_12",
+      "setting": "ast_jedi",
+      "known_cause": "shared_state",
+      "model_cause": "order_dependence",
+      "readable": true,
+      "match": false,
+      "code_chars": 1372,
+      "prompt_tokens": 759,
+      "generated_tokens": 43,
+      "seconds": 9.3,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"order_dependence\", \"reason\": \"The test asserts on a value that is set up by another test, and the order of tests matters for the value to be set up correctly.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_13",
+      "setting": "ast_jedi",
+      "known_cause": "timing",
+      "model_cause": "timing",
+      "readable": true,
+      "match": true,
+      "code_chars": 1652,
+      "prompt_tokens": 844,
+      "generated_tokens": 43,
+      "seconds": 9.4,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test relies on a thread and a sleep, which suggests that the timing of the thread's execution and the sleep duration can affect the test's outcome.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_14",
+      "setting": "ast_jedi",
+      "known_cause": "timing",
+      "model_cause": "timing",
+      "readable": true,
+      "match": true,
+      "code_chars": 1622,
+      "prompt_tokens": 835,
+      "generated_tokens": 43,
+      "seconds": 9.1,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test relies on a thread and a sleep, which suggests that the timing of the thread's execution and the sleep duration can affect the test's outcome.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_15",
+      "setting": "ast_jedi",
+      "known_cause": "timing",
+      "model_cause": "timing",
+      "readable": true,
+      "match": true,
+      "code_chars": 1710,
+      "prompt_tokens": 854,
+      "generated_tokens": 44,
+      "seconds": 9.0,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test relies on the sleep duration being long enough to allow the threads to increment the counter, but the short sleep duration in the test causes it to fail.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_16",
+      "setting": "ast_jedi",
+      "known_cause": "randomness",
+      "model_cause": "randomness",
+      "readable": true,
+      "match": true,
+      "code_chars": 1214,
+      "prompt_tokens": 717,
+      "generated_tokens": 47,
+      "seconds": 9.2,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"randomness\", \"reason\": \"The test asserts on a value (< 0.85) that is determined by a random value returned by the pick_discount function, which is seeded by the random module.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_17",
+      "setting": "ast_jedi",
+      "known_cause": "randomness",
+      "model_cause": "order_dependence",
+      "readable": true,
+      "match": false,
+      "code_chars": 1316,
+      "prompt_tokens": 755,
+      "generated_tokens": 43,
+      "seconds": 9.6,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"order_dependence\", \"reason\": \"The test asserts on a value that is set up by another test, and the order of tests matters for the value to be set up correctly.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_18",
+      "setting": "ast_jedi",
+      "known_cause": "randomness",
+      "model_cause": "randomness",
+      "readable": true,
+      "match": true,
+      "code_chars": 1230,
+      "prompt_tokens": 725,
+      "generated_tokens": 39,
+      "seconds": 9.4,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"randomness\", \"reason\": \"The test asserts on a value that is generated by a random function, which can produce different results each time the test is run.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_19",
+      "setting": "ast_jedi",
+      "known_cause": "time_or_timezone",
+      "model_cause": "time_or_timezone",
+      "readable": true,
+      "match": true,
+      "code_chars": 1286,
+      "prompt_tokens": 738,
+      "generated_tokens": 46,
+      "seconds": 9.2,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"time_or_timezone\", \"reason\": \"The test depends on the current hour of the day, which changes between day and night, causing the assertion to fail when the test runs outside of daylight hours.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_02.py::test_case_20",
+      "setting": "ast_jedi",
+      "known_cause": "time_or_timezone",
+      "model_cause": "time_or_timezone",
+      "readable": true,
+      "match": true,
+      "code_chars": 1333,
+      "prompt_tokens": 749,
+      "generated_tokens": 54,
+      "seconds": 10.1,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"time_or_timezone\", \"reason\": \"The test asserts on the current hour, which is affected by the current time and timezone, and the test's result is consistent across different runs, suggesting that the test is sensitive to the current time.\"}"
+    },
+    {
+      "id": "synthetic/tests/test_suite_03.py::test_case_21",
+      "setting": "ast_jedi",
+      "known_cause": "time_or_timezone",
+      "model_cause": "time_or_timezone",
+      "readable": true,
+      "match": true,
+      "code_chars": 1378,
+      "prompt_tokens": 755,
+      "generated_tokens": 38,
+      "seconds": 9.9,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"time_or_timezone\", \"reason\": \"The test relies on the current timezone offset, which can change between runs due to daylight saving time or other timezone changes.\"}"
+    }
+  ]
+}

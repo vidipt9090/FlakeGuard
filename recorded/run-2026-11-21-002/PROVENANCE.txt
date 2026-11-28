@@ -1,0 +1,52 @@
+Recorded run run-2026-11-21-002
+
+TARGET IS A GITHUB REPOSITORY CLONED ON THIS MACHINE (anonymous clone), NOT A PULL REQUEST AND NOT A GITHUB ACTIONS RUN.
+  Repository: https://github.com/vidipt9090/flakeguard-demo
+  Commit scanned: cfd9e3612364b50021699ac8536248c740720cce
+  Nothing was posted to GitHub. The console shows no PR links and no PR comment for this run.
+
+Recorded (UTC): 2026-11-21T06:08:51+00:00
+Commit: a92ee01d18d868057fdae874c6bd214767df33c3   (FlakeGuard repository HEAD when this was recorded; working tree clean: True)
+
+Command that produced the scan (run from the repository root):
+  python -m flakeguard scan <clone of vidipt9090/flakeguard-demo at cfd9e3612364b50021699ac8536248c740720cce> --shuffled-n 10 --output-events recorded/run-2026-11-21-002/raw/events.jsonl --output-artifacts recorded/run-2026-11-21-002/raw/artifacts --seed-start 1
+Command that recorded and converted it:
+  python scripts/record_run.py --clone vidipt9090/flakeguard-demo --shuffled-n 10 --seed-start 1
+
+Selection:
+  None. One scan, one attempt (attempts: 1), with fixed seeds 1, 2, 3, 4, 5, 6, 7, 8, 9, 10.
+  The seeds make the outcome reproducible, so there was nothing to select: scanning the same commit with
+  the same seeds gives the same shuffled-run results. (Bisection and the pair runs are also deterministic.)
+
+Environment:
+  Python 3.12.13 on Windows-11-10.0.26300-SP0
+  pytest 9.2.0, pytest-randomly 5.1.0, jedi 0.20.1
+  Shuffled seeds: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 (read from raw/events.jsonl, one per shuffled run)
+
+Files:
+  raw/                 what flakeguard scan wrote: events.jsonl, one JUnit XML per run, scan_stdout.txt
+  run.json             RunStatus (console contract)
+  findings.json        Finding[]
+  tree.json            TreeData
+  Every count in these files is computed from raw/artifacts/junit_*.xml by flakeguard/console/builder.py.
+
+Do not read these as results:
+  raw/artifacts/findings.json and raw/artifacts/tree.json are written by the older scan
+  orchestrator. Its findings.json states "confirmed_by_intervention" for every flaky test
+  without running any intervention, and its tree has one node. The console does not use them.
+  Only the JUnit XML and events.jsonl in raw/ feed run.json, findings.json and tree.json.
+
+What is not in this run (shown as dashes, pending, or absent in the console):
+  - Fix preview: null. No fix was proposed or validated.
+  - Pull request and PR comment: none. Install and PR comment stages are shown as pending ("not run").
+  - Evidence tier "intervention-confirmed": not used. No change was made that removed a failure.
+
+How to reproduce the order-dependence finding on a clean checkout of the commit above:
+  git clone https://github.com/vidipt9090/flakeguard-demo && cd flakeguard-demo && git checkout cfd9e3612364b50021699ac8536248c740720cce
+  pytest tests/test_warmup.py::test_cache_warm tests/test_report.py::test_report_total -p no:randomly
+  (expected: test_report_total fails; run test_report_total alone and it passes)
+
+Counter definitions (Live screen):
+  runsDone / runsTotal  shuffled runs completed / requested
+  failures              shuffled runs in which the highlighted test failed
+  flagged               number of findings (tests with at least one failure)

@@ -1,0 +1,504 @@
+{
+  "what": "A second execution of the same commands on a clean checkout, compared with the committed results.",
+  "labels": [
+    {
+      "label": "planted",
+      "committed": {
+        "commit": "c9c7bad",
+        "started_local": "2026-11-22 15:03:52 India Standard Time+0530"
+      },
+      "rerun": {
+        "commit": "f6e8ba6",
+        "started_local": "2026-11-22 17:17:56 India Standard Time+0530",
+        "tracked_files_modified": false
+      },
+      "labels_sha256_equal": true,
+      "rows": [
+        {
+          "method": "b1_fixed_order",
+          "family": "b1",
+          "n": 5,
+          "committed": {
+            "found": 1,
+            "wrongly_flagged": 0
+          },
+          "rerun": {
+            "found": 2,
+            "wrongly_flagged": 0
+          },
+          "found_difference": 1,
+          "every_per_test_call_identical": false
+        },
+        {
+          "method": "b1_fixed_order",
+          "family": "b1",
+          "n": 10,
+          "committed": {
+            "found": 1,
+            "wrongly_flagged": 0
+          },
+          "rerun": {
+            "found": 3,
+            "wrongly_flagged": 0
+          },
+          "found_difference": 2,
+          "every_per_test_call_identical": false
+        },
+        {
+          "method": "b1_fixed_order",
+          "family": "b1",
+          "n": 20,
+          "committed": {
+            "found": 4,
+            "wrongly_flagged": 0
+          },
+          "rerun": {
+            "found": 4,
+            "wrongly_flagged": 0
+          },
+          "found_difference": 0,
+          "every_per_test_call_identical": true
+        },
+        {
+          "method": "perturbation",
+          "family": "perturbation",
+          "n": 5,
+          "committed": {
+            "found": 9,
+            "wrongly_flagged": 0
+          },
+          "rerun": {
+            "found": 9,
+            "wrongly_flagged": 0
+          },
+          "found_difference": 0,
+          "every_per_test_call_identical": true
+        },
+        {
+          "method": "perturbation",
+          "family": "perturbation",
+          "n": 10,
+          "committed": {
+            "found": 9,
+            "wrongly_flagged": 0
+          },
+          "rerun": {
+            "found": 9,
+            "wrongly_flagged": 0
+          },
+          "found_difference": 0,
+          "every_per_test_call_identical": true
+        },
+        {
+          "method": "perturbation",
+          "family": "perturbation",
+          "n": 20,
+          "committed": {
+            "found": 10,
+            "wrongly_flagged": 0
+          },
+          "rerun": {
+            "found": 10,
+            "wrongly_flagged": 0
+          },
+          "found_difference": 0,
+          "every_per_test_call_identical": true
+        }
+      ],
+      "max_found_difference_by_family": {
+        "b1": 2,
+        "perturbation": 0
+      },
+      "rq2": {
+        "committed": {
+          "mean_runs_per_test": 6.097,
+          "flaky_found_adaptive": 9,
+          "flaky_found_fixed_20": 10,
+          "whole_suite_runs_saved": 10,
+          "decisions_adaptive": {
+            "flaky": 9,
+            "real": 11,
+            "none_seen": 11,
+            "undecided": 0
+          }
+        },
+        "rerun": {
+          "mean_runs_per_test": 6.097,
+          "flaky_found_adaptive": 9,
+          "flaky_found_fixed_20": 10,
+          "whole_suite_runs_saved": 10,
+          "decisions_adaptive": {
+            "flaky": 9,
+            "real": 11,
+            "none_seen": 11,
+            "undecided": 0
+          }
+        },
+        "per_test_decisions_identical": true
+      }
+    },
+    {
+      "label": "injected",
+      "committed": {
+        "commit": "c9c7bad",
+        "started_local": "2026-11-22 15:06:01 India Standard Time+0530"
+      },
+      "rerun": {
+        "commit": "f6e8ba6",
+        "started_local": "2026-11-22 17:19:20 India Standard Time+0530",
+        "tracked_files_modified": false
+      },
+      "labels_sha256_equal": true,
+      "rows": [
+        {
+          "method": "b1_fixed_order",
+          "family": "b1",
+          "n": 5,
+          "committed": {
+            "found": 6,
+            "wrongly_flagged": 0
+          },
+          "rerun": {
+            "found": 7,
+            "wrongly_flagged": 0
+          },
+          "found_difference": 1,
+          "every_per_test_call_identical": false
+        },
+        {
+          "method": "b1_fixed_order",
+          "family": "b1",
+          "n": 10,
+          "committed": {
+            "found": 9,
+            "wrongly_flagged": 0
+          },
+          "rerun": {
+            "found": 10,
+            "wrongly_flagged": 0
+          },
+          "found_difference": 1,
+          "every_per_test_call_identical": false
+        },
+        {
+          "method": "b1_fixed_order",
+          "family": "b1",
+          "n": 20,
+          "committed": {
+            "found": 10,
+            "wrongly_flagged": 0
+          },
+          "rerun": {
+            "found": 10,
+            "wrongly_flagged": 0
+          },
+          "found_difference": 0,
+          "every_per_test_call_identical": true
+        },
+        {
+          "method": "perturbation",
+          "family": "perturbation",
+          "n": 5,
+          "committed": {
+            "found": 13,
+            "wrongly_flagged": 0
+          },
+          "rerun": {
+            "found": 13,
+            "wrongly_flagged": 0
+          },
+          "found_difference": 0,
+          "every_per_test_call_identical": true
+        },
+        {
+          "method": "perturbation",
+          "family": "perturbation",
+          "n": 10,
+          "committed": {
+            "found": 19,
+            "wrongly_flagged": 0
+          },
+          "rerun": {
+            "found": 19,
+            "wrongly_flagged": 0
+          },
+          "found_difference": 0,
+          "every_per_test_call_identical": true
+        },
+        {
+          "method": "perturbation",
+          "family": "perturbation",
+          "n": 20,
+          "committed": {
+            "found": 21,
+            "wrongly_flagged": 0
+          },
+          "rerun": {
+            "found": 21,
+            "wrongly_flagged": 0
+          },
+          "found_difference": 0,
+          "every_per_test_call_identical": true
+        },
+        {
+          "method": "b2_coverage_diff",
+          "family": "b2",
+          "n": 5,
+          "committed": {
+            "found": 11,
+            "wrongly_flagged": 5
+          },
+          "rerun": {
+            "found": 12,
+            "wrongly_flagged": 5
+          },
+          "found_difference": 1,
+          "every_per_test_call_identical": false
+        },
+        {
+          "method": "b2_coverage_diff",
+          "family": "b2",
+          "n": 10,
+          "committed": {
+            "found": 13,
+            "wrongly_flagged": 5
+          },
+          "rerun": {
+            "found": 13,
+            "wrongly_flagged": 5
+          },
+          "found_difference": 0,
+          "every_per_test_call_identical": false
+        },
+        {
+          "method": "b2_coverage_diff",
+          "family": "b2",
+          "n": 20,
+          "committed": {
+            "found": 14,
+            "wrongly_flagged": 5
+          },
+          "rerun": {
+            "found": 13,
+            "wrongly_flagged": 5
+          },
+          "found_difference": 1,
+          "every_per_test_call_identical": false
+        },
+        {
+          "method": "b3_trained_on_planted",
+          "family": "b3",
+          "n": 5,
+          "committed": {
+            "found": 23,
+            "wrongly_flagged": 448
+          },
+          "rerun": {
+            "found": 11,
+            "wrongly_flagged": 3
+          },
+          "found_difference": 12,
+          "every_per_test_call_identical": false
+        },
+        {
+          "method": "b3_trained_on_planted",
+          "family": "b3",
+          "n": 10,
+          "committed": {
+            "found": 19,
+            "wrongly_flagged": 314
+          },
+          "rerun": {
+            "found": 11,
+            "wrongly_flagged": 3
+          },
+          "found_difference": 8,
+          "every_per_test_call_identical": false
+        },
+        {
+          "method": "b3_trained_on_planted",
+          "family": "b3",
+          "n": 20,
+          "committed": {
+            "found": 15,
+            "wrongly_flagged": 84
+          },
+          "rerun": {
+            "found": 13,
+            "wrongly_flagged": 2
+          },
+          "found_difference": 2,
+          "every_per_test_call_identical": false
+        },
+        {
+          "method": "b3_run_features_only_trained_on_planted",
+          "family": "b3",
+          "n": 5,
+          "committed": {
+            "found": 23,
+            "wrongly_flagged": 448
+          },
+          "rerun": {
+            "found": 9,
+            "wrongly_flagged": 2
+          },
+          "found_difference": 14,
+          "every_per_test_call_identical": false
+        },
+        {
+          "method": "b3_run_features_only_trained_on_planted",
+          "family": "b3",
+          "n": 10,
+          "committed": {
+            "found": 23,
+            "wrongly_flagged": 401
+          },
+          "rerun": {
+            "found": 11,
+            "wrongly_flagged": 3
+          },
+          "found_difference": 12,
+          "every_per_test_call_identical": false
+        },
+        {
+          "method": "b3_run_features_only_trained_on_planted",
+          "family": "b3",
+          "n": 20,
+          "committed": {
+            "found": 15,
+            "wrongly_flagged": 84
+          },
+          "rerun": {
+            "found": 14,
+            "wrongly_flagged": 3
+          },
+          "found_difference": 1,
+          "every_per_test_call_identical": false
+        },
+        {
+          "method": "b3_leave_one_out_injected",
+          "family": "b3",
+          "n": 5,
+          "committed": {
+            "found": 17,
+            "wrongly_flagged": 4
+          },
+          "rerun": {
+            "found": 16,
+            "wrongly_flagged": 8
+          },
+          "found_difference": 1,
+          "every_per_test_call_identical": false
+        },
+        {
+          "method": "b3_leave_one_out_injected",
+          "family": "b3",
+          "n": 10,
+          "committed": {
+            "found": 14,
+            "wrongly_flagged": 3
+          },
+          "rerun": {
+            "found": 17,
+            "wrongly_flagged": 6
+          },
+          "found_difference": 3,
+          "every_per_test_call_identical": false
+        },
+        {
+          "method": "b3_leave_one_out_injected",
+          "family": "b3",
+          "n": 20,
+          "committed": {
+            "found": 11,
+            "wrongly_flagged": 7
+          },
+          "rerun": {
+            "found": 14,
+            "wrongly_flagged": 6
+          },
+          "found_difference": 3,
+          "every_per_test_call_identical": false
+        },
+        {
+          "method": "b3_run_features_only_leave_one_out_injected",
+          "family": "b3",
+          "n": 5,
+          "committed": {
+            "found": 9,
+            "wrongly_flagged": 4
+          },
+          "rerun": {
+            "found": 7,
+            "wrongly_flagged": 5
+          },
+          "found_difference": 2,
+          "every_per_test_call_identical": false
+        },
+        {
+          "method": "b3_run_features_only_leave_one_out_injected",
+          "family": "b3",
+          "n": 10,
+          "committed": {
+            "found": 13,
+            "wrongly_flagged": 3
+          },
+          "rerun": {
+            "found": 13,
+            "wrongly_flagged": 3
+          },
+          "found_difference": 0,
+          "every_per_test_call_identical": false
+        },
+        {
+          "method": "b3_run_features_only_leave_one_out_injected",
+          "family": "b3",
+          "n": 20,
+          "committed": {
+            "found": 11,
+            "wrongly_flagged": 4
+          },
+          "rerun": {
+            "found": 13,
+            "wrongly_flagged": 3
+          },
+          "found_difference": 2,
+          "every_per_test_call_identical": false
+        }
+      ],
+      "max_found_difference_by_family": {
+        "b1": 1,
+        "b2": 1,
+        "b3": 14,
+        "perturbation": 0
+      },
+      "rq2": {
+        "committed": {
+          "mean_runs_per_test": 9.7,
+          "flaky_found_adaptive": 15,
+          "flaky_found_fixed_20": 21,
+          "whole_suite_runs_saved": 10,
+          "decisions_adaptive": {
+            "flaky": 15,
+            "real": 9,
+            "none_seen": 452,
+            "undecided": 0
+          }
+        },
+        "rerun": {
+          "mean_runs_per_test": 9.702,
+          "flaky_found_adaptive": 15,
+          "flaky_found_fixed_20": 21,
+          "whole_suite_runs_saved": 10,
+          "decisions_adaptive": {
+            "flaky": 15,
+            "real": 9,
+            "none_seen": 452,
+            "undecided": 0
+          }
+        },
+        "per_test_decisions_identical": false
+      }
+    }
+  ]
+}

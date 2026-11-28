@@ -1,0 +1,12 @@
+name: spike-on-bot-push
+
+# THROWAWAY (question f): listens for pushes to spike/m4-bot.
+on:
+  push:
+    branches: ["spike/m4-bot"]
+
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "triggered by a push to ${{ github.ref }} by ${{ github.actor }}"

@@ -1,0 +1,127 @@
+{
+  "id": "actions-44877437008",
+  "target": "vidipt9090/flakeguard-demo",
+  "mode": "actions",
+  "status": "complete",
+  "pr": {
+    "number": 3,
+    "title": "Act 1: add a deterministic inventory total test",
+    "state": "open",
+    "checkState": "complete",
+    "postMergeState": "waiting for merge",
+    "prUrl": "https://github.com/vidipt9090/flakeguard-demo/pull/3",
+    "runUrl": "https://github.com/vidipt9090/flakeguard-demo/actions/runs/44877437008"
+  },
+  "stages": [
+    {
+      "id": "checkout",
+      "name": "Checkout",
+      "detail": "Done",
+      "tool": "GitHub Actions",
+      "time": "1 s",
+      "state": "done"
+    },
+    {
+      "id": "install",
+      "name": "Install",
+      "detail": "Done",
+      "tool": "pip",
+      "time": "11 s",
+      "state": "done"
+    },
+    {
+      "id": "baseline",
+      "name": "Baseline",
+      "detail": "1 run in default order, 0 tests failed",
+      "tool": "pytest",
+      "time": "1 s",
+      "state": "done"
+    },
+    {
+      "id": "shuffled",
+      "name": "Shuffled runs",
+      "detail": "10 runs, seeds 1 to 10, 0 tests failed at least once",
+      "tool": "pytest, pytest-randomly",
+      "time": "16 s",
+      "state": "done"
+    },
+    {
+      "id": "isolated",
+      "name": "Isolated runs",
+      "detail": "3 tests run alone",
+      "tool": "pytest",
+      "time": "9 s",
+      "state": "done"
+    },
+    {
+      "id": "bisection",
+      "name": "Bisection",
+      "detail": "No polluter found",
+      "tool": "FlakeGuard evidence engine",
+      "time": "1 s",
+      "state": "done"
+    },
+    {
+      "id": "retrieval",
+      "name": "Retrieval",
+      "detail": "Found 1 shared name and 0 shared links in 4 tests",
+      "tool": "AST + Jedi",
+      "time": "1 s",
+      "state": "done"
+    },
+    {
+      "id": "verdict",
+      "name": "Verdict",
+      "detail": "0 flaky, 0 real, 0 unknown",
+      "tool": "FlakeGuard rules (no LLM)",
+      "time": "under 1 s",
+      "state": "done"
+    },
+    {
+      "id": "pr-comment",
+      "name": "PR comment",
+      "detail": "Done",
+      "tool": "GitHub API",
+      "time": "1 s",
+      "state": "done"
+    }
+  ],
+  "current": null,
+  "counters": {
+    "runsDone": 10,
+    "runsTotal": 10,
+    "failures": 0,
+    "flagged": 0
+  },
+  "matrix": [
+    {
+      "label": "Baseline",
+      "summary": "whole suite: 1 run done, 1 passed, 0 failed",
+      "cells": [
+        "pass"
+      ]
+    },
+    {
+      "label": "Shuffled",
+      "summary": "whole suite: 10 runs done, 10 passed, 0 failed (seeds 1 to 10)",
+      "cells": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "label": "Isolated",
+      "summary": "whole suite: no runs yet",
+      "cells": []
+    }
+  ],
+  "notice": null
+}

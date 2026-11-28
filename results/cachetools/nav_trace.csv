@@ -1,0 +1,11 @@
+case_id,label,root_cause,tree_nodes,tree_edges,tree_max_depth,tree_files,branching_factor,nodes_depth_1,nodes_depth_2plus,edge_calls,edge_infers,edge_expands,edge_fixture,edge_fixture_builds,edge_overrides,edge_touches,edge_smells,ast_names,jedi_goto_calls,jedi_infer_calls,jedi_calls,jedi_hits,jedi_hit_rate,trace_events,trace_max_depth,elapsed_ms
+tests/test_lru.py::LRUCacheTest::test_lru,,,3,2,2,1,1.0,1,1,1,0,1,0,0,0,0,0,88,48,25,73,73,1.0,170,2,997.67
+tests/test_lfu.py::LFUCacheTest::test_lfu,,,3,2,2,1,1.0,1,1,1,0,1,0,0,0,0,0,79,44,22,66,66,1.0,154,2,194.93
+tests/test_fifo.py::FIFOCacheTest::test_fifo,,,3,2,2,1,1.0,1,1,1,0,1,0,0,0,0,0,88,48,25,73,73,1.0,170,2,211.83
+tests/test_rr.py::RRCacheTest::test_rr,,,4,3,2,1,1.5,2,1,1,0,1,0,0,0,0,1,95,53,26,79,79,1.0,184,2,291.04
+tests/test_rr.py::RRCacheTest::test_rr_bad_choice,,,5,4,2,2,2.0,3,1,2,0,1,0,0,0,0,1,47,28,11,39,39,1.0,97,2,174.14
+tests/test_ttl.py::TTLCacheTest::test_ttl,,,6,5,2,2,2.5,4,1,2,1,1,0,0,0,0,1,258,143,59,202,173,0.8564,470,2,552.43
+tests/test_tlru.py::TLRUCacheTest::test_ttu,,,6,5,2,2,2.5,4,1,2,1,1,0,0,0,0,1,369,150,86,236,168,0.7119,615,2,513.86
+tests/test_keys.py::CacheKeysTest::test_hashkey,,,3,2,2,1,1.0,1,1,1,0,1,0,0,0,0,0,126,64,15,79,79,1.0,214,2,538.78
+tests/test_keys.py::CacheKeysTest::test_typedkey,,,3,2,2,1,1.0,1,1,1,0,1,0,0,0,0,0,114,58,14,72,72,1.0,195,2,262.56
+tests/test_threading.py::ThreadingTest::test_cached_stampede,,,8,7,2,3,3.5,5,2,2,0,2,0,0,0,1,2,57,33,14,47,47,1.0,117,2,668.57

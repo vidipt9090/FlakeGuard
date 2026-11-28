@@ -1,0 +1,566 @@
+{
+  "provenance": {
+    "label_type": "injected",
+    "dataset": {
+      "suite": "tests",
+      "labels_file": ".eval_cache/injected/labels.json",
+      "labels_sha256": "490a62cd5a14865fb4e4a19dbd6f8090a3790f78beb0d46858274db735831ac6",
+      "how_labelled": "by construction: operators in flakeguard/injector insert each fault into a passing published test suite (cachetools); untouched tests are stable by observation (pristine suite passed in every pristine run)",
+      "n_tests": 476,
+      "n_by_label": {
+        "stable": 445,
+        "flaky": 26,
+        "real": 5
+      },
+      "base": "cachetools 8.0.2 (source archive sha256 30ac523adfc118b51d2b2e7bad8a0ddb31370dfe2700c7f10ca224f36ccf81e0)",
+      "seed": 20261122,
+      "manifest_sha256": "16ed17a63fe7bd5ca1d2296b24bca4e9c9e759508c385785bdfad3c5c70df741",
+      "injections_by_category": {
+        "order_dep": 10,
+        "randomness": 5,
+        "real_fail": 5,
+        "shared_state": 6,
+        "time_tz": 5,
+        "timing": 5
+      },
+      "pristine_runs": [
+        "476 passed, 24 subtests passed in 1.22s",
+        "476 passed, 24 subtests passed in 1.23s",
+        "476 passed, 24 subtests passed in 1.28s",
+        "476 passed, 24 subtests passed in 1.28s",
+        "476 passed, 24 subtests passed in 1.30s",
+        "476 passed, 24 subtests passed in 1.36s"
+      ],
+      "excluded_from_injection": [
+        "test_threading.py"
+      ]
+    },
+    "command": "python scripts/run_rq4.py injected --settings none --no-cache --no-fix --out rq4_repeat_none.json",
+    "date_utc": "2026-11-22T11:56:08Z",
+    "clock": {
+      "local": "2026-11-22 17:26:08 India Standard Time+0530",
+      "weekday": "Sunday"
+    },
+    "commit": "cf4187f56dceab9f22ee03766f546e9e89f15038",
+    "tracked_files_modified": false,
+    "environment": {
+      "python": "3.12.13",
+      "pytest": "9.2.0",
+      "platform": "Windows-11-10.0.26300-SP0"
+    },
+    "budget_minutes": 6.0,
+    "tolerances": {
+      "diagnosis": "temperature 0 and a fixed seed: the same machine and Ollama version should repeat each reply; a repeat check of the none setting is stored",
+      "tokens_and_chars": "exact for the same code and prompt text"
+    },
+    "natural_flakes": "none available: shown as a dash on the Results screen",
+    "limitations": [
+      "No natural flakes (flakes found in real projects) were available. Natural results are not reported and stay dashes.",
+      "The injection operators produce the same fault classes the detector looks for (order, shared state, timing, randomness, clock), so injected results are only partly independent of the methods being evaluated.",
+      "B1 (fixed order) cannot see a fault that only an unusual order triggers, and the order-dependence pairs are built so that the setup test comes first in the default order (as a real order dependence usually does, or it would be found at once).",
+      "The time_tz faults fail only when the local hour is outside 8 to 17. Runs were made in the daytime, so those faults cannot fail in these runs by construction. The sensitivity table removes them; the primary table keeps them as flaky.",
+      "Tests no operator touched are labelled stable because the untouched suite passed in every one of its recorded runs. That is evidence, not proof; a rare flake in the library's own tests would be counted as a wrong flag.",
+      "26 flaky and 5 real tests among 476: small N for the flaky class. Intervals are wide.",
+      "B3's code features (the words sleep, random, datetime in the test source) read the text the operators insert, so B3 with them is partly circular; the run-features-only variant is reported next to it.",
+      "Identifiers chosen by the injection operators (for example _FLAKEGUARD_ORDER_READY, _race_flag) stay in the code the model sees, so the code settings are easier than real code.",
+      "One model (3B parameters, 4-bit), one prompt, one decoding setting. A different prompt could move every number.",
+      "26 injected flaky tests: a difference of a few tests between settings is inside the intervals.",
+      "Fix metric: N=5. No figure there is a rate."
+    ],
+    "model": {
+      "name": "llama3.2:3b",
+      "digest": "a80c4f17acd55265feec403c7aef86be0c25983ab279d83f3bcd3abbcb5b8b72",
+      "ollama_version": "0.40.16",
+      "host": "local, CPU"
+    },
+    "decoding": {
+      "temperature": 0,
+      "seed": 42,
+      "num_ctx": 16384,
+      "format": "json",
+      "retries": 0
+    },
+    "prompt": {
+      "version": "v2",
+      "sha256": "24ae312d85401205e30ed33328b08f6818767053ddf49fae7cd2415d37c93ff8",
+      "fix_prompt_sha256": "81c6c5d7141b42076e040ca0a9457502fda39b5a66b0302a5fb2cfe8c64a7120"
+    },
+    "what_the_model_sees": "test id, run summary, and per setting the code described in docs/EVAL.md. Failure messages are never shown. Comment lines inserted by the injection operators and the message part of their asserts are removed (injected only)."
+  },
+  "results": {
+    "none": {
+      "diagnosis_matches": {
+        "k": 5,
+        "n": 26,
+        "value": 0.1923,
+        "ci95_wilson": [
+          0.0851,
+          0.3788
+        ]
+      },
+      "unreadable_replies_counted_as_failures": 0,
+      "sensitivity_if_random_were_accepted_as_randomness": {
+        "note": "NOT the result. The model sometimes wrote 'random' instead of the listed word 'randomness'. The registered rule counts that as a failure and the figure above does. This is what the count would be if it were accepted.",
+        "replies_saying_random": 0,
+        "k": 5,
+        "n": 26,
+        "value": 0.1923,
+        "ci95_wilson": [
+          0.0851,
+          0.3788
+        ]
+      },
+      "answers": {
+        "order_dependence": 0,
+        "shared_state": 0,
+        "timing": 26,
+        "randomness": 0,
+        "time_or_timezone": 0,
+        "other": 0
+      },
+      "by_known_cause": {
+        "order_dependence": {
+          "k": 0,
+          "n": 5
+        },
+        "shared_state": {
+          "k": 0,
+          "n": 6
+        },
+        "timing": {
+          "k": 5,
+          "n": 5
+        },
+        "randomness": {
+          "k": 0,
+          "n": 5
+        },
+        "time_or_timezone": {
+          "k": 0,
+          "n": 5
+        }
+      },
+      "code_chars_sent": {
+        "n": 26,
+        "mean": 0,
+        "median": 0.0,
+        "max": 0,
+        "total": 0
+      },
+      "prompt_tokens": {
+        "n": 26,
+        "mean": 402.2,
+        "median": 402.0,
+        "max": 405,
+        "total": 10457
+      },
+      "generated_tokens": {
+        "n": 26,
+        "mean": 37.2,
+        "median": 35.0,
+        "max": 56,
+        "total": 968
+      },
+      "seconds": {
+        "n": 26,
+        "mean": 7.6,
+        "median": 7.4,
+        "max": 11.6,
+        "total": 196.5
+      },
+      "prompts_that_filled_the_context": 0
+    }
+  },
+  "per_test": [
+    {
+      "id": "tests/test_cached.py::CacheWrapperTest::test_decorator_lock_cond_info",
+      "setting": "none",
+      "known_cause": "order_dependence",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 402,
+      "generated_tokens": 36,
+      "seconds": 11.6,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test likely depends on the timing of another test or process, causing it to fail when it runs first or alone.\"}"
+    },
+    {
+      "id": "tests/test_cached.py::CacheWrapperTest::test_zero_size_cache_decorator",
+      "setting": "none",
+      "known_cause": "order_dependence",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 402,
+      "generated_tokens": 35,
+      "seconds": 7.0,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test likely depends on the timing of another test or operation, causing it to fail when run first or alone.\"}"
+    },
+    {
+      "id": "tests/test_cached.py::PickleTest::test_pickle",
+      "setting": "none",
+      "known_cause": "randomness",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 399,
+      "generated_tokens": 36,
+      "seconds": 7.1,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test likely depends on the timing of another test or process, causing it to fail when it runs first or alone.\"}"
+    },
+    {
+      "id": "tests/test_cachedmethod.py::CacheMethodTest::test_value_too_large",
+      "setting": "none",
+      "known_cause": "order_dependence",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 403,
+      "generated_tokens": 39,
+      "seconds": 7.4,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test's assertion likely depends on the completion of a sleep, thread, or join operation, which can vary in duration between runs.\"}"
+    },
+    {
+      "id": "tests/test_cachedmethod.py::NoneMethodTest::test_none_info",
+      "setting": "none",
+      "known_cause": "time_or_timezone",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 401,
+      "generated_tokens": 36,
+      "seconds": 7.3,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test likely depends on the timing of another test or operation, causing it to fail when it runs first or alone.\"}"
+    },
+    {
+      "id": "tests/test_cachedmethod.py::UnboundMethodTest::test_class_access_copy",
+      "setting": "none",
+      "known_cause": "timing",
+      "model_cause": "timing",
+      "readable": true,
+      "match": true,
+      "code_chars": 0,
+      "prompt_tokens": 403,
+      "generated_tokens": 35,
+      "seconds": 7.4,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test likely depends on the timing of another test or operation, causing it to fail when run first or alone.\"}"
+    },
+    {
+      "id": "tests/test_cachedmethod.py::UnboundMethodTest::test_class_call_after_delete",
+      "setting": "none",
+      "known_cause": "randomness",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 404,
+      "generated_tokens": 35,
+      "seconds": 7.3,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test likely depends on the timing of another test or operation, causing it to fail when run first or alone.\"}"
+    },
+    {
+      "id": "tests/test_fifo.py::FIFOCacheTest::test_fifo",
+      "setting": "none",
+      "known_cause": "randomness",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 401,
+      "generated_tokens": 35,
+      "seconds": 7.3,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test likely depends on the timing of another test or operation, causing it to fail when run first or alone.\"}"
+    },
+    {
+      "id": "tests/test_func.py::TTLDecoratorTest::test_ttl_expire_unbound",
+      "setting": "none",
+      "known_cause": "randomness",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 403,
+      "generated_tokens": 36,
+      "seconds": 7.4,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test likely depends on the timing of another test or process, causing it to fail when it runs first or alone.\"}"
+    },
+    {
+      "id": "tests/test_keys.py::CacheKeysTest::test_addkeys",
+      "setting": "none",
+      "known_cause": "time_or_timezone",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 400,
+      "generated_tokens": 35,
+      "seconds": 7.4,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test likely depends on the timing of another test or operation, causing it to fail when run first or alone.\"}"
+    },
+    {
+      "id": "tests/test_lfu.py::LFUCacheTest::test_lfu_copy_use_counts",
+      "setting": "none",
+      "known_cause": "timing",
+      "model_cause": "timing",
+      "readable": true,
+      "match": true,
+      "code_chars": 0,
+      "prompt_tokens": 405,
+      "generated_tokens": 39,
+      "seconds": 7.6,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test likely depends on the timing of the sleep or wait function, which can vary between runs, causing the test to fail sometimes.\"}"
+    },
+    {
+      "id": "tests/test_lfu.py::LFUCacheTest::test_lfu_getsizeof",
+      "setting": "none",
+      "known_cause": "time_or_timezone",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 404,
+      "generated_tokens": 35,
+      "seconds": 7.4,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test likely depends on the order in which tests are run, causing it to fail when run first or alone.\"}"
+    },
+    {
+      "id": "tests/test_lru.py::LRUCacheTest::test_lru",
+      "setting": "none",
+      "known_cause": "shared_state",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 402,
+      "generated_tokens": 35,
+      "seconds": 7.4,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test likely depends on the timing of another test or operation, causing it to fail when run first or alone.\"}"
+    },
+    {
+      "id": "tests/test_lru.py::LRUCacheTest::test_lru_clear",
+      "setting": "none",
+      "known_cause": "shared_state",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 403,
+      "generated_tokens": 51,
+      "seconds": 8.0,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test's failure to pass when run first or alone suggests that the result depends on the timing of other tests or operations, such as a sleep or thread that finishes before the test can complete.\"}"
+    },
+    {
+      "id": "tests/test_lru.py::LRUCacheTest::test_lru_update_existing",
+      "setting": "none",
+      "known_cause": "shared_state",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 404,
+      "generated_tokens": 35,
+      "seconds": 7.3,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test likely depends on the timing of another test or operation, causing it to fail when run first or alone.\"}"
+    },
+    {
+      "id": "tests/test_rr.py::RRCacheTest::test_rr",
+      "setting": "none",
+      "known_cause": "timing",
+      "model_cause": "timing",
+      "readable": true,
+      "match": true,
+      "code_chars": 0,
+      "prompt_tokens": 400,
+      "generated_tokens": 35,
+      "seconds": 7.4,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test likely depends on the timing of another test or operation, causing it to fail when run first or alone.\"}"
+    },
+    {
+      "id": "tests/test_rr.py::RRCacheTest::test_rr_copy",
+      "setting": "none",
+      "known_cause": "shared_state",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 401,
+      "generated_tokens": 35,
+      "seconds": 7.3,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test likely depends on the timing of another test or operation, causing it to fail when run first or alone.\"}"
+    },
+    {
+      "id": "tests/test_rr.py::RRCacheTest::test_rr_default_choice",
+      "setting": "none",
+      "known_cause": "shared_state",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 402,
+      "generated_tokens": 56,
+      "seconds": 8.2,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test's failure to pass in fixed-order runs suggests that the test is waiting for some other test to finish, but the order of tests is fixed, so the test is not waiting for a random test to finish.\"}"
+    },
+    {
+      "id": "tests/test_rr.py::RRCacheTest::test_rr_popitem_empty_custom_choice",
+      "setting": "none",
+      "known_cause": "order_dependence",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 405,
+      "generated_tokens": 35,
+      "seconds": 7.3,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test likely depends on the timing of another test or operation, causing it to fail when run first or alone.\"}"
+    },
+    {
+      "id": "tests/test_rr.py::RRCacheTest::test_rr_update_existing",
+      "setting": "none",
+      "known_cause": "shared_state",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 402,
+      "generated_tokens": 35,
+      "seconds": 7.3,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test likely depends on the timing of another test or operation, causing it to fail when run first or alone.\"}"
+    },
+    {
+      "id": "tests/test_tlru.py::TLRUCacheTest::test_tlru_clear",
+      "setting": "none",
+      "known_cause": "randomness",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 404,
+      "generated_tokens": 35,
+      "seconds": 7.4,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test likely depends on the timing of another test or operation, causing it to fail when run first or alone.\"}"
+    },
+    {
+      "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_atomic",
+      "setting": "none",
+      "known_cause": "order_dependence",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 401,
+      "generated_tokens": 35,
+      "seconds": 7.4,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test likely depends on the timing of another test or operation, causing it to fail when run first or alone.\"}"
+    },
+    {
+      "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_clear",
+      "setting": "none",
+      "known_cause": "time_or_timezone",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 401,
+      "generated_tokens": 35,
+      "seconds": 7.2,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test likely depends on the timing of another test or operation, causing it to fail when run first or alone.\"}"
+    },
+    {
+      "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_copy",
+      "setting": "none",
+      "known_cause": "time_or_timezone",
+      "model_cause": "timing",
+      "readable": true,
+      "match": false,
+      "code_chars": 0,
+      "prompt_tokens": 401,
+      "generated_tokens": 35,
+      "seconds": 7.2,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test likely depends on the timing of another test or operation, causing it to fail when run first or alone.\"}"
+    },
+    {
+      "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_deepcopy_timer",
+      "setting": "none",
+      "known_cause": "timing",
+      "model_cause": "timing",
+      "readable": true,
+      "match": true,
+      "code_chars": 0,
+      "prompt_tokens": 403,
+      "generated_tokens": 43,
+      "seconds": 7.6,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test likely depends on the completion of a sleep, thread, join, or wait operation, which is not guaranteed to happen in a flaky run.\"}"
+    },
+    {
+      "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_expire",
+      "setting": "none",
+      "known_cause": "timing",
+      "model_cause": "timing",
+      "readable": true,
+      "match": true,
+      "code_chars": 0,
+      "prompt_tokens": 401,
+      "generated_tokens": 36,
+      "seconds": 7.3,
+      "truncated": false,
+      "error": null,
+      "reply": "{\"cause\": \"timing\", \"reason\": \"The test likely depends on the timing of another test or process, causing it to fail when it runs first or alone.\"}"
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+Recorded run run-2026-11-21-001
+
+TARGET IS A LOCAL FIXTURE, NOT A GITHUB PULL REQUEST.
+  Path: tests/data/demo_inventory
+  Nothing was posted to GitHub. The console shows no PR links and no PR comment for this run.
+
+Recorded (UTC): 2026-11-21T05:43:27+00:00
+Commit: 3962ac65bccf3e23cdaf32a3dc0336b1fddf59a3   (FlakeGuard repository HEAD when this was recorded; working tree clean: True)
+
+Command that produced the scan (run from the repository root):
+  python -m flakeguard scan tests/data/demo_inventory --shuffled-n 10 --output-events recorded/run-2026-11-21-001/raw/events.jsonl --output-artifacts recorded/run-2026-11-21-001/raw/artifacts
+Command that recorded and converted it:
+  python scripts/record_run.py tests/data/demo_inventory --shuffled-n 10 --want-single-failure tests/test_sync.py::test_sync_timeout
+
+Selection:
+  Scan repeated until tests/test_sync.py::test_sync_timeout failed in exactly 1 run overall, and that run was one of
+  the 10 shuffled runs.
+  Attempts: 16. This is a selection of the run, not an average. The test fails by an
+  unseeded random draw (os.urandom), so the count varies from scan to scan.
+
+Environment:
+  Python 3.12.13 on Windows-11-10.0.26300-SP0
+  pytest 9.2.0, pytest-randomly 5.1.0, jedi 0.20.1
+  Shuffled seeds: 1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009, 1010 (read from raw/events.jsonl, one per shuffled run)
+
+Files:
+  raw/                 what flakeguard scan wrote: events.jsonl, one JUnit XML per run, scan_stdout.txt
+  run.json             RunStatus (console contract)
+  findings.json        Finding[]
+  tree.json            TreeData
+  Every count in these files is computed from raw/artifacts/junit_*.xml by flakeguard/console/builder.py.
+
+Do not read these as results:
+  raw/artifacts/findings.json and raw/artifacts/tree.json are written by the older scan
+  orchestrator. Its findings.json states "confirmed_by_intervention" for every flaky test
+  without running any intervention, and its tree has one node. The console does not use them.
+  Only the JUnit XML and events.jsonl in raw/ feed run.json, findings.json and tree.json.
+
+What is not in this run (shown as dashes, pending, or absent in the console):
+  - Fix preview: null. No fix was proposed or validated.
+  - Pull request and PR comment: none. Install and PR comment stages are shown as pending ("not run").
+  - Evidence tier "intervention-confirmed": not used. No change was made that removed a failure.
+
+How to reproduce the order-dependence finding on a clean checkout of the commit above:
+  cd tests/data/demo_inventory
+  pytest tests/test_warmup.py::test_cache_warm tests/test_report.py::test_report_total -p no:randomly
+  (expected: test_report_total fails; run test_report_total alone and it passes)
+
+Counter definitions (Live screen):
+  runsDone / runsTotal  shuffled runs completed / requested
+  failures              shuffled runs in which the highlighted test failed
+  flagged               number of findings (tests with at least one failure)

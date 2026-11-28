@@ -1,0 +1,220 @@
+/* FlakeGuard design tokens and base styles.
+ *
+ * The look is a precision instrument, not a template: layered near-black
+ * surfaces, hairline borders instead of drop shadows, one restrained accent,
+ * and type doing the work that decoration usually does.
+ *
+ * Colour rules carried over from the measured palette:
+ *   - exactly TWO categorical hues, for the only split that matters,
+ *     AST (blue) vs jedi (orange). Both clear colour-vision-deficiency
+ *     separation and 3:1 contrast on both surfaces.
+ *   - everything else coloured is a magnitude, on one gold ramp.
+ *   - status colours are reserved and never reused as a series.
+ */
+
+:root {
+  /* ---- surfaces: four levels, each a small step, no shadows ---- */
+  --bg: #0a0a0f;
+  --surface-1: #101017;
+  --surface-2: #16161f;
+  --surface-3: #1d1d28;
+  --surface-hover: #22222e;
+
+  /* hairlines do the elevation work */
+  --line: #24242f;
+  --line-soft: #1b1b24;
+  --line-strong: #32323f;
+
+  /* ---- ink ---- */
+  --text: #f0eee8;
+  --text-2: #a8a49a;
+  --text-3: #6e6a62;
+  --text-4: #4a4740;
+
+  /* ---- accent: brand gold, used sparingly ---- */
+  --accent: #e0b64d;
+  --accent-dim: #a8842f;
+  --accent-wash: rgba(224, 182, 77, 0.1);
+  --accent-line: rgba(224, 182, 77, 0.28);
+
+  /* ---- the one categorical pair ---- */
+  --ast: #3987e5;
+  --ast-wash: rgba(57, 135, 229, 0.14);
+  --jedi: #e8703a;
+  --jedi-wash: rgba(232, 112, 58, 0.14);
+
+  /* ---- sequential ramp (magnitude: hop depth, counts) ---- */
+  --seq-1: #8a6418;
+  --seq-2: #a07422;
+  --seq-3: #c29435;
+  --seq-4: #dcb45a;
+  --seq-5: #f2dc9a;
+
+  /* ---- reserved status ---- */
+  --good: #35c08a;
+  --good-wash: rgba(53, 192, 138, 0.12);
+  --warn: #e0a33a;
+  --warn-wash: rgba(224, 163, 58, 0.12);
+  --bad: #ef5f5f;
+  --bad-wash: rgba(239, 95, 95, 0.12);
+  --mute: #6b7280;
+
+  /* the tree's edges: above the grid, below the nodes */
+  --edge: #3a3a4a;
+
+  /* ---- type ---- */
+  --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* ---- rhythm ---- */
+  --r-sm: 6px;
+  --r: 10px;
+  --r-lg: 14px;
+  --rail: 232px;
+
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Light theme. Selected, not an inversion: each token is re-chosen for a
+   white surface, and the two categorical hues get their light-surface steps. */
+:root[data-theme="light"] {
+  --bg: #fbfaf8;
+  --surface-1: #ffffff;
+  --surface-2: #f7f5f1;
+  --surface-3: #f1eee8;
+  --surface-hover: #ebe7df;
+
+  --line: #e2ddd3;
+  --line-soft: #ece8e0;
+  --line-strong: #cec8bb;
+
+  --text: #16150f;
+  --text-2: #55514a;
+  --text-3: #817c73;
+  --text-4: #a9a49a;
+
+  --accent: #8a6412;
+  --accent-dim: #a9803a;
+  --accent-wash: rgba(138, 100, 18, 0.08);
+  --accent-line: rgba(138, 100, 18, 0.25);
+
+  --ast: #2a78d6;
+  --ast-wash: rgba(42, 120, 214, 0.1);
+  --jedi: #d4541c;
+  --jedi-wash: rgba(212, 84, 28, 0.1);
+
+  --seq-1: #b2871f;
+  --seq-2: #946c16;
+  --seq-3: #70500e;
+  --seq-4: #4a3308;
+  --seq-5: #2e2004;
+
+  --good: #167a4f;
+  --warn: #9a6a10;
+  --bad: #c0392b;
+  --mute: #6b7280;
+
+  --edge: #b6ae9c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "cv02", "cv03", "cv04", "ss01";
+}
+
+::selection {
+  background: var(--accent-wash);
+  color: var(--text);
+}
+
+/* Scrollbars that belong to the design rather than to the OS. */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 6px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--text-4);
+  background-clip: content-box;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-weight: 650;
+  letter-spacing: -0.021em;
+  line-height: 1.25;
+}
+
+code,
+pre,
+.mono {
+  font-family: var(--mono);
+  font-variant-ligatures: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

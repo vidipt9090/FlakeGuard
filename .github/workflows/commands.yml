@@ -1,0 +1,128 @@
+name: flakeguard-commands
+
+# Slash commands on a pull request: /flakeguard fix | ask <question> | quarantine <test>  (CI-7).
+#
+# Called from the demo repository's `issue_comment` workflow, which must be on that repository's
+# default branch (GitHub only starts issue_comment workflows from there).
+#
+# Order of steps, and why:
+#   authorize    first, and alone: a comment from someone without write access runs nothing else.
+#   scan         reads the findings of the latest finished scan of the pull request's head commit.
+#   get-code     only for ask and fix; fetches the pull request's code WITHOUT credentials.
+#   handle       the only step that reads that code. It runs with no token in its environment
+#                (the step refuses to run if one is set), so the pull request's code never holds one.
+#   open-issue   quarantine only, and only if `handle` said it is allowed.
+#   reply        posts the answer. No pull request is opened and nothing is merged from here.
+
+on:
+  workflow_call:
+    inputs:
+      flakeguard_ref:
+        description: "FlakeGuard branch, tag or commit SHA that supplies the engine"
+        required: true
+        type: string
+      flakeguard_repository:
+        type: string
+        default: vidipt9090/FlakeGuard
+      scan_workflow:
+        description: "File name of the caller workflow that runs the scan on pull requests"
+        type: string
+        default: flakeguard.yml
+
+permissions:
+  contents: read
+
+jobs:
+  command:
+    if: ${{ github.event.issue.pull_request != null }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: write
+      issues: write
+    env:
+      PR_NUMBER: ${{ github.event.issue.number }}
+      REPO: ${{ github.repository }}
+      ACTOR: ${{ github.event.comment.user.login }}
+      PYTHONUTF8: "1"
+    steps:
+      - name: get-engine
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.flakeguard_repository }}
+          ref: ${{ inputs.flakeguard_ref }}
+          path: engine
+          persist-credentials: false
+      - name: python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: engine/pyproject.toml
+      - name: deps
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "./engine[actions]" pytest pytest-randomly
+      - name: authorize
+        id: auth
+        run: python -m flakeguard.console.commands authorize --reply reply.md
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+      - name: scan
+        id: scan
+        if: ${{ steps.auth.outputs.allowed == 'true' && contains(fromJSON('["fix","ask","quarantine"]'), steps.auth.outputs.command) }}
+        run: |
+          set -euo pipefail
+          sha="$(gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefOid --jq .headRefOid)"
+          echo "head=$sha" >> "$GITHUB_OUTPUT"
+          run_id="$(gh run list --repo "$REPO" --workflow "$SCAN_WORKFLOW" --commit "$sha" --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
+          mkdir -p scan
+          if [ -n "$run_id" ]; then
+            gh run download "$run_id" --repo "$REPO" --name flakeguard-console --dir scan
+            echo "run_url=${GITHUB_SERVER_URL}/${REPO}/actions/runs/${run_id}" >> "$GITHUB_OUTPUT"
+          else
+            echo "No finished scan of $sha; findings stay empty."
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SCAN_WORKFLOW: ${{ inputs.scan_workflow }}
+      - name: get-code
+        if: ${{ steps.scan.outputs.head != '' && contains(fromJSON('["fix","ask"]'), steps.auth.outputs.command) }}
+        uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ github.event.issue.number }}/head
+          path: target
+          persist-credentials: false
+      - name: target-deps
+        if: ${{ steps.scan.outputs.head != '' && steps.auth.outputs.command == 'fix' }}
+        working-directory: target
+        run: |
+          if [ -f pyproject.toml ] || [ -f setup.py ]; then
+            python -m pip install -e .
+          elif [ -f requirements.txt ]; then
+            python -m pip install -r requirements.txt
+          fi
+      - name: handle
+        id: handle
+        if: ${{ steps.scan.outputs.head != '' }}
+        run: python -m flakeguard.console.commands handle --findings scan/findings.json --checkout target --reply reply.md
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+      - name: open-issue
+        if: ${{ steps.handle.outputs.issue_for != '' }}
+        run: python -m flakeguard.console.commands open-issue --findings scan/findings.json --finding-id "$FINDING_ID" --reply reply.md
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FINDING_ID: ${{ steps.handle.outputs.issue_for }}
+          RUN_URL: ${{ steps.scan.outputs.run_url }}
+      - name: reply
+        if: ${{ always() && steps.auth.outputs.allowed != 'false' && steps.auth.outputs.command != '' }}
+        run: |
+          set -euo pipefail
+          test -s reply.md
+          gh api --method POST "repos/$REPO/issues/$PR_NUMBER/comments" --field body=@reply.md
+        env:
+          GH_TOKEN: ${{ github.token }}

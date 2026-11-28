@@ -1,0 +1,402 @@
+# FlakeGuard CI/CD
+#
+# The transition from "we run tests" to a delivery pipeline. The difference is
+# not more test jobs -- it is that the stages are ordered, each one hands the
+# next a versioned artifact, and one of them is a GATE that stops delivery.
+#
+#   static ─┐                                   ┌─> deploy
+#   build  ─┼─> test ─> navigate ─┬─> gate ─────┼─> report ─┐
+#   ui     ─┘                     │             │           └─> release
+#           └─> navigate-external ┘             └───────────────┘
+#            ^^^^^^ CI: does it work? ^^^^^^   ^^^ CD: ship it ^^^
+#
+# What makes this a real pipeline rather than a chain of scripts:
+#
+#   * every stage uploads what the next stage consumes, so the thing that
+#     gets released is the thing that was tested -- not a fresh rebuild
+#   * `gate` runs scripts/quality_gate.py, which fails the run on a measured
+#     regression (navigator reach, jedi hit rate, prompt F1 vs the baseline).
+#     Nothing after the gate runs when it fails: no report, no Pages, no
+#     release. That is the testing/delivery boundary, enforced.
+#   * `navigate-external` navigates a repository that is not ours, pinned by
+#     SHA. A navigator scored only on its own fixtures proves nothing, so
+#     generalisation is a pipeline stage, not a one-off experiment.
+#   * concurrency cancels superseded runs; permissions are least-privilege and
+#     widened per job only where a job genuinely publishes.
+#
+# Thresholds, and the reasoning for each, live in scripts/quality_gate.py.
+# Promotion rules: PRs run up to the gate. develop additionally publishes the
+# report. A tag additionally cuts a release.
+
+name: cicd
+
+on:
+  push:
+    branches: [main, develop]
+    tags: ["v*", "eval*"]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      strict_gate:
+        description: "Fail the gate on warnings too"
+        type: boolean
+        default: false
+
+# One run per ref. A superseded push stops paying for the old run.
+concurrency:
+  group: cicd-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.12"
+  # Pinned in README's frozen decisions. The navigator is scored against this
+  # exact tree, so it cannot float.
+  CACHETOOLS_SHA: 3c082c654c2804b9354e4b62dbd2994f1aac464d
+
+jobs:
+  # ─────────────────────────────────────────────── stage 1a: static analysis
+  static:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - name: ruff
+        run: ruff check . --output-format=github
+
+  # ─────────────────────────────────────────────── stage 1b: build artifact
+  # The pipeline ships what it tested, so the distribution is built once here
+  # and carried forward rather than rebuilt at release time.
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install build
+      - run: python -m build
+      - name: check metadata
+        run: |
+          pip install twine
+          twine check dist/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 30
+
+  # ───────────────────────────────────────────── stage 1c: build the web UI
+  # The dashboard is a React app served by flakeguard/app/api.py. It is built
+  # here and carried forward as an artifact, for the same reason the wheel is:
+  # the UI that ships is the one that type-checked and built, not a later
+  # rebuild. A type error in the UI fails the pipeline like any other error.
+  ui:
+    name: web ui
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: install exactly what the lockfile pins
+        run: npm ci
+      - name: typecheck
+        run: npm run typecheck
+      - name: build
+        run: npm run build
+      - name: the bundle has to actually exist
+        run: |
+          test -s dist/index.html
+          ls -la dist/assets/
+          du -sh dist/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-ui
+          path: frontend/dist/
+          retention-days: 30
+
+  # ─────────────────────────────────────────────────── stage 2: unit tests
+  test:
+    name: test (py${{ matrix.python }})
+    needs: [static]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - run: pip install -e ".[dev]" coverage
+      - name: record the resolver environment
+        # The navigator's answers depend on the jedi version and on which
+        # packages are importable, because jedi resolves against what is
+        # installed. We learned this the hard way: the same test id resolved
+        # to 3 chunks under one interpreter and 1 under another. So the
+        # versions go in the log next to the numbers they produced.
+        run: |
+          python -c "import jedi, sys; print('python', sys.version)"
+          python -c "import jedi; print('jedi', jedi.__version__)"
+          pip freeze > pip-freeze.txt
+      - name: pytest
+        # Branch coverage over the flakeguard package only (configured in
+        # pyproject.toml -- counting the test files would inflate it). Measures
+        # 68% today; the floor is 60% so it catches a collapse rather than
+        # blocking ordinary work, and it should ratchet up as gaps close.
+        run: |
+          coverage run -m pytest -q --junitxml=junit.xml
+          coverage xml
+          coverage report --fail-under=60
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-py${{ matrix.python }}
+          path: |
+            junit.xml
+            coverage.xml
+            pip-freeze.txt
+          retention-days: 14
+
+  # ───────────────────────── stage 3: navigate our own planted benchmark
+  # Produces the knowledge trees and navigation traces the dashboard reads,
+  # and the summary the gate reads.
+  navigate:
+    name: navigate (synthetic)
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - name: the benchmark must stay neutralised
+        # A planted case whose name gives away its root cause measures the
+        # label, not the model. This check comes first so a leak fails the
+        # stage before any number is computed from it.
+        run: python scripts/validate_neutralization.py
+      - name: navigator evaluation
+        run: python scripts/run_navigator_eval.py
+      - name: export knowledge trees and traces
+        run: |
+          python scripts/export_knowledge_trees.py --with-text
+      - name: baselines
+        run: python eval/run_baselines.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: results-synthetic
+          path: results/
+          retention-days: 30
+
+  # ────────────────────── stage 3b: navigate a repository that is not ours
+  # Scored against a gold set labelled by hand, on a tree pinned by SHA.
+  navigate-external:
+    name: navigate (cachetools @ pinned SHA)
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: FlakeGuard
+      - uses: actions/checkout@v4
+        with:
+          repository: tkem/cachetools
+          ref: ${{ env.CACHETOOLS_SHA }}
+          path: cachetools
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: install
+        working-directory: FlakeGuard
+        run: pip install -e ".[dev]"
+      - name: score against the hand-labelled gold set
+        working-directory: FlakeGuard
+        run: |
+          python -m flakeguard.navigator.evaluate \
+            --repo ../cachetools \
+            --gold docs/eval1/nav-gold.json \
+            --markdown | tee nav-gold-report.md
+      - name: export knowledge trees for the external repo
+        working-directory: FlakeGuard
+        run: |
+          python scripts/export_knowledge_trees.py \
+            --repo ../cachetools \
+            --repo-name cachetools \
+            --sha ${{ env.CACHETOOLS_SHA }} \
+            --gold docs/eval1/nav-gold.json \
+            --out results/cachetools \
+            --with-text
+      - name: publish the gold report to the job summary
+        if: always()
+        working-directory: FlakeGuard
+        run: cat nav-gold-report.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: results-cachetools
+          path: |
+            FlakeGuard/results/cachetools/
+            FlakeGuard/nav-gold-report.md
+          retention-days: 30
+
+  # ═════════════════════════════════════════ THE GATE: testing -> delivery
+  # Everything above answers "does it work?". This answers "is it good enough
+  # to ship?", and it is the last job that runs when the answer is no.
+  gate:
+    name: quality gate
+    needs: [build, ui, test, navigate, navigate-external]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - name: collect every stage's results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: results-*
+          path: artifacts/
+          merge-multiple: true
+      - name: assemble the results tree
+        # download-artifact flattens the two result sets into artifacts/;
+        # the gate expects them laid out as results/ and results/cachetools/.
+        run: |
+          mkdir -p results
+          cp -r artifacts/. results/ 2>/dev/null || true
+          if [ -d results/FlakeGuard/results/cachetools ]; then
+            mkdir -p results/cachetools
+            cp -r results/FlakeGuard/results/cachetools/. results/cachetools/
+            rm -rf results/FlakeGuard
+          fi
+          find results -maxdepth 2 -type f | sort
+      - name: run the gate
+        run: |
+          python scripts/quality_gate.py \
+            ${{ inputs.strict_gate && '--strict' || '' }}
+      - name: upload the gated bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gated-results
+          path: results/
+          retention-days: 90
+
+  # ───────────────────────────────── stage 5 (CD): build the live report
+  # Only reachable through a green gate. This job builds on every trigger,
+  # including pull requests, so a report that cannot be built fails the PR
+  # rather than failing after merge.
+  #
+  # It deliberately does NOT declare the github-pages environment. A declared
+  # environment is claimed when the job starts, and the Pages environment is
+  # branch-protected by default, so declaring it here would block every PR
+  # run. Deploying is a separate job for that reason.
+  report:
+    name: report
+    needs: [gate]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - uses: actions/download-artifact@v4
+        with:
+          name: gated-results
+          path: results/
+      - name: build the static report
+        run: python scripts/build_static_report.py --out site
+      - name: it has to actually be a page
+        run: |
+          test -s site/index.html
+          grep -q "FlakeGuard" site/index.html
+          echo "report size: $(wc -c < site/index.html) bytes"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: static-report
+          path: site/
+          retention-days: 30
+      - name: stage it for Pages
+        if: github.event_name == 'push' && (github.ref_name == 'develop' || github.ref_name == 'main')
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/
+
+  # ─────────────────────────────── stage 5b (CD): deploy it to Pages
+  # Split from `report` purely so the branch-protected environment is only
+  # claimed on the branches allowed to deploy.
+  deploy:
+    name: deploy report
+    if: github.event_name == 'push' && (github.ref_name == 'develop' || github.ref_name == 'main')
+    needs: [report]
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v5
+      - id: deploy
+        uses: actions/deploy-pages@v4
+
+  # ──────────────────────────────────── stage 6 (CD): cut a tagged release
+  release:
+    name: release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [gate, report]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: actions/download-artifact@v4
+        with:
+          name: gated-results
+          path: results/
+      - uses: actions/download-artifact@v4
+        with:
+          name: web-ui
+          path: web-ui/
+      - name: bundle the evidence with the build
+        # A release that carries the numbers it passed on is reproducible;
+        # one that carries only a wheel is a claim.
+        run: |
+          tar -czf flakeguard-results-${{ github.ref_name }}.tar.gz results/
+          tar -czf flakeguard-ui-${{ github.ref_name }}.tar.gz web-ui/
+          ls -la dist/ *.tar.gz
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            dist/*
+            flakeguard-results-${{ github.ref_name }}.tar.gz
+            flakeguard-ui-${{ github.ref_name }}.tar.gz

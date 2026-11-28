@@ -35,3 +35,60 @@ def test_append_to_quarantine_filters_real_failures():
     assert count == 1
     assert added == ["test_case_02"]
     assert db["quarantined_tests"][0]["test_id"] == "test_case_02"
+
+
+def test_build_comment_body_live_triage_table():
+    from scripts.post_triage_comment import build_comment_body
+
+    failures = [{"name": "test_case_02", "classname": "tests.test_a", "message": "assert False"}]
+    triage_results = [{
+        "test_id": "tests.test_a::test_case_02",
+        "label": "flaky",
+        "root_cause": "order_dep",
+        "evidence_tier": "reproduced",
+        "confidence": 0.95,
+        "reasoning": "Polluter bisection isolated test_case_01.",
+    }]
+
+    body = build_comment_body(
+        failures=failures,
+        run_url="https://github.com/example/repo/actions/runs/123",
+        failed_at="2026-11-14T10:00:00Z",
+        comment_at="2026-11-14T10:01:00Z",
+        triage_results=triage_results,
+        is_fork=False,
+        provider_name="gemini-2.0-flash",
+    )
+
+    assert "FLAKY" in body
+    assert "order_dep" in body
+    assert "reproduced" in body
+    assert "quarantine:approve" in body
+    assert "Live LLM Triage (`gemini-2.0-flash`" in body
+
+
+def test_build_comment_body_fork_pr_notice():
+    from scripts.post_triage_comment import build_comment_body
+
+    failures = [{"name": "test_case_22", "classname": "tests.test_b", "message": "error"}]
+    triage_results = [{
+        "test_id": "test_case_22",
+        "label": "real_fail",
+        "root_cause": "none",
+        "evidence_tier": "none",
+        "confidence": 0.99,
+        "reasoning": "Deterministic bug.",
+    }]
+
+    body = build_comment_body(
+        failures=failures,
+        run_url="https://github.com/example/repo/actions/runs/124",
+        failed_at="2026-11-14T10:00:00Z",
+        comment_at="2026-11-14T10:01:00Z",
+        triage_results=triage_results,
+        is_fork=True,
+    )
+
+    assert "Fork PR detected" in body
+    assert "REAL BUG" in body
+    assert "Real code regressions cannot be quarantined" in body

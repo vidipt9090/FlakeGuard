@@ -1,0 +1,824 @@
+{
+ "source": "results/injected/rq4.json (not changed) and rq4_masked.json",
+ "mask": {
+  "map": {
+   "_FLAKEGUARD_ORDER_READY": "_x1",
+   "_FLAKEGUARD_SHARED_CACHE": "_x2",
+   "_bg_job": "_x3",
+   "_fg_random": "_x4",
+   "_hour": "_x5",
+   "_race_flag": "_x6",
+   "_th": "_x7"
+  },
+  "applies_to": "the code part of the prompt, settings ast, ast_jedi",
+  "natural_cues_untouched": true,
+  "note": "a separate run; results/injected/rq4.json is not changed"
+ },
+ "bonferroni_threshold": 0.0125,
+ "planned_pairs": 4,
+ "n_tests": 26,
+ "settings": {
+  "ast": {
+   "unmasked": {
+    "k": 10,
+    "n": 26,
+    "wilson95": [
+     0.2243,
+     0.5747
+    ],
+    "by_known_cause": {
+     "order_dependence": {
+      "k": 1,
+      "n": 5
+     },
+     "randomness": {
+      "k": 0,
+      "n": 5
+     },
+     "shared_state": {
+      "k": 0,
+      "n": 6
+     },
+     "time_or_timezone": {
+      "k": 4,
+      "n": 5
+     },
+     "timing": {
+      "k": 5,
+      "n": 5
+     }
+    },
+    "answers": {
+     "timing": 15,
+     "random": 4,
+     "time_or_timezone": 4,
+     "order_dependence": 3
+    },
+    "confusion_true_by_answered": {
+     "order_dependence": {
+      "timing": 4,
+      "order_dependence": 1
+     },
+     "randomness": {
+      "random": 3,
+      "timing": 2
+     },
+     "shared_state": {
+      "timing": 3,
+      "random": 1,
+      "order_dependence": 2
+     },
+     "time_or_timezone": {
+      "time_or_timezone": 4,
+      "timing": 1
+     },
+     "timing": {
+      "timing": 5
+     }
+    },
+    "unreadable_replies": 4,
+    "replies_saying_random": 4,
+    "prompts_that_filled_the_context": 0
+   },
+   "masked": {
+    "k": 10,
+    "n": 26,
+    "wilson95": [
+     0.2243,
+     0.5747
+    ],
+    "by_known_cause": {
+     "order_dependence": {
+      "k": 1,
+      "n": 5
+     },
+     "randomness": {
+      "k": 0,
+      "n": 5
+     },
+     "shared_state": {
+      "k": 0,
+      "n": 6
+     },
+     "time_or_timezone": {
+      "k": 4,
+      "n": 5
+     },
+     "timing": {
+      "k": 5,
+      "n": 5
+     }
+    },
+    "answers": {
+     "timing": 15,
+     "random": 3,
+     "time_or_timezone": 4,
+     "order_dependence": 4
+    },
+    "confusion_true_by_answered": {
+     "order_dependence": {
+      "timing": 4,
+      "order_dependence": 1
+     },
+     "randomness": {
+      "random": 3,
+      "timing": 2
+     },
+     "shared_state": {
+      "timing": 3,
+      "order_dependence": 3
+     },
+     "time_or_timezone": {
+      "time_or_timezone": 4,
+      "timing": 1
+     },
+     "timing": {
+      "timing": 5
+     }
+    },
+    "unreadable_replies": 3,
+    "replies_saying_random": 3,
+    "prompts_that_filled_the_context": 0
+   },
+   "prompts_changed_by_masking": 21,
+   "answers_changed_among_changed_prompts": 1,
+   "answers_changed_among_unchanged_prompts": 0,
+   "per_test": [
+    {
+     "id": "tests/test_cached.py::CacheWrapperTest::test_decorator_lock_cond_info",
+     "true_cause": "order_dependence",
+     "prompt_changed": true,
+     "unmasked_answer": "timing",
+     "masked_answer": "timing",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_cached.py::CacheWrapperTest::test_zero_size_cache_decorator",
+     "true_cause": "order_dependence",
+     "prompt_changed": true,
+     "unmasked_answer": "timing",
+     "masked_answer": "timing",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_cached.py::PickleTest::test_pickle",
+     "true_cause": "randomness",
+     "prompt_changed": false,
+     "unmasked_answer": "random",
+     "masked_answer": "random",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_cachedmethod.py::CacheMethodTest::test_value_too_large",
+     "true_cause": "order_dependence",
+     "prompt_changed": true,
+     "unmasked_answer": "timing",
+     "masked_answer": "timing",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_cachedmethod.py::NoneMethodTest::test_none_info",
+     "true_cause": "time_or_timezone",
+     "prompt_changed": true,
+     "unmasked_answer": "time_or_timezone",
+     "masked_answer": "time_or_timezone",
+     "unmasked_match": true,
+     "masked_match": true
+    },
+    {
+     "id": "tests/test_cachedmethod.py::UnboundMethodTest::test_class_access_copy",
+     "true_cause": "timing",
+     "prompt_changed": true,
+     "unmasked_answer": "timing",
+     "masked_answer": "timing",
+     "unmasked_match": true,
+     "masked_match": true
+    },
+    {
+     "id": "tests/test_cachedmethod.py::UnboundMethodTest::test_class_call_after_delete",
+     "true_cause": "randomness",
+     "prompt_changed": false,
+     "unmasked_answer": "random",
+     "masked_answer": "random",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_fifo.py::FIFOCacheTest::test_fifo",
+     "true_cause": "randomness",
+     "prompt_changed": false,
+     "unmasked_answer": "random",
+     "masked_answer": "random",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_func.py::TTLDecoratorTest::test_ttl_expire_unbound",
+     "true_cause": "randomness",
+     "prompt_changed": false,
+     "unmasked_answer": "timing",
+     "masked_answer": "timing",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_keys.py::CacheKeysTest::test_addkeys",
+     "true_cause": "time_or_timezone",
+     "prompt_changed": true,
+     "unmasked_answer": "time_or_timezone",
+     "masked_answer": "time_or_timezone",
+     "unmasked_match": true,
+     "masked_match": true
+    },
+    {
+     "id": "tests/test_lfu.py::LFUCacheTest::test_lfu_copy_use_counts",
+     "true_cause": "timing",
+     "prompt_changed": true,
+     "unmasked_answer": "timing",
+     "masked_answer": "timing",
+     "unmasked_match": true,
+     "masked_match": true
+    },
+    {
+     "id": "tests/test_lfu.py::LFUCacheTest::test_lfu_getsizeof",
+     "true_cause": "time_or_timezone",
+     "prompt_changed": true,
+     "unmasked_answer": "time_or_timezone",
+     "masked_answer": "time_or_timezone",
+     "unmasked_match": true,
+     "masked_match": true
+    },
+    {
+     "id": "tests/test_lru.py::LRUCacheTest::test_lru",
+     "true_cause": "shared_state",
+     "prompt_changed": true,
+     "unmasked_answer": "timing",
+     "masked_answer": "timing",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_lru.py::LRUCacheTest::test_lru_clear",
+     "true_cause": "shared_state",
+     "prompt_changed": true,
+     "unmasked_answer": "timing",
+     "masked_answer": "timing",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_lru.py::LRUCacheTest::test_lru_update_existing",
+     "true_cause": "shared_state",
+     "prompt_changed": true,
+     "unmasked_answer": "timing",
+     "masked_answer": "timing",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_rr.py::RRCacheTest::test_rr",
+     "true_cause": "timing",
+     "prompt_changed": true,
+     "unmasked_answer": "timing",
+     "masked_answer": "timing",
+     "unmasked_match": true,
+     "masked_match": true
+    },
+    {
+     "id": "tests/test_rr.py::RRCacheTest::test_rr_copy",
+     "true_cause": "shared_state",
+     "prompt_changed": true,
+     "unmasked_answer": "random",
+     "masked_answer": "order_dependence",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_rr.py::RRCacheTest::test_rr_default_choice",
+     "true_cause": "shared_state",
+     "prompt_changed": true,
+     "unmasked_answer": "order_dependence",
+     "masked_answer": "order_dependence",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_rr.py::RRCacheTest::test_rr_popitem_empty_custom_choice",
+     "true_cause": "order_dependence",
+     "prompt_changed": true,
+     "unmasked_answer": "order_dependence",
+     "masked_answer": "order_dependence",
+     "unmasked_match": true,
+     "masked_match": true
+    },
+    {
+     "id": "tests/test_rr.py::RRCacheTest::test_rr_update_existing",
+     "true_cause": "shared_state",
+     "prompt_changed": true,
+     "unmasked_answer": "order_dependence",
+     "masked_answer": "order_dependence",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_tlru.py::TLRUCacheTest::test_tlru_clear",
+     "true_cause": "randomness",
+     "prompt_changed": false,
+     "unmasked_answer": "timing",
+     "masked_answer": "timing",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_atomic",
+     "true_cause": "order_dependence",
+     "prompt_changed": true,
+     "unmasked_answer": "timing",
+     "masked_answer": "timing",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_clear",
+     "true_cause": "time_or_timezone",
+     "prompt_changed": true,
+     "unmasked_answer": "timing",
+     "masked_answer": "timing",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_copy",
+     "true_cause": "time_or_timezone",
+     "prompt_changed": true,
+     "unmasked_answer": "time_or_timezone",
+     "masked_answer": "time_or_timezone",
+     "unmasked_match": true,
+     "masked_match": true
+    },
+    {
+     "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_deepcopy_timer",
+     "true_cause": "timing",
+     "prompt_changed": true,
+     "unmasked_answer": "timing",
+     "masked_answer": "timing",
+     "unmasked_match": true,
+     "masked_match": true
+    },
+    {
+     "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_expire",
+     "true_cause": "timing",
+     "prompt_changed": true,
+     "unmasked_answer": "timing",
+     "masked_answer": "timing",
+     "unmasked_match": true,
+     "masked_match": true
+    }
+   ]
+  },
+  "ast_jedi": {
+   "unmasked": {
+    "k": 13,
+    "n": 26,
+    "wilson95": [
+     0.3206,
+     0.6794
+    ],
+    "by_known_cause": {
+     "order_dependence": {
+      "k": 4,
+      "n": 5
+     },
+     "randomness": {
+      "k": 0,
+      "n": 5
+     },
+     "shared_state": {
+      "k": 0,
+      "n": 6
+     },
+     "time_or_timezone": {
+      "k": 4,
+      "n": 5
+     },
+     "timing": {
+      "k": 5,
+      "n": 5
+     }
+    },
+    "answers": {
+     "order_dependence": 12,
+     "timing": 9,
+     "time_or_timezone": 4,
+     "random": 1
+    },
+    "confusion_true_by_answered": {
+     "order_dependence": {
+      "order_dependence": 4,
+      "timing": 1
+     },
+     "randomness": {
+      "order_dependence": 2,
+      "random": 1,
+      "timing": 2
+     },
+     "shared_state": {
+      "order_dependence": 6
+     },
+     "time_or_timezone": {
+      "time_or_timezone": 4,
+      "timing": 1
+     },
+     "timing": {
+      "timing": 5
+     }
+    },
+    "unreadable_replies": 1,
+    "replies_saying_random": 1,
+    "prompts_that_filled_the_context": 0
+   },
+   "masked": {
+    "k": 13,
+    "n": 26,
+    "wilson95": [
+     0.3206,
+     0.6794
+    ],
+    "by_known_cause": {
+     "order_dependence": {
+      "k": 4,
+      "n": 5
+     },
+     "randomness": {
+      "k": 0,
+      "n": 5
+     },
+     "shared_state": {
+      "k": 0,
+      "n": 6
+     },
+     "time_or_timezone": {
+      "k": 4,
+      "n": 5
+     },
+     "timing": {
+      "k": 5,
+      "n": 5
+     }
+    },
+    "answers": {
+     "order_dependence": 12,
+     "timing": 9,
+     "time_or_timezone": 4,
+     "random": 1
+    },
+    "confusion_true_by_answered": {
+     "order_dependence": {
+      "order_dependence": 4,
+      "timing": 1
+     },
+     "randomness": {
+      "order_dependence": 2,
+      "random": 1,
+      "timing": 2
+     },
+     "shared_state": {
+      "order_dependence": 6
+     },
+     "time_or_timezone": {
+      "time_or_timezone": 4,
+      "timing": 1
+     },
+     "timing": {
+      "timing": 5
+     }
+    },
+    "unreadable_replies": 1,
+    "replies_saying_random": 1,
+    "prompts_that_filled_the_context": 0
+   },
+   "prompts_changed_by_masking": 21,
+   "answers_changed_among_changed_prompts": 2,
+   "answers_changed_among_unchanged_prompts": 0,
+   "per_test": [
+    {
+     "id": "tests/test_cached.py::CacheWrapperTest::test_decorator_lock_cond_info",
+     "true_cause": "order_dependence",
+     "prompt_changed": true,
+     "unmasked_answer": "order_dependence",
+     "masked_answer": "order_dependence",
+     "unmasked_match": true,
+     "masked_match": true
+    },
+    {
+     "id": "tests/test_cached.py::CacheWrapperTest::test_zero_size_cache_decorator",
+     "true_cause": "order_dependence",
+     "prompt_changed": true,
+     "unmasked_answer": "timing",
+     "masked_answer": "order_dependence",
+     "unmasked_match": false,
+     "masked_match": true
+    },
+    {
+     "id": "tests/test_cached.py::PickleTest::test_pickle",
+     "true_cause": "randomness",
+     "prompt_changed": false,
+     "unmasked_answer": "order_dependence",
+     "masked_answer": "order_dependence",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_cachedmethod.py::CacheMethodTest::test_value_too_large",
+     "true_cause": "order_dependence",
+     "prompt_changed": true,
+     "unmasked_answer": "order_dependence",
+     "masked_answer": "timing",
+     "unmasked_match": true,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_cachedmethod.py::NoneMethodTest::test_none_info",
+     "true_cause": "time_or_timezone",
+     "prompt_changed": true,
+     "unmasked_answer": "time_or_timezone",
+     "masked_answer": "time_or_timezone",
+     "unmasked_match": true,
+     "masked_match": true
+    },
+    {
+     "id": "tests/test_cachedmethod.py::UnboundMethodTest::test_class_access_copy",
+     "true_cause": "timing",
+     "prompt_changed": true,
+     "unmasked_answer": "timing",
+     "masked_answer": "timing",
+     "unmasked_match": true,
+     "masked_match": true
+    },
+    {
+     "id": "tests/test_cachedmethod.py::UnboundMethodTest::test_class_call_after_delete",
+     "true_cause": "randomness",
+     "prompt_changed": false,
+     "unmasked_answer": "random",
+     "masked_answer": "random",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_fifo.py::FIFOCacheTest::test_fifo",
+     "true_cause": "randomness",
+     "prompt_changed": false,
+     "unmasked_answer": "order_dependence",
+     "masked_answer": "order_dependence",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_func.py::TTLDecoratorTest::test_ttl_expire_unbound",
+     "true_cause": "randomness",
+     "prompt_changed": false,
+     "unmasked_answer": "timing",
+     "masked_answer": "timing",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_keys.py::CacheKeysTest::test_addkeys",
+     "true_cause": "time_or_timezone",
+     "prompt_changed": true,
+     "unmasked_answer": "time_or_timezone",
+     "masked_answer": "time_or_timezone",
+     "unmasked_match": true,
+     "masked_match": true
+    },
+    {
+     "id": "tests/test_lfu.py::LFUCacheTest::test_lfu_copy_use_counts",
+     "true_cause": "timing",
+     "prompt_changed": true,
+     "unmasked_answer": "timing",
+     "masked_answer": "timing",
+     "unmasked_match": true,
+     "masked_match": true
+    },
+    {
+     "id": "tests/test_lfu.py::LFUCacheTest::test_lfu_getsizeof",
+     "true_cause": "time_or_timezone",
+     "prompt_changed": true,
+     "unmasked_answer": "time_or_timezone",
+     "masked_answer": "time_or_timezone",
+     "unmasked_match": true,
+     "masked_match": true
+    },
+    {
+     "id": "tests/test_lru.py::LRUCacheTest::test_lru",
+     "true_cause": "shared_state",
+     "prompt_changed": true,
+     "unmasked_answer": "order_dependence",
+     "masked_answer": "order_dependence",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_lru.py::LRUCacheTest::test_lru_clear",
+     "true_cause": "shared_state",
+     "prompt_changed": true,
+     "unmasked_answer": "order_dependence",
+     "masked_answer": "order_dependence",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_lru.py::LRUCacheTest::test_lru_update_existing",
+     "true_cause": "shared_state",
+     "prompt_changed": true,
+     "unmasked_answer": "order_dependence",
+     "masked_answer": "order_dependence",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_rr.py::RRCacheTest::test_rr",
+     "true_cause": "timing",
+     "prompt_changed": true,
+     "unmasked_answer": "timing",
+     "masked_answer": "timing",
+     "unmasked_match": true,
+     "masked_match": true
+    },
+    {
+     "id": "tests/test_rr.py::RRCacheTest::test_rr_copy",
+     "true_cause": "shared_state",
+     "prompt_changed": true,
+     "unmasked_answer": "order_dependence",
+     "masked_answer": "order_dependence",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_rr.py::RRCacheTest::test_rr_default_choice",
+     "true_cause": "shared_state",
+     "prompt_changed": true,
+     "unmasked_answer": "order_dependence",
+     "masked_answer": "order_dependence",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_rr.py::RRCacheTest::test_rr_popitem_empty_custom_choice",
+     "true_cause": "order_dependence",
+     "prompt_changed": true,
+     "unmasked_answer": "order_dependence",
+     "masked_answer": "order_dependence",
+     "unmasked_match": true,
+     "masked_match": true
+    },
+    {
+     "id": "tests/test_rr.py::RRCacheTest::test_rr_update_existing",
+     "true_cause": "shared_state",
+     "prompt_changed": true,
+     "unmasked_answer": "order_dependence",
+     "masked_answer": "order_dependence",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_tlru.py::TLRUCacheTest::test_tlru_clear",
+     "true_cause": "randomness",
+     "prompt_changed": false,
+     "unmasked_answer": "timing",
+     "masked_answer": "timing",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_atomic",
+     "true_cause": "order_dependence",
+     "prompt_changed": true,
+     "unmasked_answer": "order_dependence",
+     "masked_answer": "order_dependence",
+     "unmasked_match": true,
+     "masked_match": true
+    },
+    {
+     "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_clear",
+     "true_cause": "time_or_timezone",
+     "prompt_changed": true,
+     "unmasked_answer": "timing",
+     "masked_answer": "timing",
+     "unmasked_match": false,
+     "masked_match": false
+    },
+    {
+     "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_copy",
+     "true_cause": "time_or_timezone",
+     "prompt_changed": true,
+     "unmasked_answer": "time_or_timezone",
+     "masked_answer": "time_or_timezone",
+     "unmasked_match": true,
+     "masked_match": true
+    },
+    {
+     "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_deepcopy_timer",
+     "true_cause": "timing",
+     "prompt_changed": true,
+     "unmasked_answer": "timing",
+     "masked_answer": "timing",
+     "unmasked_match": true,
+     "masked_match": true
+    },
+    {
+     "id": "tests/test_ttl.py::TTLCacheTest::test_ttl_expire",
+     "true_cause": "timing",
+     "prompt_changed": true,
+     "unmasked_answer": "timing",
+     "masked_answer": "timing",
+     "unmasked_match": true,
+     "masked_match": true
+    }
+   ]
+  }
+ },
+ "mcnemar_exact_paired": {
+  "masked_ast_vs_none": {
+   "right_only_in_none": 0,
+   "right_only_in_masked_ast": 5,
+   "p_two_sided": 0.0625,
+   "kind": "planned"
+  },
+  "masked_ast_vs_unmasked_ast": {
+   "right_only_in_unmasked_ast": 0,
+   "right_only_in_masked_ast": 0,
+   "p_two_sided": 1.0,
+   "kind": "planned"
+  },
+  "masked_ast_jedi_vs_none": {
+   "right_only_in_none": 0,
+   "right_only_in_masked_ast_jedi": 8,
+   "p_two_sided": 0.0078,
+   "kind": "planned"
+  },
+  "masked_ast_jedi_vs_unmasked_ast_jedi": {
+   "right_only_in_unmasked_ast_jedi": 1,
+   "right_only_in_masked_ast_jedi": 1,
+   "p_two_sided": 1.0,
+   "kind": "planned"
+  }
+ },
+ "none": {
+  "k": 5,
+  "n": 26,
+  "wilson95": [
+   0.0851,
+   0.3788
+  ],
+  "by_known_cause": {
+   "order_dependence": {
+    "k": 0,
+    "n": 5
+   },
+   "randomness": {
+    "k": 0,
+    "n": 5
+   },
+   "shared_state": {
+    "k": 0,
+    "n": 6
+   },
+   "time_or_timezone": {
+    "k": 0,
+    "n": 5
+   },
+   "timing": {
+    "k": 5,
+    "n": 5
+   }
+  },
+  "answers": {
+   "timing": 26
+  },
+  "confusion_true_by_answered": {
+   "order_dependence": {
+    "timing": 5
+   },
+   "randomness": {
+    "timing": 5
+   },
+   "shared_state": {
+    "timing": 6
+   },
+   "time_or_timezone": {
+    "timing": 5
+   },
+   "timing": {
+    "timing": 5
+   }
+  },
+  "unreadable_replies": 0,
+  "replies_saying_random": 0,
+  "prompts_that_filled_the_context": 0
+ }
+}

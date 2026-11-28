@@ -1,0 +1,130 @@
+{
+  "id": "actions-44877437008",
+  "target": "vidipt9090/flakeguard-demo#3",
+  "mode": "actions",
+  "status": "running",
+  "pr": {
+    "number": 3,
+    "title": "Act 1: add a deterministic inventory total test",
+    "state": "open",
+    "checkState": "in progress",
+    "postMergeState": "waiting for merge",
+    "prUrl": "https://github.com/vidipt9090/flakeguard-demo/pull/3",
+    "runUrl": "https://github.com/vidipt9090/flakeguard-demo/actions/runs/44877437008"
+  },
+  "stages": [
+    {
+      "id": "checkout",
+      "name": "Checkout",
+      "detail": "Done",
+      "tool": "GitHub Actions",
+      "time": "1 s",
+      "state": "done"
+    },
+    {
+      "id": "install",
+      "name": "Install",
+      "detail": "Done",
+      "tool": "pip",
+      "time": "11 s",
+      "state": "done"
+    },
+    {
+      "id": "baseline",
+      "name": "Baseline",
+      "detail": "Done",
+      "tool": "pytest",
+      "time": "1 s",
+      "state": "done"
+    },
+    {
+      "id": "shuffled",
+      "name": "Shuffled runs",
+      "detail": "10 of 10 runs done (seeds 1 to 10), 0 tests failed at least once",
+      "tool": "pytest, pytest-randomly",
+      "time": "16 s",
+      "state": "done"
+    },
+    {
+      "id": "isolated",
+      "name": "Isolated runs",
+      "detail": "Running",
+      "tool": "pytest",
+      "time": null,
+      "state": "running"
+    },
+    {
+      "id": "bisection",
+      "name": "Bisection",
+      "detail": "Waiting to start",
+      "tool": "FlakeGuard evidence engine",
+      "time": null,
+      "state": "pending"
+    },
+    {
+      "id": "retrieval",
+      "name": "Retrieval",
+      "detail": "Waiting to start",
+      "tool": "AST + Jedi",
+      "time": null,
+      "state": "pending"
+    },
+    {
+      "id": "verdict",
+      "name": "Verdict",
+      "detail": "Waiting to start",
+      "tool": "FlakeGuard rules (no LLM)",
+      "time": null,
+      "state": "pending"
+    },
+    {
+      "id": "pr-comment",
+      "name": "PR comment",
+      "detail": "Waiting to start",
+      "tool": "GitHub API",
+      "time": null,
+      "state": "pending"
+    }
+  ],
+  "current": {
+    "test": "Whole suite",
+    "condition": "Isolated runs"
+  },
+  "counters": {
+    "runsDone": 10,
+    "runsTotal": 10,
+    "failures": 0,
+    "flagged": 0
+  },
+  "matrix": [
+    {
+      "label": "Baseline",
+      "summary": "whole suite: 1 run done, 1 passed, 0 failed",
+      "cells": [
+        "pass"
+      ]
+    },
+    {
+      "label": "Shuffled",
+      "summary": "whole suite: 10 runs done, 10 passed, 0 failed (seeds 1 to 10)",
+      "cells": [
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ]
+    },
+    {
+      "label": "Isolated",
+      "summary": "whole suite: no runs yet",
+      "cells": []
+    }
+  ],
+  "notice": null
+}

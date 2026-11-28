@@ -1,0 +1,23 @@
+{"ts":"2026-11-21T05:58:10.136079+00:00","run_id":"scan_20261121_055810_295a45","stage":"ingest","type":"started","test_id":null,"data":{"target":"tests/data/demo_inventory","requested_sha":null}}
+{"ts":"2026-11-21T05:58:10.199906+00:00","run_id":"scan_20261121_055810_295a45","stage":"ingest","type":"result","test_id":null,"data":{"repo_path":"C:\\Users\\khull\\Desktop\\4th Year\\IDT Final\\FlakeGuard\\tests\\data\\demo_inventory","pinned_sha":"3962ac65bccf3e23cdaf32a3dc0336b1fddf59a3"}}
+{"ts":"2026-11-21T05:58:10.199906+00:00","run_id":"scan_20261121_055810_295a45","stage":"discover","type":"started","test_id":null,"data":{}}
+{"ts":"2026-11-21T05:58:10.233462+00:00","run_id":"scan_20261121_055810_295a45","stage":"discover","type":"result","test_id":null,"data":{"framework":"pytest","test_dir":"tests","test_files_count":4}}
+{"ts":"2026-11-21T05:58:10.235471+00:00","run_id":"scan_20261121_055810_295a45","stage":"run","type":"started","test_id":null,"data":{"slices":["baseline","shuffled","reversed","isolated","repeated","parallel"],"shuffled_n":10,"seed_start":1001,"seeds":[1001,1002,1003,1004,1005,1006,1007,1008,1009,1010]}}
+{"ts":"2026-11-21T05:58:10.235471+00:00","run_id":"scan_20261121_055810_295a45","stage":"run","type":"progress","test_id":null,"data":{"mode":"baseline","iteration":1}}
+{"ts":"2026-11-21T05:58:13.243314+00:00","run_id":"scan_20261121_055810_295a45","stage":"run","type":"progress","test_id":null,"data":{"mode":"shuffled","iteration":1,"seed":1001}}
+{"ts":"2026-11-21T05:58:16.786585+00:00","run_id":"scan_20261121_055810_295a45","stage":"run","type":"progress","test_id":null,"data":{"mode":"shuffled","iteration":2,"seed":1002}}
+{"ts":"2026-11-21T05:58:20.371768+00:00","run_id":"scan_20261121_055810_295a45","stage":"run","type":"progress","test_id":null,"data":{"mode":"shuffled","iteration":3,"seed":1003}}
+{"ts":"2026-11-21T05:58:24.528394+00:00","run_id":"scan_20261121_055810_295a45","stage":"run","type":"progress","test_id":null,"data":{"mode":"shuffled","iteration":4,"seed":1004}}
+{"ts":"2026-11-21T05:58:28.431442+00:00","run_id":"scan_20261121_055810_295a45","stage":"run","type":"progress","test_id":null,"data":{"mode":"shuffled","iteration":5,"seed":1005}}
+{"ts":"2026-11-21T05:58:32.210062+00:00","run_id":"scan_20261121_055810_295a45","stage":"run","type":"progress","test_id":null,"data":{"mode":"shuffled","iteration":6,"seed":1006}}
+{"ts":"2026-11-21T05:58:36.077688+00:00","run_id":"scan_20261121_055810_295a45","stage":"run","type":"progress","test_id":null,"data":{"mode":"shuffled","iteration":7,"seed":1007}}
+{"ts":"2026-11-21T05:58:40.015883+00:00","run_id":"scan_20261121_055810_295a45","stage":"run","type":"progress","test_id":null,"data":{"mode":"shuffled","iteration":8,"seed":1008}}
+{"ts":"2026-11-21T05:58:43.495755+00:00","run_id":"scan_20261121_055810_295a45","stage":"run","type":"progress","test_id":null,"data":{"mode":"shuffled","iteration":9,"seed":1009}}
+{"ts":"2026-11-21T05:58:46.137789+00:00","run_id":"scan_20261121_055810_295a45","stage":"run","type":"progress","test_id":null,"data":{"mode":"shuffled","iteration":10,"seed":1010}}
+{"ts":"2026-11-21T05:58:49.648401+00:00","run_id":"scan_20261121_055810_295a45","stage":"run","type":"progress","test_id":null,"data":{"mode":"reversed","iteration":1}}
+{"ts":"2026-11-21T05:58:55.577296+00:00","run_id":"scan_20261121_055810_295a45","stage":"run","type":"progress","test_id":"tests.test_stock::test_reserve_negative","data":{"mode":"isolated","iteration":1}}
+{"ts":"2026-11-21T05:58:58.359580+00:00","run_id":"scan_20261121_055810_295a45","stage":"run","type":"progress","test_id":"tests.test_sync::test_sync_timeout","data":{"mode":"isolated","iteration":2}}
+{"ts":"2026-11-21T05:59:00.912830+00:00","run_id":"scan_20261121_055810_295a45","stage":"run","type":"progress","test_id":"tests.test_report::test_report_total","data":{"mode":"isolated","iteration":3}}
+{"ts":"2026-11-21T05:59:03.909694+00:00","run_id":"scan_20261121_055810_295a45","stage":"run","type":"progress","test_id":null,"data":{"mode":"repeated","iteration":1}}
+{"ts":"2026-11-21T05:59:07.678473+00:00","run_id":"scan_20261121_055810_295a45","stage":"run","type":"progress","test_id":null,"data":{"mode":"parallel","iteration":1}}
+{"ts":"2026-11-21T05:59:14.426356+00:00","run_id":"scan_20261121_055810_295a45","stage":"run","type":"result","test_id":null,"data":{"total_slices":17,"total_tests":28,"flaky_tests_count":2,"flaky_tests":["tests.test_report::test_report_total","tests.test_sync::test_sync_timeout"]}}

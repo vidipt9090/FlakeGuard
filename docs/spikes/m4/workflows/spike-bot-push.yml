@@ -1,0 +1,26 @@
+name: spike-bot-push
+
+# THROWAWAY (question f). Job 1 pushes a commit with GITHUB_TOKEN. The workflow below it listens
+# for pushes to that branch. If GITHUB_TOKEN pushes trigger workflows, a run appears.
+on:
+  push:
+    branches: ["spike/m4"]
+    paths: [".github/workflows/spike-bot-push.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  bot-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: push with GITHUB_TOKEN
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b spike/m4-bot
+          date -u > bot.txt
+          git add bot.txt
+          git commit -m "spike: commit made with GITHUB_TOKEN"
+          git push origin spike/m4-bot

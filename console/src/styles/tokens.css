@@ -1,0 +1,22 @@
+/* Design tokens taken from the approved UI. Change values here only. */
+:root {
+  --ground: #F6F6F3;
+  --card: #FFFFFF;
+  --line: #E2E2DC;
+  --line-strong: #B9BBB3;
+  --ink: #15171A;
+  --muted: #4A4F57;
+  --blue: #1D4ED8;
+  --blue-dark: #1E3A8A;
+  --blue-bg: #EAF2FF;
+  --blue-ink: #0B3A8F;
+  --flaky-ink: #8A3A0B;  --flaky-bg: #FFF1E6;  --flaky-line: #B54708;
+  --real-ink: #8F1D14;   --real-bg: #FEECEA;   --real-line: #B42318;
+  --unknown-ink: #3B4048; --unknown-bg: #EEF0F3; --unknown-line: #6B7078;
+  --pass: #175CD3;
+  --code-bg: #15171A;
+  --font: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --radius: 10px;
+  --radius-sm: 8px;
+}

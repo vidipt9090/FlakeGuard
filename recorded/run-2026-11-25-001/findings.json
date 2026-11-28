@@ -1,0 +1,199 @@
+[{
+  "id": "run-2026-11-25-001_finding-1",
+  "test": "test_report_total",
+  "file": "tests/test_report.py",
+  "line": 4,
+  "verdict": "flaky",
+  "subtype": "order-dependent",
+  "severity": "suggestion",
+  "evidenceTier": "reproduced",
+  "summaryLine": "Order-dependent · evidence: reproduced",
+  "why": "This test reads the shared CACHE (src/inventory/cache.py:3) through total at src/inventory/report.py:11. Another test, test_cache_warm, writes it through warm at src/inventory/cache.py:7. If test_cache_warm runs first, this test fails.",
+  "evidence": [
+    "Default order: passed in 1 of 1 run.",
+    "Shuffled order: failed in 5 of 10 runs, passed in 5.",
+    "Reversed order: passed in 1 of 1 run.",
+    "Alone: passed in 1 of 1 run.",
+    "Repeated: passed in 3 of 3 runs.",
+    "Parallel: passed in 1 of 1 run.",
+    "Bisection names test_cache_warm as the polluter (narrowed from 6 preceding tests in 5 steps).",
+    "Running test_cache_warm then test_report_total failed in 5 of 5 repeats."
+  ],
+  "lives": [
+    {
+      "text": "tests/",
+      "tone": "plain"
+    },
+    {
+      "text": "test_report.py",
+      "tone": "plain"
+    },
+    {
+      "text": "test_report_total",
+      "tone": "plain"
+    },
+    {
+      "text": "reads CACHE",
+      "tone": "read"
+    },
+    {
+      "text": "written by test_cache_warm",
+      "tone": "write"
+    }
+  ],
+  "did": "Nothing was posted or changed. This run scanned a local fixture, not a GitHub pull request.",
+  "limits": "The order dependence is shown for these two tests. Other causes of flakiness in this test are not ruled out.",
+  "writer": {
+    "file": "tests/test_warmup.py",
+    "role": "the polluter",
+    "lines": [
+      {
+        "n": 4,
+        "t": "def test_cache_warm():"
+      },
+      {
+        "n": 5,
+        "t": "    warm(\"sku-1\", 40)",
+        "note": "Writes CACHE at src/inventory/cache.py:7.",
+        "hot": true
+      },
+      {
+        "n": 6,
+        "t": "    assert True"
+      }
+    ]
+  },
+  "reader": {
+    "file": "tests/test_report.py",
+    "role": "the victim",
+    "lines": [
+      {
+        "n": 4,
+        "t": "def test_report_total():"
+      },
+      {
+        "n": 5,
+        "t": "    report = Report()"
+      },
+      {
+        "n": 6,
+        "t": "    total = report.total(\"sku-1\")",
+        "note": "Reads CACHE at src/inventory/report.py:11. Fails if test_cache_warm ran first.",
+        "hot": true
+      },
+      {
+        "n": 7,
+        "t": "    assert total == 0"
+      }
+    ]
+  },
+  "repro": "pytest tests/test_warmup.py::test_cache_warm tests/test_report.py::test_report_total -p no:randomly",
+  "fix": {
+    "summary": "Adds an autouse fixture in tests/conftest.py (10 lines) that puts CACHE back to its value from before each test, so no test can leave state behind.",
+    "file": "tests/conftest.py",
+    "diff": [
+      "+import pytest",
+      "+import inventory.cache as _flakeguard_cache",
+      "+",
+      "+",
+      "+@pytest.fixture(autouse=True)",
+      "+def _flakeguard_restore_cache():",
+      "+    before = dict(_flakeguard_cache.CACHE)",
+      "+    yield",
+      "+    _flakeguard_cache.CACHE.clear()",
+      "+    _flakeguard_cache.CACHE.update(before)"
+    ],
+    "checked": "Applied to a copy and ran the suite in 20 shuffled orders (seeds 1 to 20): test_report_total failed in 0 of 20 with the fix; the scan saw it fail in 5 of 10 shuffled runs without it. The two-test repro (test_cache_warm then test_report_total) failed without the fix and passes with it. No test that had never failed in the scan failed with the fix.",
+    "doesNotProve": "That the code is correct in orders that were not run, or that no other test leaves state behind in a way this fixture does not reset."
+  },
+  "quarantine": {
+    "allowed": true,
+    "reason": null
+  }
+},{
+  "id": "run-2026-11-25-001_finding-2",
+  "test": "test_reserve_negative",
+  "file": "tests/test_stock.py",
+  "line": 6,
+  "verdict": "real",
+  "subtype": null,
+  "severity": "blocking",
+  "evidenceTier": "observed",
+  "summaryLine": "Real failure · failed in 17 of 17 runs. Quarantine refused.",
+  "why": "This test failed in all 17 runs it was in, including when run on its own, so test order does not explain it. The failure message is: Failed: DID NOT RAISE ValueError",
+  "evidence": [
+    "Default order: failed in 1 of 1 run.",
+    "Shuffled order: failed in 10 of 10 runs.",
+    "Reversed order: failed in 1 of 1 run.",
+    "Alone: failed in 1 of 1 run.",
+    "Repeated: failed in 3 of 3 runs.",
+    "Parallel: failed in 1 of 1 run."
+  ],
+  "lives": [
+    {
+      "text": "tests/",
+      "tone": "plain"
+    },
+    {
+      "text": "test_stock.py",
+      "tone": "plain"
+    },
+    {
+      "text": "test_reserve_negative",
+      "tone": "plain"
+    }
+  ],
+  "did": "Nothing was posted or changed. This run scanned a local fixture, not a GitHub pull request.",
+  "limits": "FlakeGuard did not look for the cause of the bug. A failure in every run is treated as a real defect.",
+  "writer": null,
+  "reader": null,
+  "repro": "pytest tests/test_stock.py::test_reserve_negative",
+  "fix": null,
+  "quarantine": {
+    "allowed": false,
+    "reason": "Fails in every run. A real failure cannot be quarantined."
+  }
+},{
+  "id": "run-2026-11-25-001_finding-3",
+  "test": "test_sync_timeout",
+  "file": "tests/test_sync.py",
+  "line": 4,
+  "verdict": "unknown",
+  "subtype": null,
+  "severity": "needs-evidence",
+  "evidenceTier": "observed",
+  "summaryLine": "2 failures in 17 runs. Too few to call it flaky.",
+  "why": "This test failed in 2 of 17 runs and passed in the other 15. No polluter test was found, and no targeted run reproduced the failure.",
+  "evidence": [
+    "Default order: passed in 1 of 1 run.",
+    "Shuffled order: failed in 2 of 10 runs, passed in 8.",
+    "Reversed order: passed in 1 of 1 run.",
+    "Alone: passed in 1 of 1 run.",
+    "Repeated: passed in 3 of 3 runs.",
+    "Parallel: passed in 1 of 1 run."
+  ],
+  "lives": [
+    {
+      "text": "tests/",
+      "tone": "plain"
+    },
+    {
+      "text": "test_sync.py",
+      "tone": "plain"
+    },
+    {
+      "text": "test_sync_timeout",
+      "tone": "plain"
+    }
+  ],
+  "did": "Nothing was posted or changed. This run scanned a local fixture, not a GitHub pull request.",
+  "limits": "2 failures in 17 runs is not enough to tell a flaky test from a one-off. Run more shuffled runs to decide.",
+  "writer": null,
+  "reader": null,
+  "repro": null,
+  "fix": null,
+  "quarantine": {
+    "allowed": false,
+    "reason": "Too few failures to call this test flaky. Re-verify first."
+  }
+}]

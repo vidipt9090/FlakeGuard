@@ -1,0 +1,255 @@
+{
+  "what": "The same command (python scripts/run_eval.py injected --steps runs,coverage,rq1,rq2) run four times. B3 counts, from each execution's rq1.json. Assembled by hand from those files; nothing here is estimated.",
+  "why_it_matters": "B3's wrongly-flagged count is not stable between executions. Do not read a B3 row as a point estimate.",
+  "cause": "not verified. A guess: its inputs include unscaled run durations in seconds, which change a little each time.",
+  "executions": [
+    {
+      "execution": "execution 1 (Stage B)",
+      "started_local": "2026-11-22 14:11:45 India Standard Time+0530",
+      "commit": "421fcb9",
+      "where": "results at f4fbd85: runs at 5c38c6b, RQ1/RQ2 at 421fcb9",
+      "b3": {
+        "b3_trained_on_planted_N5": {
+          "flaky_found": 10,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 103,
+          "of_not_flaky": 450
+        },
+        "b3_trained_on_planted_N10": {
+          "flaky_found": 12,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 21,
+          "of_not_flaky": 450
+        },
+        "b3_trained_on_planted_N20": {
+          "flaky_found": 15,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 28,
+          "of_not_flaky": 450
+        },
+        "b3_run_features_only_trained_on_planted_N5": {
+          "flaky_found": 10,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 102,
+          "of_not_flaky": 450
+        },
+        "b3_run_features_only_trained_on_planted_N10": {
+          "flaky_found": 13,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 33,
+          "of_not_flaky": 450
+        },
+        "b3_run_features_only_trained_on_planted_N20": {
+          "flaky_found": 15,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 28,
+          "of_not_flaky": 450
+        },
+        "b3_leave_one_out_injected_N5": {
+          "flaky_found": 15,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 4,
+          "of_not_flaky": 450
+        },
+        "b3_leave_one_out_injected_N10": {
+          "flaky_found": 13,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 6,
+          "of_not_flaky": 450
+        },
+        "b3_leave_one_out_injected_N20": {
+          "flaky_found": 18,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 3,
+          "of_not_flaky": 450
+        }
+      }
+    },
+    {
+      "execution": "execution 2",
+      "started_local": "2026-11-22 14:37:03 India Standard Time+0530",
+      "commit": "3a23404",
+      "where": "discarded, never committed: console files were edited while it ran (tracked_files_modified true)",
+      "b3": {
+        "b3_trained_on_planted_N5": {
+          "flaky_found": 9,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 3,
+          "of_not_flaky": 450
+        },
+        "b3_trained_on_planted_N10": {
+          "flaky_found": 12,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 2,
+          "of_not_flaky": 450
+        },
+        "b3_trained_on_planted_N20": {
+          "flaky_found": 13,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 152,
+          "of_not_flaky": 450
+        },
+        "b3_run_features_only_trained_on_planted_N5": {
+          "flaky_found": 6,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 2,
+          "of_not_flaky": 450
+        },
+        "b3_run_features_only_trained_on_planted_N10": {
+          "flaky_found": 8,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 2,
+          "of_not_flaky": 450
+        },
+        "b3_run_features_only_trained_on_planted_N20": {
+          "flaky_found": 13,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 156,
+          "of_not_flaky": 450
+        },
+        "b3_leave_one_out_injected_N5": {
+          "flaky_found": 15,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 4,
+          "of_not_flaky": 450
+        },
+        "b3_leave_one_out_injected_N10": {
+          "flaky_found": 13,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 5,
+          "of_not_flaky": 450
+        },
+        "b3_leave_one_out_injected_N20": {
+          "flaky_found": 10,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 7,
+          "of_not_flaky": 450
+        }
+      }
+    },
+    {
+      "execution": "execution 3",
+      "started_local": "2026-11-22 14:53:29 India Standard Time+0530",
+      "commit": "24bce8b",
+      "where": "discarded, never committed: planted results rewritten before it started (tracked_files_modified true)",
+      "b3": {
+        "b3_trained_on_planted_N5": {
+          "flaky_found": 11,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 2,
+          "of_not_flaky": 450
+        },
+        "b3_trained_on_planted_N10": {
+          "flaky_found": 12,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 3,
+          "of_not_flaky": 450
+        },
+        "b3_trained_on_planted_N20": {
+          "flaky_found": 11,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 2,
+          "of_not_flaky": 450
+        },
+        "b3_run_features_only_trained_on_planted_N5": {
+          "flaky_found": 11,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 1,
+          "of_not_flaky": 450
+        },
+        "b3_run_features_only_trained_on_planted_N10": {
+          "flaky_found": 12,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 2,
+          "of_not_flaky": 450
+        },
+        "b3_run_features_only_trained_on_planted_N20": {
+          "flaky_found": 13,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 2,
+          "of_not_flaky": 450
+        },
+        "b3_leave_one_out_injected_N5": {
+          "flaky_found": 18,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 4,
+          "of_not_flaky": 450
+        },
+        "b3_leave_one_out_injected_N10": {
+          "flaky_found": 17,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 5,
+          "of_not_flaky": 450
+        },
+        "b3_leave_one_out_injected_N20": {
+          "flaky_found": 12,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 5,
+          "of_not_flaky": 450
+        }
+      }
+    },
+    {
+      "execution": "execution 4 (the committed one)",
+      "started_local": "2026-11-22 15:06:01 India Standard Time+0530",
+      "commit": "c9c7bad",
+      "where": "results/injected/rq1.json",
+      "b3": {
+        "b3_trained_on_planted_N5": {
+          "flaky_found": 23,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 448,
+          "of_not_flaky": 450
+        },
+        "b3_trained_on_planted_N10": {
+          "flaky_found": 19,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 314,
+          "of_not_flaky": 450
+        },
+        "b3_trained_on_planted_N20": {
+          "flaky_found": 15,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 84,
+          "of_not_flaky": 450
+        },
+        "b3_run_features_only_trained_on_planted_N5": {
+          "flaky_found": 23,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 448,
+          "of_not_flaky": 450
+        },
+        "b3_run_features_only_trained_on_planted_N10": {
+          "flaky_found": 23,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 401,
+          "of_not_flaky": 450
+        },
+        "b3_run_features_only_trained_on_planted_N20": {
+          "flaky_found": 15,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 84,
+          "of_not_flaky": 450
+        },
+        "b3_leave_one_out_injected_N5": {
+          "flaky_found": 17,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 4,
+          "of_not_flaky": 450
+        },
+        "b3_leave_one_out_injected_N10": {
+          "flaky_found": 14,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 3,
+          "of_not_flaky": 450
+        },
+        "b3_leave_one_out_injected_N20": {
+          "flaky_found": 11,
+          "of_flaky": 26,
+          "stable_wrongly_flagged": 7,
+          "of_not_flaky": 450
+        }
+      }
+    }
+  ]
+}

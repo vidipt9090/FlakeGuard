@@ -1,0 +1,17 @@
+================================================================================
+FLAKEGUARD SCAN: C:\Users\khull\AppData\Local\Temp\fg-record-qjlep0ru\target
+Pinned SHA: HEAD | Shuffled Runs: 10 (seeds 1 to 10) | Sandbox: Local
+================================================================================
+
+================================================================================
+SCAN COMPLETED SUCCESSFULLY
+================================================================================
+Run ID: scan_20261121_060852_42b2e0
+Pinned SHA: cfd9e3612364b50021699ac8536248c740720cce
+Event Log: recorded\run-2026-11-21-002\raw\events.jsonl
+Total Perturbation Slices: 17
+Total Unique Tests: 28
+Detected Flaky Tests (2):
+  - tests.test_report::test_report_total                         (Fail rate: 42.9%)
+  - tests.test_sync::test_sync_timeout                           (Fail rate: 7.1%)
+================================================================================

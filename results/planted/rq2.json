@@ -1,0 +1,418 @@
+{
+  "provenance": {
+    "label_type": "planted",
+    "dataset": {
+      "suite": "synthetic/tests",
+      "labels_file": "labels/labels.json",
+      "labels_sha256": "89a10867c7d8154e1955bdf071b8ecbcb3e34eab587b11b2ed29964f19d01b5d",
+      "how_labelled": "by construction: each fault was written into the test or the code by hand, so its label is known",
+      "n_tests": 31,
+      "n_by_label": {
+        "stable": 10,
+        "flaky": 15,
+        "real": 6
+      }
+    },
+    "command": "python scripts/run_eval.py planted --steps runs,rq1,rq2",
+    "date_utc": "2026-11-22T09:33:52Z",
+    "clock": {
+      "local": "2026-11-22 15:03:52 India Standard Time+0530",
+      "weekday": "Sunday"
+    },
+    "commit": "c9c7bad102e304cedae6e89068333aa98d6e5641",
+    "tracked_files_modified": false,
+    "environment": {
+      "python": "3.12.13",
+      "pytest": "9.2.0",
+      "platform": "Windows-11-10.0.26300-SP0"
+    },
+    "budget_minutes": 6.0,
+    "tolerances": {
+      "b1_fixed_order": "B1 found-flaky counts vary by about 1 test between executions (unseeded randomness tests).",
+      "b3": "B3 is not stable between executions. Its inputs (failure counts and test durations of runs that are made again each time) change a little, and a forest trained on 31 tests reacts strongly: trained on planted at N=20 it wrongly flagged 28, 152 and 2 of 450 stable injected tests in three executions of the same command. Read a B3 row as a range, not a point.",
+      "perturbation": "exact on the same commit and environment: seeds fix the order and reseed random (timing faults can differ)",
+      "minutes": "about 0.1 minute between executions on the planted suite; the injected suite takes longer per run"
+    },
+    "natural_flakes": "none available: shown as a dash on the Results screen",
+    "limitations": [
+      "Planted faults only. Results on planted faults are partly circular: the faults were written to be the kinds that shuffled runs and the AST analysis are built to find. Read them as a check that the methods work, not as a measure of how often they find real-world flakes.",
+      "No natural flakes (flakes found in real projects) were available. Natural results are not reported and stay dashes.",
+      "Five of the 15 tests labelled flaky cannot pass on this machine, judging by their code (see sensitivity below). The primary table keeps the labels as written; the sensitivity table relabels those five as real, with the reason read from the test code. The five were first noticed because every method called them real, then confirmed by reading the code; no test is dropped because a method called it real.",
+      "Small N: 15 flaky and 16 other tests. Intervals are wide and a difference between methods of a few tests is not evidence of a difference.",
+      "B2 and B3 are not scored on this set: it has no commit diff or coverage run for B2, and B3 is trained on it, so scoring B3 here would score it on its training tests."
+    ],
+    "runs_recorded": {
+      "b1_fixed_order": {
+        "command": "python scripts/run_eval.py planted --steps runs,rq1,rq2",
+        "date_utc": "2026-11-22T09:33:52Z",
+        "commit": "c9c7bad102e304cedae6e89068333aa98d6e5641",
+        "tracked_files_modified": false
+      },
+      "perturbation": {
+        "command": "python scripts/run_eval.py planted --steps runs,rq1,rq2",
+        "date_utc": "2026-11-22T09:33:52Z",
+        "commit": "c9c7bad102e304cedae6e89068333aa98d6e5641",
+        "tracked_files_modified": false
+      }
+    }
+  },
+  "source": "outcomes of the perturbation runs recorded in perturbation.json (seeds 1 to 20), fed one run at a time to flakeguard.stats.adaptive.AdaptiveStoppingPolicy(min_runs=3, max_runs=20, confidence=0.95, threshold_p=0.15)",
+  "runs_to_decision_adaptive": {
+    "n_tests": 31,
+    "mean": 6.097,
+    "median": 5,
+    "mean_ci95_bootstrap": [
+      5.032,
+      7.194
+    ],
+    "total_test_runs": 189
+  },
+  "runs_to_decision_fixed": {
+    "N=5": {
+      "n_tests": 31,
+      "mean": 5.0,
+      "median": 5,
+      "mean_ci95_bootstrap": [
+        5.0,
+        5.0
+      ],
+      "total_test_runs": 155
+    },
+    "N=10": {
+      "n_tests": 31,
+      "mean": 10.0,
+      "median": 10,
+      "mean_ci95_bootstrap": [
+        10.0,
+        10.0
+      ],
+      "total_test_runs": 310
+    },
+    "N=20": {
+      "n_tests": 31,
+      "mean": 20.0,
+      "median": 20,
+      "mean_ci95_bootstrap": [
+        20.0,
+        20.0
+      ],
+      "total_test_runs": 620
+    }
+  },
+  "suite_runs_until_every_test_decided_adaptive": 10,
+  "decisions_adaptive": {
+    "flaky": 9,
+    "real": 11,
+    "none_seen": 11,
+    "undecided": 0
+  },
+  "decisions_fixed_20": {
+    "flaky": 10,
+    "real": 11,
+    "none_seen": 10
+  },
+  "tests_where_adaptive_differs_from_fixed_20": {
+    "k": 1,
+    "n": 31,
+    "ids": [
+      "synthetic/tests/test_suite_02.py::test_case_18"
+    ]
+  },
+  "flaky_tests_adaptive_misses": [
+    "synthetic/tests/test_suite_02.py::test_case_18"
+  ],
+  "tradeoff": {
+    "whole_suite_runs_saved": {
+      "k": 10,
+      "n": 20
+    },
+    "flaky_found_adaptive": {
+      "k": 9,
+      "n": 15
+    },
+    "flaky_found_fixed_20": {
+      "k": 10,
+      "n": 15
+    },
+    "missed_by_adaptive_but_found_by_fixed_20": [
+      "synthetic/tests/test_suite_02.py::test_case_18"
+    ],
+    "stop_rule_disclosure": "The stop rule (a test with no failure is declared 'no evidence' once runs >= 10, whether or not the credible-interval bound is met) is existing code in flakeguard/stats/adaptive.py. It was not tuned on this data or by us for this evaluation."
+  },
+  "note": "The adaptive count is per test. One whole-suite run executes every test, so the suite stops only after the last test is decided (suite_runs_until_every_test_decided_adaptive); the per-test saving is not a wall-clock saving unless that number is below 20. per_test lists the tests that are not labelled stable and every test where adaptive and fixed differ.",
+  "per_test": {
+    "synthetic/tests/test_suite_01.py::test_case_02": {
+      "label": "flaky",
+      "root_cause": "order_dep",
+      "failures_in_20": 8,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 2,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "synthetic/tests/test_suite_01.py::test_case_04": {
+      "label": "flaky",
+      "root_cause": "order_dep",
+      "failures_in_20": 12,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 2,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "synthetic/tests/test_suite_01.py::test_case_06": {
+      "label": "flaky",
+      "root_cause": "order_dep",
+      "failures_in_20": 8,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 2,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "synthetic/tests/test_suite_01.py::test_case_08": {
+      "label": "flaky",
+      "root_cause": "shared_state",
+      "failures_in_20": 8,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 2,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "synthetic/tests/test_suite_01.py::test_case_10": {
+      "label": "flaky",
+      "root_cause": "shared_state",
+      "failures_in_20": 10,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 2,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "synthetic/tests/test_suite_02.py::test_case_12": {
+      "label": "flaky",
+      "root_cause": "shared_state",
+      "failures_in_20": 8,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 2,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "synthetic/tests/test_suite_02.py::test_case_13": {
+      "label": "flaky",
+      "root_cause": "timing",
+      "failures_in_20": 12,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 3,
+        "failures": 2,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "synthetic/tests/test_suite_02.py::test_case_14": {
+      "label": "flaky",
+      "root_cause": "timing",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "synthetic/tests/test_suite_02.py::test_case_15": {
+      "label": "flaky",
+      "root_cause": "timing",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "synthetic/tests/test_suite_02.py::test_case_16": {
+      "label": "flaky",
+      "root_cause": "randomness",
+      "failures_in_20": 4,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 4,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "synthetic/tests/test_suite_02.py::test_case_17": {
+      "label": "flaky",
+      "root_cause": "randomness",
+      "failures_in_20": 2,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 1,
+        "decision": "flaky",
+        "policy_verdict": "flaky",
+        "reason": "Flakiness confirmed: observed both pass and fail outcomes"
+      }
+    },
+    "synthetic/tests/test_suite_02.py::test_case_18": {
+      "label": "flaky",
+      "root_cause": "randomness",
+      "failures_in_20": 1,
+      "fixed_20": "flaky",
+      "adaptive": {
+        "runs_used": 10,
+        "failures": 0,
+        "decision": "none_seen",
+        "policy_verdict": "no evidence in 10 runs",
+        "reason": "Failure rate statistically bounded below 0.15 (upper CI: 0.217 at 95%)"
+      }
+    },
+    "synthetic/tests/test_suite_02.py::test_case_19": {
+      "label": "flaky",
+      "root_cause": "time_tz",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "synthetic/tests/test_suite_02.py::test_case_20": {
+      "label": "flaky",
+      "root_cause": "time_tz",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "synthetic/tests/test_suite_03.py::test_case_21": {
+      "label": "flaky",
+      "root_cause": "time_tz",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "synthetic/tests/test_suite_03.py::test_case_22": {
+      "label": "real",
+      "root_cause": "none",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "synthetic/tests/test_suite_03.py::test_case_23": {
+      "label": "real",
+      "root_cause": "none",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "synthetic/tests/test_suite_03.py::test_case_24": {
+      "label": "real",
+      "root_cause": "none",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "synthetic/tests/test_suite_03.py::test_case_25": {
+      "label": "real",
+      "root_cause": "none",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "synthetic/tests/test_suite_03.py::test_case_26": {
+      "label": "real",
+      "root_cause": "none",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    },
+    "synthetic/tests/test_suite_03.py::test_case_27": {
+      "label": "real",
+      "root_cause": "none",
+      "failures_in_20": 20,
+      "fixed_20": "real",
+      "adaptive": {
+        "runs_used": 5,
+        "failures": 5,
+        "decision": "real",
+        "policy_verdict": "deterministic_failure",
+        "reason": "Consistent failure across 5 consecutive runs"
+      }
+    }
+  }
+}

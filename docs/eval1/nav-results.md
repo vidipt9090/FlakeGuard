@@ -188,3 +188,126 @@ navigation works on both.
   widening**, and that needs a `contract-change` PR with two approvals.
 - **No measurement on planted flakes.** `synthetic/` is C's work package and
   is where order-dependence navigation gets tested for real.
+
+---
+
+## Addendum, 2026-10-10: the knowledge tree and the navigation trace
+
+The numbers above score the navigator's *answer*. They say nothing about how
+it got there, which is the part a reviewer has to trust. Two additions, both in
+`flakeguard/navigator/`:
+
+- **`trace.py`** records every step — each name the AST walk collected, each
+  `jedi.goto` / `jedi.infer` call with what it returned and what survived
+  filtering, each expansion hop, with the depth it happened at.
+- **`knowledge_tree.py`** rearranges a `NavResult` by distance from the test,
+  with the edge that reached each node named rather than implied.
+
+`NavResult` is unchanged and `related()` is unaffected; `explain()` opts in.
+`tests/test_knowledge_tree.py` asserts the two paths agree chunk for chunk.
+
+Full write-up and the edge/phase tables: **`docs/knowledge-tree.md`**.
+
+### What the tree shape adds to the story above
+
+| | synthetic, 31 cases | cachetools @ `3c082c6`, 10 gold cases |
+| --- | --- | --- |
+| resolved | 31 / 31 | 10 / 10 |
+| mean nodes per tree | 12.4 | 4.4 |
+| mean / max depth | 1.19 / 2 | **2.0 / 2** |
+| trees reaching hop 2 | 6 | **10** |
+| jedi calls | 176 | 966 |
+| jedi hit rate | 100% | 90% |
+| median / max latency | 42 ms / 1.0 s | 629 ms / 1.6 s |
+
+The two sets fail differently, and that is the useful part. Synthetic trees are
+**wide and shallow** — a flat module with a lot of module-level mutable state,
+so most nodes are `touches` at hop 1. cachetools trees are **narrow and deep** —
+every single one reaches hop 2, because the library's API *is* its class
+hierarchy and its operators. This is direct evidence for the two design
+decisions the sections above argued for on recall grounds alone: a navigator
+with only `jedi.goto` at one hop would find almost nothing in cachetools.
+
+It also quantifies the filtering. On `test_ttl`, jedi is asked **202** times to
+produce a tree of **6** nodes. The gap between "definitions returned" and
+"definitions kept" is where precision comes from, and it is now a recorded
+number per call rather than an inference.
+
+### One result that changes how these numbers should be read
+
+> The navigator resolves names with jedi, and **jedi resolves against what is
+> importable**. Running the same evaluation under two interpreters on the same
+> machine, with no repository change in between:
+>
+> | | jedi 0.20.0, freezegun present | jedi 0.19.1, freezegun absent |
+> | --- | --- | --- |
+> | `test_case_19` code under test | 3 chunks | 1 chunk |
+> | `test_case_19` shared state | 17 | 8 |
+>
+> Every navigator number in this document is therefore conditional on its
+> environment. `jedi>=0.20.0` is now pinned in `pyproject.toml`, and the
+> pipeline's `test` stage records `jedi --version` and a full `pip freeze`
+> alongside the results. This was found while building the trace — it is
+> exactly the class of silent drift the `gate` stage's navigator checks exist
+> to catch.
+
+---
+
+## Correction, 2026-10-11: dependencies were being counted as code under test
+
+The addendum above reported that the same test id resolved to 3 chunks under
+jedi 0.20 and 1 chunk under 0.19, and attributed the difference to the jedi
+version. That was half the story, and the smaller half.
+
+**The real cause was a navigator bug.** `_is_within()` asked only "is this
+path under the repository root?". A virtualenv sits *inside* the repository
+root, so every installed package answered yes. With `freezegun` importable,
+`@freeze_time` made jedi resolve into
+`.venv/Lib/site-packages/freezegun/api.py`, and that counted as code under
+test.
+
+On `test_case_21`, **11 of 20 chunks were freezegun internals**:
+
+| | before | after |
+| --- | --- | --- |
+| `test_case_21` code under test | 3 (2 of them freezegun) | 1 |
+| `test_case_21` shared state | 17 (9 of them freezegun) | 8 |
+| vendored chunks in the result | 11 of 20 | 0 |
+
+This is worse than noise. The evidence bundle carries only the first few
+chunks, so third-party source does not sit harmlessly at the bottom of the
+list — it **pushes the repository's own code out of the bundle entirely**. A
+`freezegun` internal scoring 2.35 outranked `shop.py` scoring 1.00 on the very
+case whose planted root cause is in `shop.py`.
+
+The fix excludes vendored directories (`site-packages`, `dist-packages`,
+`.venv`, `venv`, `.tox`, `.nox`, `node_modules`, `__pypackages__`, `.eggs`)
+even when they sit under the repository root.
+`tests/test_navigator.py::test_a_virtualenv_inside_the_repo_is_not_code_under_test`
+builds a repository with a fake installed package and asserts it never
+reaches the result.
+
+**The interpreters now agree.** The jedi-0.19 numbers were closer to correct
+by accident: 0.19 could not see `freezegun`, so it could not resolve into it.
+Both interpreters now give the same answer, which is the outcome that matters
+more than either number.
+
+### What this changes in the measured results
+
+| | before the fix | after |
+| --- | --- | --- |
+| synthetic, mean tree nodes | 12.39 | 10.77 |
+| synthetic, trees reaching hop 2 | 6 | 1 |
+| cachetools, every figure | unchanged | unchanged |
+
+cachetools is unaffected because its checkout has no virtualenv inside it,
+which is also why this went unnoticed for so long: **the bug was invisible on
+the repository the navigator was scored against, and only appeared on the
+one it ships inside.**
+
+The honest reading of "trees reaching hop 2: 6 → 1" is that five of those six
+second hops were the navigator walking into freezegun's class hierarchy. The
+synthetic benchmark is a single flat module; it never had five real second
+hops. The quality gate's synthetic hop-2 check is therefore a bare floor, and
+the real guard on the expansion pass is the external check, where all ten
+cachetools trees reach hop 2.

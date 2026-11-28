@@ -1,0 +1,380 @@
+/* PipelineView.css - Clean GitHub Actions / Scan Pipeline layout (Unified Dark Theme) */
+
+.pipeline-container {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 32px 24px 80px 24px;
+}
+
+.pipeline-header {
+  margin-bottom: 28px;
+}
+
+.pipeline-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--color-text-primary, #f0f2f5);
+  margin: 0 0 8px 0;
+  letter-spacing: -0.015em;
+}
+
+.pipeline-subtitle {
+  font-size: 14.5px;
+  color: var(--color-text-muted, #8b949e);
+  margin: 0;
+  max-width: 680px;
+  line-height: 1.5;
+}
+
+.pipeline-loading {
+  font-size: 14px;
+  color: var(--color-text-muted, #8b949e);
+  padding: 40px 0;
+}
+
+.pipeline-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Left Column: Recent Runs */
+.recent-runs-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.recent-runs-heading {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted, #8b949e);
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+}
+
+.runs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.run-card {
+  background: var(--color-bg-panel, #12141a);
+  border: 1px solid var(--color-border, #262933);
+  border-radius: 8px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.run-card:hover {
+  border-color: #38bdf8;
+}
+
+.run-card.selected {
+  border: 2px solid #2563eb;
+  background: var(--color-bg-subtle, #181b22);
+}
+
+.run-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.run-trigger {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary, #f0f2f5);
+}
+
+.status-chip {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+
+.chip-running {
+  background: rgba(37, 99, 235, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(37, 99, 235, 0.4);
+}
+
+.chip-done {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.chip-error {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.run-card-sub {
+  font-size: 12.5px;
+  color: var(--color-text-muted, #8b949e);
+}
+
+/* Right Column: Run Details */
+.run-detail-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.detail-card {
+  background: var(--color-bg-panel, #12141a);
+  border: 1px solid var(--color-border, #262933);
+  border-radius: 8px;
+  padding: 22px 26px;
+}
+
+.detail-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.detail-run-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary, #f0f2f5);
+  margin: 0;
+}
+
+.github-actions-link {
+  color: #38bdf8;
+  font-size: 13.5px;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.github-actions-link:hover {
+  text-decoration: underline;
+  color: #7dd3fc;
+}
+
+/* Stage durations track */
+.stage-bars-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.stage-duration-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.stage-row-label {
+  width: 90px;
+  font-size: 13.5px;
+  color: var(--color-text-primary, #f0f2f5);
+  flex-shrink: 0;
+}
+
+.stage-row-track {
+  flex: 1;
+  height: 8px;
+  background: #262933;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.stage-row-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.stage-fill-done {
+  background: #22c55e;
+}
+
+.stage-fill-running {
+  background: #3b82f6;
+}
+
+.stage-fill-waiting {
+  background: #374151;
+}
+
+.stage-fill-error {
+  background: #ef4444;
+}
+
+.stage-duration-val {
+  width: 65px;
+  text-align: right;
+  font-size: 13px;
+  color: var(--color-text-muted, #8b949e);
+  flex-shrink: 0;
+}
+
+.text-running {
+  color: #38bdf8;
+  font-weight: 500;
+}
+
+/* Checklist */
+.card-subheading {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted, #8b949e);
+  margin: 0 0 16px 0;
+  text-transform: uppercase;
+}
+
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.check-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-completed {
+  background: #22c55e;
+}
+
+.dot-waiting {
+  background: #4b5563;
+}
+
+.step-text {
+  font-size: 13.5px;
+  color: var(--color-text-primary, #f0f2f5);
+}
+
+/* Event Log Console */
+.event-log-card {
+  background: #0d1117;
+  border: 1px solid #262933;
+  border-radius: 8px;
+  padding: 18px 22px;
+  color: #f4f4f5;
+}
+
+.event-log-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #8b949e;
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+}
+
+.event-log-console {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #e4e4e7;
+}
+
+.console-line {
+  white-space: pre-wrap;
+}
+
+.run-meta-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sandbox-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.sandbox-label {
+  color: #8b949e;
+}
+
+.sandbox-value {
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.where-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.where-cell {
+  background: #181b22;
+  border: 1px solid #262933;
+  padding: 12px;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.where-stage-name {
+  font-size: 11px;
+  color: #8b949e;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.where-runner {
+  font-size: 13.5px;
+  color: #f0f2f5;
+}
+
+.where-detail {
+  font-size: 11.5px;
+  color: #8b949e;
+}
+
+.checklist-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.checklist-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: #f0f2f5;
+}
+
+.checklist-icon.completed {
+  color: #22c55e;
+  font-weight: bold;
+}
+
+.checklist-icon.pending {
+  color: #6b7280;
+}
